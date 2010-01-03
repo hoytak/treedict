@@ -1,0 +1,3 @@
+include tests/*.py
+include treedict/*.pyx treedict/*.pxd treedict/*.h
+include LICENSE.txt
