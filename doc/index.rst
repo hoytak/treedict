@@ -1,16 +1,25 @@
 TreeDict
 ========
 
-TreeDict is a dictionary-like, hierarcical python container for
-storing, organizing and manipulating values.  It is intended to be
-fast and lightweight enough to be used, in many cases, as a
-feature-rich replacement for a dictionary while implementing features
-that make sophisticated bookkeeping easy.
+TreeDict is a dictionary-like, hierarcical python container to
+simplify the bookkeeping surrounding parameters, variables and
+data. It aims to be fast, lightweight, intuitive, feature-rich and
+stable.
 
-TreeDict has the following features:
+While intended for general python development, it includes a number of
+features particularly useful for scientific programming.  It is
+similar in basic functionality to MATLAB structures in terms of
+concise syntax and implicit branch creation.  In addition, though,
+TreeDict implements all the methods of regular dictionaries, pickling,
+fast non-intersecting hashing for efficient caching, manipulations on
+the tree structure, and a system for forward referencing branches to
+make lists of parameters more readable.
 
-- A design emphasis on concise, clear, intuitive syntax and
-  functionality.
+TreeDict Distinctives
+------------------------------
+
+- A design emphasis on concise, immediately readable and intuitive
+  syntax and functionality.
 
 - All dictionary operations and methods are implemented, allowing
   TreeDict to be a drop-in replacement for a dictionary in many cases
@@ -39,7 +48,6 @@ TreeDict has the following features:
   messages.
 
 - Licensed under the liberal BSD open source license.
-
 
 Short Example
 ------------------------------

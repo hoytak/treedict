@@ -126,6 +126,24 @@ best presents the options.  Specifying more significant options first
 (lower levels on the tree), with details coming later (branches and
 leaves), allows for more readable and intuitive code.
 
+Tree Structure
+----------------------
+
+The tree itself is such that each node has only one parent node, and
+each tree has only one root.  Nodes can be detached from their parent
+with the :meth:`~treedict.TreeDict.pop` method; these become a new
+tree with the detached node becoming the root.  Likewise, trees can be
+grafted in usign :meth:`~treedict.TreeDict.attach`.  In addition,
+copies of the entire tree, or just a subtree, can be done with
+:meth:`~treedict.TreeDict.copy`.
+
+Unattached TreeDict instances within the tree structure are treated
+just like any other values.  Thus links within the tree structure are
+allowed as leaves can reference other parts of the tree.  To eliminate
+these links, one can use :meth:`~treedict.TreeDict.attach` with
+``recursive = True`` to turn any such links into branches, copying as
+needed.
+
 Examples
 -------------------------
 
