@@ -349,7 +349,7 @@ class TestIteratorsLists(unittest.TestCase):
         if mode == "branch":
             def action(i,n,t):
                 if i == n//2:
-                    b = p.makeBranch(unique_name())
+                    b = p.make_branch(unique_name())
             test_it(action)
 
         if mode == "size_called":

@@ -41,40 +41,40 @@ from common import *
 class TestNames(unittest.TestCase):
     def testRoot(self):
         p = TreeDict('a')
-        self.assert_(p.branchName(add_tree_name=True) == 'a')
-        self.assert_(p.treeName() == 'a')
-        self.assert_(p.branchName() == '')
+        self.assert_(p.branch_name(add_tree_name=True) == 'a')
+        self.assert_(p.tree_name() == 'a')
+        self.assert_(p.branch_name() == '')
 
     def testBranchName01(self):
         p = TreeDict('a')
-        b = p.makeBranch('b')
+        b = p.make_branch('b')
 
-        self.assert_(b.branchName() == 'b', b.branchName())
-        self.assert_(b.treeName() == 'a', b.treeName())
-        self.assert_(b.branchName(add_path = True) == 'b', b.branchName(add_path = True))
-        self.assert_(b.branchName(add_path = True, add_tree_name=True) == 'a.b',
-                     b.branchName(add_path = True, add_tree_name=True))
-        self.assert_(p._branchNameOf('b') == 'b', p._branchNameOf('b'))
+        self.assert_(b.branch_name() == 'b', b.branch_name())
+        self.assert_(b.tree_name() == 'a', b.tree_name())
+        self.assert_(b.branch_name(add_path = True) == 'b', b.branch_name(add_path = True))
+        self.assert_(b.branch_name(add_path = True, add_tree_name=True) == 'a.b',
+                     b.branch_name(add_path = True, add_tree_name=True))
+        self.assert_(p._branch_nameOf('b') == 'b', p._branch_nameOf('b'))
 
     def testBranchNameEmptyTreeName(self):
         p = TreeDict('')
-        b = p.makeBranch('b')
+        b = p.make_branch('b')
 
-        self.assert_(b.branchName(add_path = True, add_tree_name=True) == '.b',
-                     b.branchName(add_path = True, add_tree_name=True))
-        self.assert_(b.treeName() == '', b.treeName())
-        self.assert_(b.branchName(add_path = True) == 'b', b.branchName(add_path = True))
-        self.assert_(p._branchNameOf('b') == 'b', p._branchNameOf('b'))
+        self.assert_(b.branch_name(add_path = True, add_tree_name=True) == '.b',
+                     b.branch_name(add_path = True, add_tree_name=True))
+        self.assert_(b.tree_name() == '', b.tree_name())
+        self.assert_(b.branch_name(add_path = True) == 'b', b.branch_name(add_path = True))
+        self.assert_(p._branch_nameOf('b') == 'b', p._branch_nameOf('b'))
 
     def test_dotInTreeName(self):
         p = TreeDict('a.b')
-        b = p.makeBranch('c')
+        b = p.make_branch('c')
 
-        self.assert_(b.branchName(add_path = True, add_tree_name=True) == 'a.b.c',
-                     b.branchName(add_path = True, add_tree_name=True))
-        self.assert_(b.treeName() == 'a.b', b.treeName())
-        self.assert_(b.branchName(add_path = True) == 'c', b.branchName(add_path = True))
-        self.assert_(p._branchNameOf('c') == 'c', p._branchNameOf('c'))
+        self.assert_(b.branch_name(add_path = True, add_tree_name=True) == 'a.b.c',
+                     b.branch_name(add_path = True, add_tree_name=True))
+        self.assert_(b.tree_name() == 'a.b', b.tree_name())
+        self.assert_(b.branch_name(add_path = True) == 'c', b.branch_name(add_path = True))
+        self.assert_(p._branch_nameOf('c') == 'c', p._branch_nameOf('c'))
 
 
 

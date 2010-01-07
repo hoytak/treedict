@@ -69,7 +69,7 @@ class TestSetting(unittest.TestCase):
 
     def testSetGet04b(self):
         p = sample_tree()
-        p.makeBranch("b")
+        p.make_branch("b")
         p.set("b.c", 123)
 
         self.assert_(p.get("b.c") == 123)
@@ -95,7 +95,7 @@ class TestSetting(unittest.TestCase):
 
         # Regression
         p = getTree('upt_08_bcg2_whodunit_')
-        self.assert_(not p.isFrozen())
+        self.assert_(not p.is_frozen())
         p.a18462.a1732643.x = 1
         q = p.a18462.a1732643.copy()
         q.a1232 = "borkbork"  
@@ -424,31 +424,31 @@ class TestSetting(unittest.TestCase):
     def testSetFromString_01(self):
         p = sample_tree()
         
-        self.assert_(p.setFromString("a", "(0,1,2)"))
+        self.assert_(p.set_from_string("a", "(0,1,2)"))
         self.assert_(p.a == (0,1,2))
 
     def testSetFromString_02(self):
         p = sample_tree()
         
-        self.assert_(p.setFromString("a", "'string'"))
+        self.assert_(p.set_from_string("a", "'string'"))
         self.assert_(p.a == 'string')
 
     def testSetFromString_03(self):
         p = sample_tree()
         
-        self.assert_(p.setFromString("a", "123 + 345"))
+        self.assert_(p.set_from_string("a", "123 + 345"))
         self.assert_(p.a == 123 + 345)
 
     def testSetFromString_04(self):
         p = sample_tree()
         
-        self.assert_(not p.setFromString("a", "123 345"))
+        self.assert_(not p.set_from_string("a", "123 345"))
         self.assert_(p.a == "123 345")
         
     def testSetFromString_05(self):
         p = sample_tree()
 
-        self.assert_(p.setFromString("a", "x/2", {"x" : 4}))
+        self.assert_(p.set_from_string("a", "x/2", {"x" : 4}))
         self.assert_(p.a == 2)
 
 

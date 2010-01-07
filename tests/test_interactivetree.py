@@ -47,21 +47,21 @@ class TestInteractiveTreeDict(unittest.TestCase):
         v = ("borkborkbork", 123)
         p.a.b.c = v
 
-        self.assert_(p.interactiveTree().a.b.c is v)
+        self.assert_(p.interactive_tree().a.b.c is v)
         
     def testInteractiveTree_03(self):
         p = sample_tree()
 
-        self.assert_(p.interactiveTree().treeDict() is p)
+        self.assert_(p.interactive_tree().treedict() is p)
 
     def testInteractiveTree_04_pickling(self):
         p = sample_tree()
 
-        s = cPickle.dumps(p.interactiveTree(), protocol=0)
+        s = cPickle.dumps(p.interactive_tree(), protocol=0)
         ipt = cPickle.loads(s)
 
-        self.assert_(ipt.treeDict() == p)
-        self.assert_(p.interactiveTree() == ipt)
+        self.assert_(ipt.treedict() == p)
+        self.assert_(p.interactive_tree() == ipt)
 
     def testInteractiveTree_05_setattr(self):
         p = sample_tree()
@@ -71,7 +71,7 @@ class TestInteractiveTreeDict(unittest.TestCase):
 
         p.a.b.c = v1
         
-        pi = p.interactiveTree()
+        pi = p.interactive_tree()
         
         self.assert_(p.a.b.c is v1)
         self.assert_(pi.a.b.c is v1)

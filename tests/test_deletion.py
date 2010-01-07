@@ -177,13 +177,13 @@ class TestDeletion(unittest.TestCase):
 
     def testDeletion_03_is_detached(self):
         p = TreeDict()
-        p.makeBranch("a")
+        p.make_branch("a")
         a = p.a
 
         del p["a"]
 
-        self.assert_(a.rootNode() is not p)
-        self.assert_(a.parentNode() is None)
+        self.assert_(a.root_node() is not p)
+        self.assert_(a.parent_node() is None)
         
     
 

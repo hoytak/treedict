@@ -38,7 +38,7 @@ def basic_walking_test():
 
     p.a.b.v = 1
     p.a.v = 1
-    p.makeBranch("b")
+    p.make_branch("b")
     p.v = 1
 
     p.freeze()

@@ -46,8 +46,8 @@ class TestAttachPop(unittest.TestCase):
         p1.attach(p2)
 
         self.assert_(p1.node.a == 123)
-        self.assert_(p1.node.rootNode() is p1)
-        self.assert_(p2.rootNode() is p2)
+        self.assert_(p1.node.root_node() is p1)
+        self.assert_(p2.root_node() is p2)
 
     def testAttaching_02(self):
         p1 = TreeDict('root')
@@ -57,9 +57,9 @@ class TestAttachPop(unittest.TestCase):
         p1.attach(p2, copy=False)
 
         self.assert_(p1.node.a == 123)
-        self.assert_(p1.node.rootNode() is p1)
+        self.assert_(p1.node.root_node() is p1)
         self.assert_(p1.node is p2)
-        self.assert_(p2.rootNode() is p1)
+        self.assert_(p2.root_node() is p1)
 
     def testAttaching_03(self):
         p1 = TreeDict('root')
@@ -69,10 +69,10 @@ class TestAttachPop(unittest.TestCase):
         p1.attach(p2, name='attachnode')
 
         self.assert_(p1.attachnode.a == 123)
-        self.assert_(p1.attachnode.rootNode() is p1)
+        self.assert_(p1.attachnode.root_node() is p1)
         self.assert_(p1.attachnode == p2)
-        self.assert_(p1.attachnode.branchName(True,True) == "root.attachnode")
-        self.assert_(p2.rootNode() is p2)
+        self.assert_(p1.attachnode.branch_name(True,True) == "root.attachnode")
+        self.assert_(p2.root_node() is p2)
 
     def testAttaching_04(self):
         p1 = TreeDict('root')
@@ -82,12 +82,12 @@ class TestAttachPop(unittest.TestCase):
         p1.attach(p2, name='attachnode', copy=False)
 
         self.assert_(p1.attachnode.a == 123)
-        self.assert_(p1.attachnode.rootNode() is p1)
+        self.assert_(p1.attachnode.root_node() is p1)
 
         self.assert_(p1.attachnode == p2)
-        self.assert_(p1.attachnode.branchName(True,True) == "root.attachnode")
-        self.assert_(p2.branchName(True,True) == "root.attachnode")
-        self.assert_(p2.rootNode() is p1)
+        self.assert_(p1.attachnode.branch_name(True,True) == "root.attachnode")
+        self.assert_(p2.branch_name(True,True) == "root.attachnode")
+        self.assert_(p2.root_node() is p1)
 
     def testAttaching_05(self):
         p1 = TreeDict('root')
@@ -131,9 +131,9 @@ class TestAttachPop(unittest.TestCase):
         p2.attach(p, copy=False)
         
         self.assert_(p2.p.b.c == 1)
-        self.assert_(p2.p.isFrozen())
-        self.assert_(p2.p.b.isFrozen())
-        self.assert_(not p2.isFrozen())
+        self.assert_(p2.p.is_frozen())
+        self.assert_(p2.p.b.is_frozen())
+        self.assert_(not p2.is_frozen())
 
     def testAttaching_09_frozen_2(self):
         p = TreeDict('p')
@@ -144,9 +144,9 @@ class TestAttachPop(unittest.TestCase):
         p2.attach(p, copy=True)
         
         self.assert_(p2.p.b.c == 1)
-        self.assert_(not p2.p.isFrozen())
-        self.assert_(not p2.p.b.isFrozen())
-        self.assert_(not p2.isFrozen())
+        self.assert_(not p2.p.is_frozen())
+        self.assert_(not p2.p.b.is_frozen())
+        self.assert_(not p2.is_frozen())
 
     def testRecursiveAttach_01(self):
         p1 = TreeDict('root')
@@ -154,21 +154,21 @@ class TestAttachPop(unittest.TestCase):
         p1.b1.b2 = TreeDict('new_branch')
         p1.b1.b2.b3 = TreeDict('new_branch')
 
-        self.assert_(p1.b1.isRoot())
-        self.assert_(p1.b1.b2.isRoot())
-        self.assert_(p1.b1.b2.b3.isRoot())
-        self.assert_(p1.b1.branchName(True,True) == 'new_branch')
-        self.assert_(p1.b1.b2.branchName(True,True) == 'new_branch')
-        self.assert_(p1.b1.b2.b3.branchName(True,True) == 'new_branch')
+        self.assert_(p1.b1.is_root())
+        self.assert_(p1.b1.b2.is_root())
+        self.assert_(p1.b1.b2.b3.is_root())
+        self.assert_(p1.b1.branch_name(True,True) == 'new_branch')
+        self.assert_(p1.b1.b2.branch_name(True,True) == 'new_branch')
+        self.assert_(p1.b1.b2.b3.branch_name(True,True) == 'new_branch')
 
         p1.attach(copy=True, recursive=True)
         
-        self.assert_(p1.b1.rootNode() is p1)
-        self.assert_(p1.b1.b2.rootNode() is p1)
-        self.assert_(p1.b1.b2.b3.rootNode() is p1)
-        self.assert_(p1.b1.branchName(True,True) == 'root.b1')
-        self.assert_(p1.b1.b2.branchName(True,True) == 'root.b1.b2')
-        self.assert_(p1.b1.b2.b3.branchName(True,True) == 'root.b1.b2.b3')
+        self.assert_(p1.b1.root_node() is p1)
+        self.assert_(p1.b1.b2.root_node() is p1)
+        self.assert_(p1.b1.b2.b3.root_node() is p1)
+        self.assert_(p1.b1.branch_name(True,True) == 'root.b1')
+        self.assert_(p1.b1.b2.branch_name(True,True) == 'root.b1.b2')
+        self.assert_(p1.b1.b2.b3.branch_name(True,True) == 'root.b1.b2.b3')
 
     def testRecursiveAttach_02(self):
         p1 = TreeDict('root')
@@ -176,23 +176,23 @@ class TestAttachPop(unittest.TestCase):
         p1.b1.b2 = TreeDict('new_branch')
         p1.b1.b2.b3 = TreeDict('new_branch')
 
-        self.assert_(p1.b1.isRoot())
-        self.assert_(p1.b1.b2.isRoot())
-        self.assert_(p1.b1.b2.b3.isRoot())
+        self.assert_(p1.b1.is_root())
+        self.assert_(p1.b1.b2.is_root())
+        self.assert_(p1.b1.b2.b3.is_root())
 
-        self.assert_(p1.b1.branchName(True,True) == 'new_branch')
-        self.assert_(p1.b1.b2.branchName(True,True) == 'new_branch')
-        self.assert_(p1.b1.b2.b3.branchName(True,True) == 'new_branch')
+        self.assert_(p1.b1.branch_name(True,True) == 'new_branch')
+        self.assert_(p1.b1.b2.branch_name(True,True) == 'new_branch')
+        self.assert_(p1.b1.b2.b3.branch_name(True,True) == 'new_branch')
 
         p1.attach(copy=False, recursive=True)
         
-        self.assert_(p1.b1.rootNode() is p1)
-        self.assert_(p1.b1.b2.rootNode() is p1)
-        self.assert_(p1.b1.b2.b3.rootNode() is p1)
+        self.assert_(p1.b1.root_node() is p1)
+        self.assert_(p1.b1.b2.root_node() is p1)
+        self.assert_(p1.b1.b2.b3.root_node() is p1)
 
-        self.assert_(p1.b1.branchName(True,True) == 'root.b1')
-        self.assert_(p1.b1.b2.branchName(True,True) == 'root.b1.b2')
-        self.assert_(p1.b1.b2.b3.branchName(True,True) == 'root.b1.b2.b3')
+        self.assert_(p1.b1.branch_name(True,True) == 'root.b1')
+        self.assert_(p1.b1.b2.branch_name(True,True) == 'root.b1.b2')
+        self.assert_(p1.b1.b2.b3.branch_name(True,True) == 'root.b1.b2.b3')
 
     def testRecursiveAttach_03_recursive_with_linked_nodes(self):
         p = TreeDict()
@@ -255,7 +255,7 @@ class TestAttachPop(unittest.TestCase):
         p3 = p1.pop("node")
 
         self.assert_(p2 is p3)
-        self.assert_(p3.rootNode() is p3)
+        self.assert_(p3.root_node() is p3)
         self.assert_("node" not in p1)
         self.assert_(p2 == p1copy.node)
         self.assert_(p1 != p1copy)
@@ -273,7 +273,7 @@ class TestAttachPop(unittest.TestCase):
         p3 = p1.pop("node")
 
         self.assert_(p2 is p3)
-        self.assert_(p3.rootNode() is p3)
+        self.assert_(p3.root_node() is p3)
         self.assert_("node" not in p1)
         self.assert_(p2 == p1copy.node)
         self.assert_(p1 != p1copy)
@@ -314,7 +314,7 @@ class TestAttachPop(unittest.TestCase):
         self.assert_(b is bd)
         self.assert_('a' in p)
         self.assert_('a.b' not in p)
-        self.assert_(b.parentNode() == None)
+        self.assert_(b.parent_node() == None)
 
 
     def testDetach_06_complex_key(self):
@@ -327,7 +327,7 @@ class TestAttachPop(unittest.TestCase):
         self.assert_(b is bd)
         self.assert_('a' in p)
         self.assert_('a.b' not in p)
-        self.assert_(b.parentNode() == None)
+        self.assert_(b.parent_node() == None)
 
     def testDetach_07_nonbranch(self):
         # Test to make sure the behavior is like pop() (perhaps we
@@ -406,19 +406,19 @@ class TestBranches(unittest.TestCase):
 
     def testBranch_01_basic(self):
         p = TreeDict()
-        p.makeBranch('b')
+        p.make_branch('b')
         self.assert_('b' in p)
-        self.assert_(not p.b.isDangling())
+        self.assert_(not p.b.is_dangling())
 
     def testBranch_02_ReturnsCorrectBranch(self):
         p = TreeDict()
-        b = p.makeBranch('b')
+        b = p.make_branch('b')
 
         self.assert_(p.b is b)
 
     def testBranch_02b_ReturnsCorrectBranch(self):
         p = TreeDict()
-        b = p.makeBranch('a').makeBranch('b')
+        b = p.make_branch('a').make_branch('b')
         
         self.assert_(p.a.b is b)
 
@@ -426,20 +426,20 @@ class TestBranches(unittest.TestCase):
         # Regression
 
         p = TreeDict()
-        a = p.makeBranch('a')
+        a = p.make_branch('a')
         p.a.b
         
         self.assert_(p.a is a)
 
     def testBranch_03_KeyedValues(self):
         p = TreeDict()
-        b = p.makeBranch('a.b.c')
+        b = p.make_branch('a.b.c')
 
         self.assert_(p.a.b.c is b)
 
     def testBranch_04_ReturnsCorrectBranch(self):
         p = TreeDict()
-        b = p.makeBranch('b')
+        b = p.make_branch('b')
 
         self.assert_(p.b is b)
 
@@ -454,7 +454,7 @@ class TestBranches(unittest.TestCase):
     def testBranch_05_BranchFunction(self):
         p = TreeDict()
 
-        b = p.makeBranch("a")
+        b = p.make_branch("a")
 
         self.assert_(b is p.a)
 
@@ -465,11 +465,11 @@ class TestBranches(unittest.TestCase):
         b = p.a
 
         self.assert_("a" not in p)
-        self.assert_(p.a.isDangling())
+        self.assert_(p.a.is_dangling())
 
-        b.makeBranch("b")
+        b.make_branch("b")
 
-        self.assert_(not p.a.isDangling())
+        self.assert_(not p.a.is_dangling())
         self.assert_("a.b" in p)
 
 
@@ -601,17 +601,17 @@ class TestDangling(unittest.TestCase):
         self.assert_(p._numDangling() == 0)
         p.a
         self.assert_(p._numDangling() == 1)
-        p.makeBranch("a")
+        p.make_branch("a")
         self.assert_(p._numDangling() == 0)
 
     def testDangling_09_Count_05_Branching(self):
         p = TreeDict()
-        p.makeBranch("a")
+        p.make_branch("a")
         self.assert_(p._numDangling() == 0)
 
     def testDangling_09_Count_06_Branching(self):
         p = TreeDict()
-        p.makeBranch("a")
+        p.make_branch("a")
         p.a.b
         self.assert_(p._numDangling() == 0)
         self.assert_(p.a._numDangling() == 1)
@@ -647,11 +647,11 @@ class TestDangling(unittest.TestCase):
         p.c = v
 
         self.assert_(p.a is not v)
-        self.assert_(p.a.isDangling() )
+        self.assert_(p.a.is_dangling() )
 
         p.a.v = v
 
-        self.assert_(not p.a.isDangling() )
+        self.assert_(not p.a.is_dangling() )
         self.assert_(p.a.v is v)
         self.assert_(b.v is v)
         self.assert_(b is p.a)

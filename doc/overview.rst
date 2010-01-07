@@ -162,7 +162,7 @@ using :meth:`~treedict.TreeDict.update`::
     >>> d = {"x" : 1, "y" : 2, "a.b.x" : 3, "a.b.c.y" : 4}
     >>> t = TreeDict()
     >>> t.update(d)
-    >>> print t.makeReport()
+    >>> print t.make_report()
     y       = 2
     x       = 1
     a.b.c.y = 4

@@ -84,7 +84,7 @@ class TestBadValues(unittest.TestCase):
 
     def testAttackWithNone_branch(self):
         p = sample_tree()
-        self.assertRaises(TypeError, lambda: p.makeBranch(None))
+        self.assertRaises(TypeError, lambda: p.make_branch(None))
 
     def testAttackWithNone_fullNameOf(self):
         p = sample_tree()
