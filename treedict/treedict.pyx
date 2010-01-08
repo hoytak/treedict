@@ -23,12 +23,21 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import copy as copy_module
-import pickle, hashlib, warnings, re, inspect
+# Cython imports
 from name_matching cimport name_match_distance, editDistance
-import hashlib, cPickle, base64, heapq, time
 from minsmaxes cimport min2, max2, max2_long, min2_long
 from membuffers cimport size_t_v, new_size_t_v, free_size_t_v
+
+# python imports.
+import copy as copy_module
+import cPickle
+import hashlib
+import warnings
+import re
+import inspect
+import base64
+import heapq
+import time
 
 ################################################################################
 # Some preliminary debug stuff
@@ -151,7 +160,6 @@ cdef inline str catNames(str s1, str s2):
 
 cdef class _NoDefault(object): pass
 
-
 ################################################################################
 # A dictionary that holds instances of certain trees so modules can
 # request them by name using getTree()
@@ -175,6 +183,12 @@ cpdef TreeDict getTree(str name):
 
     A tree is considered 'registered' and can be retrieved in this way
     if and only if it is instantiated through this function.
+
+    *NOTE: This module may be removed in the future do to the 'only
+    one way to do things' aspect of pythonicity.  A similar example is
+    found in the logging module, but the main use cases I can think of
+    -- globally defined parameters -- can be done using the module
+    system.  Feedback on this is welcome; for now, I'll leave it in - HK.*
     """
 
     checkKeyNotNone(name)
@@ -192,6 +206,12 @@ cpdef bint treeExists(str name):
     """
     Returns True if a registered tree with name `name` exists, and
     False otherwise.
+
+    *NOTE: This module may be removed in the future do to the 'only
+    one way to do things' aspect of pythonicity.  A similar example is
+    found in the logging module, but the main use cases I can think of
+    -- globally defined parameters -- can be done using the module
+    system.  Feedback on this is welcome; for now, I'll leave it in - HK.*
     """
         
     return name in _tree_lookup_dict
