@@ -198,6 +198,32 @@ class TestCopying(unittest.TestCase):
         self.assert_(p.a.v == 1)
         self.assert_(p2.a.v == 2)
 
+    def testCopying_07_unfrozen(self):
+        p = TreeDict()
+
+        p.x = 1
+        p.b.c.x = 2
+        p.b.c.y = 1
+
+        p.freeze()
+
+        self.assert_(p.is_frozen())
+        self.assert_(p.b.is_frozen())
+        self.assert_(p.b.c.is_frozen())
+
+        p2 = p.copy()
+
+        self.assert_(not p2.is_frozen())
+        self.assert_(not p2.b.is_frozen())
+        self.assert_(not p2.b.c.is_frozen())
+        
+        p3 = copy(p)
+        
+        self.assert_(not p3.is_frozen())
+        self.assert_(not p3.b.is_frozen())
+        self.assert_(not p3.b.c.is_frozen())
+
+
     # Also need tests covering cases where flags are cleared on copied
     # nodes
 
