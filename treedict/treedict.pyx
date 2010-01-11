@@ -1236,6 +1236,9 @@ cdef class TreeDict(object):
 
         If `branch` is given, then only that branch (and all
         sub-branches) are frozen.
+
+        Note: TreeDict values stored in the tree as values -- not as
+        branches -- are not affected by this freezing operation.
         """
 
         if branch is None:

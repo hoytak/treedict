@@ -472,7 +472,24 @@ class TestBranches(unittest.TestCase):
         self.assert_(not p.a.is_dangling())
         self.assert_("a.b" in p)
 
+    def testBranch_07_TreeDict_Values_Not_Frozen(self):
 
+        p = TreeDict()
+        p.a.x = 1
+        p.c.t = TreeDict()
+        p.c.t.x = 1
+
+        self.assert_(not p.is_frozen())
+        self.assert_(not p.a.is_frozen())
+        self.assert_(not p.c.is_frozen())
+        self.assert_(not p.c.t.is_frozen())
+
+        p.freeze()
+
+        self.assert_(p.is_frozen())
+        self.assert_(p.a.is_frozen())
+        self.assert_(p.c.is_frozen())
+        self.assert_(not p.c.t.is_frozen())
 
 class TestDangling(unittest.TestCase):
 
