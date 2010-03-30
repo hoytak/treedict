@@ -51,7 +51,7 @@ class TestCentralSystem(unittest.TestCase):
 
     def testRecall_copying(self):
         p1 = getTree('rt_r01')
-        p1.make_branch('rt_b01')
+        p1.makeBranch('rt_b01')
 
         p1c = p1.rt_b01.copy()
 

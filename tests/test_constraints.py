@@ -271,7 +271,7 @@ class TestConstraints(unittest.TestCase):
         treedict.addConstraint(tn, 'a.b.c', [1], "not 1")
         
         p = getTree(tn)
-        p.a.make_branch('b')
+        p.a.makeBranch('b')
         q = p.a.b.copy()
 
         def f():
@@ -285,7 +285,7 @@ class TestConstraints(unittest.TestCase):
         treedict.addConstraint(tn, 'a.b.c', [1], "not 1")
         
         p = getTree(tn)
-        p.make_branch('a.b')
+        p.makeBranch('a.b')
         q = p.a.b.copy()
 
         def f():
@@ -298,7 +298,7 @@ class TestConstraints(unittest.TestCase):
         tn = unique_name()
 
         p = getTree(tn)
-        p.make_branch('a18462.a1732643')
+        p.makeBranch('a18462.a1732643')
         q = p.a18462.copy()
         q.a1732643.a1232 = "borkbork"  # should be bad
 
@@ -312,7 +312,7 @@ class TestConstraints(unittest.TestCase):
         tn = unique_name()
 
         p = getTree(tn)
-        p.make_branch('a18462.a1732643')
+        p.makeBranch('a18462.a1732643')
 
         q = p.a18462.a1732643.copy()
         q.a1232 = "borkbork"  # should be bad
@@ -327,7 +327,7 @@ class TestConstraints(unittest.TestCase):
         bn = unique_name()
 
         p = getTree(unique_name())
-        p.make_branch(bn).make_branch('a')
+        p.makeBranch(bn).makeBranch('a')
 
         q = p[bn].copy()
         q.a.b = "borkbork"  # should be bad
@@ -341,7 +341,7 @@ class TestConstraints(unittest.TestCase):
         bn = unique_name()
 
         p = getTree(unique_name())
-        p.make_branch(bn).make_branch('a')
+        p.makeBranch(bn).makeBranch('a')
 
         q = p[bn].copy()
         q.a.b = "bork"  # should be bad
@@ -401,7 +401,7 @@ class TestConstraints(unittest.TestCase):
         tn, bn = unique_name(), unique_name()
 
         p1 = getTree(tn)
-        p1.make_branch(bn)
+        p1.makeBranch(bn)
 
         p2 = getTree(bn)
         p1c = p1[bn].copy()
@@ -425,14 +425,14 @@ class TestConstraints(unittest.TestCase):
         tn, bn = unique_name(), unique_name()
 
         p1 = getTree(tn)
-        p1c = p1.make_branch(bn).copy()
+        p1c = p1.makeBranch(bn).copy()
         p2 = getTree(bn)
         
         treedict.addConstraint(bn, 'a', [1], "not 1")
 
         # Should work fine; not part of p2's family
         p1c.a = 2
-        self.assert_(p1c.branch_name() == bn)
+        self.assert_(p1c.branchName() == bn)
         
         # Should throw, cause it's part of p2's family
         def f(): p2.a = 2
@@ -448,7 +448,7 @@ class TestConstraints(unittest.TestCase):
         tn, bn = unique_name(), unique_name()
 
         p1 = getTree(tn)
-        p1.make_branch(bn)
+        p1.makeBranch(bn)
 
         p2 = getTree(bn)
 
@@ -473,13 +473,13 @@ class TestConstraints(unittest.TestCase):
         tn, bn = unique_name(), unique_name()
 
         p1 = getTree(tn)
-        p1c = p1.make_branch(bn).copy()
+        p1c = p1.makeBranch(bn).copy()
         p2 = getTree(bn)
         
         
         # Should work fine; not part of p2's family
         p1c.a = 2
-        self.assert_(p1c.branch_name() == bn)
+        self.assert_(p1c.branchName() == bn)
         
         # Should cause throw, cause it's part of p2's family
         p2.a = 2
@@ -754,7 +754,7 @@ class TestConstraints(unittest.TestCase):
 
         p = getTree(tn)
 
-        p.make_branch(bn1 + '.' + bn2)
+        p.makeBranch(bn1 + '.' + bn2)
         b1 = p[bn1].copy()
         b2 = b1[bn2].copy()
         
@@ -776,7 +776,7 @@ class TestConstraints(unittest.TestCase):
 
         fullbn = '.'.join(bnl)
 
-        p.make_branch(fullbn)
+        p.makeBranch(fullbn)
 
         bl = [None]*n
 
@@ -804,7 +804,7 @@ class TestConstraints(unittest.TestCase):
 
         fullbn = '.'.join(bnl)
 
-        p.make_branch(fullbn)
+        p.makeBranch(fullbn)
 
         bl = [None]*n
 
@@ -847,7 +847,7 @@ class TestConstraints(unittest.TestCase):
         self.assertRaises(ValueError, f)
 
         # control
-        p.a.make_branch("b")
+        p.a.makeBranch("b")
 
     def testConstraint_22_IntermediatesMustBeBranches_02_after(self):
         tn = unique_name()
@@ -878,7 +878,7 @@ class TestConstraints(unittest.TestCase):
         self.assertRaises(ValueError, f)
 
         # control
-        p.make_branch(bn + ".a.b")
+        p.makeBranch(bn + ".a.b")
 
     def testConstraint_22_IntermediatesMustBeBranches_04_global_after(self):
         bn = unique_name()
@@ -902,7 +902,7 @@ class TestConstraints(unittest.TestCase):
 
         pb = treedict.getTree(tn)
 
-        pb.make_branch('a.b')
+        pb.makeBranch('a.b')
 
         p = pb.a.b.copy()
 
@@ -912,14 +912,14 @@ class TestConstraints(unittest.TestCase):
         self.assertRaises(ValueError, f)
 
         # control
-        p.c.make_branch("d")
+        p.c.makeBranch("d")
 
     def testConstraint_23_IntermediatesMustBeBranches_copied_02_after(self):
         tn = unique_name()
         
         pb = treedict.getTree(tn)
 
-        pb.make_branch('a.b')
+        pb.makeBranch('a.b')
         p = pb.a.b.copy()
 
         p["c.d"] = 1
@@ -940,8 +940,8 @@ class TestConstraints(unittest.TestCase):
 
         pb = treedict.getTree(tn)
 
-        pb.make_branch(bn)
-        pb[bn].make_branch('a.b')
+        pb.makeBranch(bn)
+        pb[bn].makeBranch('a.b')
 
         p = pb[bn].a.b.copy()
 
@@ -951,7 +951,7 @@ class TestConstraints(unittest.TestCase):
         self.assertRaises(ValueError, f)
 
         # control
-        p.c.make_branch("d")
+        p.c.makeBranch("d")
 
     def testConstraint_23_IntermediatesMustBeBranches_copied_04_global_after(self):
         tn = unique_name()
@@ -959,8 +959,8 @@ class TestConstraints(unittest.TestCase):
         
         pb = treedict.getTree(tn)
 
-        pb.make_branch(bn)
-        pb[bn].make_branch('a.b')
+        pb.makeBranch(bn)
+        pb[bn].makeBranch('a.b')
 
         p = pb[bn].a.b.copy()
 

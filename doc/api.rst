@@ -26,7 +26,7 @@ functions, `getTree` and `treeExists`.
 
 	        >>> from treedict import TreeDict
 		>>> t = TreeDict('mytree', x = 5, y = 6)
-		>>> print t.make_report(add_path = True)
+		>>> print t.makeReport(add_path = True)
 		mytree.x = 5
 		mytree.y = 6
 
@@ -69,12 +69,12 @@ functions, `getTree` and `treeExists`.
 		>>> t = TreeDict()
 		>>> t('a.b.x', 1, x = 2)
 		TreeDict <root>
-		>>> print t.make_report()
+		>>> print t.makeReport()
 		a.b.x = 1
 		x     = 2
 		>>> t(y = 3)(z = 4)
 		TreeDict <root>
-		>>> print t.make_report()
+		>>> print t.makeReport()
 		a.b.x = 1
 		x     = 2
 		y     = 3
@@ -92,7 +92,7 @@ functions, `getTree` and `treeExists`.
 
         .. automethod:: attach(self, tree_or_node = None, name = None, copy = True, recursive = False)
 
-        .. automethod:: branch_name(self, local_only = True, include_tree_name=False)
+        .. automethod:: branchName(self, local_only = True, include_tree_name=False)
 
         .. automethod:: branches(self)
 
@@ -108,25 +108,25 @@ functions, `getTree` and `treeExists`.
 
         .. automethod:: get(self, key, default_value = NoDefault)
 
-        .. automethod:: get_closest_key(self, key, n = 0, recursive = True, branch_mode = 'none')
+        .. automethod:: getClosestKey(self, key, n = 0, recursive = True, branch_mode = 'none')
 
         .. automethod:: has_key(self, key)
 
         .. automethod:: hash(self, key=None, add_name = False, keys=None)
 
-        .. automethod:: interactive_tree(self)
+        .. automethod:: interactiveTree(self)
 
-        .. automethod:: is_dangling(self)
+        .. automethod:: isDangling(self)
 
-        .. automethod:: is_empty(self)
+        .. automethod:: isEmpty(self)
 
-        .. automethod:: is_frozen(self)
+        .. automethod:: isFrozen(self)
 
-        .. automethod:: is_mutable(self)
+        .. automethod:: isMutable(self)
 
-        .. automethod:: is_registered(self)
+        .. automethod:: isRegistered(self)
 									    
-        .. automethod:: is_root(self)
+        .. automethod:: isRoot(self)
 
         .. automethod:: items(self, recursive = True, branch_mode = 'none')
 
@@ -140,29 +140,29 @@ functions, `getTree` and `treeExists`.
 
         .. automethod:: keys(self, recursive = True, branch_mode = 'none')
 
-        .. automethod:: make_branch(self, name, only_new = False)
+        .. automethod:: makeBranch(self, name, only_new = False)
 
-        .. automethod:: make_report(self)
+        .. automethod:: makeReport(self)
 
-        .. automethod:: node_in_same_tree(self, node)
+        .. automethod:: nodeInSameTree(self, node)
 
-        .. automethod:: parent_node(self)
+        .. automethod:: parentNode(self)
 
         .. automethod:: pop(self, key = None, prune_empty = False, silent = False)
 
         .. automethod:: popitem(self, key = None, prune_empty = False, silent = False)
 
-        .. automethod:: root_node(self)
+        .. automethod:: rootNode(self)
 
         .. automethod:: set(self, *args, **kwargs)
 
-        .. automethod:: set_from_string(self, key, value, extra_parameters = {})
+        .. automethod:: setFromString(self, key, value, extra_parameters = {})
 
         .. automethod:: setdefault(self, key, value = None)
 
         .. automethod:: size(self, recursive = True, branch_mode = 'none')
 
-        .. automethod:: tree_name(self)
+        .. automethod:: treeName(self)
 
         .. automethod:: update(self, d)
 

@@ -104,45 +104,32 @@ class TestCopying(unittest.TestCase):
     def testCopying_05(self):
         
         p = TreeDict('root')
-        b = p.make_branch('b').copy()
+        b = p.makeBranch('b').copy()
 
-        self.assert_(p.b.branch_name() == 'b', p.b.branch_name())
-        self.assert_(b.branch_name(add_tree_name = True) == 'b', b.branch_name(add_tree_name = True))
-        self.assert_(p.b.branch_name(add_path = True, add_tree_name = True) == 'root.b',
-                     p.b.branch_name(add_path = True, add_tree_name = True))
+        self.assert_(p.b.branchName() == 'b', p.b.branchName())
+        self.assert_(b.branchName(add_tree_name = True) == 'b', b.branchName(add_tree_name = True))
+        self.assert_(p.b.branchName(add_path = True, add_tree_name = True) == 'root.b',
+                     p.b.branchName(add_path = True, add_tree_name = True))
 
     def testCopying_05b(self):
         
         p = TreeDict('root')
-        b = copy(p.make_branch('b'))
+        b = copy(p.makeBranch('b'))
 
-        self.assert_(p.b.branch_name() == 'b', p.b.branch_name())
-        self.assert_(b.branch_name(add_tree_name = True) == 'b', b.branch_name(add_tree_name = True))
-        self.assert_(p.b.branch_name(add_path = True, add_tree_name = True) == 'root.b',
-                     p.b.branch_name(add_path = True, add_tree_name = True))
+        self.assert_(p.b.branchName() == 'b', p.b.branchName())
+        self.assert_(b.branchName(add_tree_name = True) == 'b', b.branchName(add_tree_name = True))
+        self.assert_(p.b.branchName(add_path = True, add_tree_name = True) == 'root.b',
+                     p.b.branchName(add_path = True, add_tree_name = True))
 
     def testCopying_05c(self):
         
         p = TreeDict('root')
-        b = deepcopy(p.make_branch('b'))
+        b = deepcopy(p.makeBranch('b'))
 
-        self.assert_(p.b.branch_name() == 'b', p.b.branch_name())
-        self.assert_(b.branch_name(add_tree_name = True) == 'b', b.branch_name(add_tree_name = True))
-        self.assert_(p.b.branch_name(add_path = True, add_tree_name = True) == 'root.b',
-                     p.b.branch_name(add_path = True, add_tree_name = True))
-
-    def testCopying_05b_central_system(self):
-        # This test constrains the central system to have the same
-        # name system as regular trees (I was tempted to do it
-        # otherwise to make the constraints of copied branches
-        # easier.)
-
-        p = getTree('tc_root')
-        b = p.make_branch('b').copy()
-    
-        self.assert_(b.branch_name(add_tree_name = True) == 'b', b.branch_name(add_tree_name = True))
-        self.assert_(p.b.branch_name(add_path = True, add_tree_name = True) == 'tc_root.b',
-                     p.b.branch_name(add_path = True, add_tree_name = True))
+        self.assert_(p.b.branchName() == 'b', p.b.branchName())
+        self.assert_(b.branchName(add_tree_name = True) == 'b', b.branchName(add_tree_name = True))
+        self.assert_(p.b.branchName(add_path = True, add_tree_name = True) == 'root.b',
+                     p.b.branchName(add_path = True, add_tree_name = True))
 
     def testCopying_05b_central_system(self):
         # This test constrains the central system to have the same
@@ -151,11 +138,11 @@ class TestCopying(unittest.TestCase):
         # easier.)
 
         p = getTree('tc_root')
-        b = p.make_branch('b').copy()
+        b = p.makeBranch('b').copy()
     
-        self.assert_(b.branch_name(add_tree_name = True) == 'b', b.branch_name(add_tree_name = True))
-        self.assert_(p.b.branch_name(add_path = True, add_tree_name = True) == 'tc_root.b',
-                     p.b.branch_name(add_path = True, add_tree_name = True))
+        self.assert_(b.branchName(add_tree_name = True) == 'b', b.branchName(add_tree_name = True))
+        self.assert_(p.b.branchName(add_path = True, add_tree_name = True) == 'tc_root.b',
+                     p.b.branchName(add_path = True, add_tree_name = True))
 
     def testCopying_05b_central_system(self):
         # This test constrains the central system to have the same
@@ -164,11 +151,24 @@ class TestCopying(unittest.TestCase):
         # easier.)
 
         p = getTree('tc_root')
-        b = p.make_branch('b').copy()
+        b = p.makeBranch('b').copy()
     
-        self.assert_(b.branch_name(add_tree_name = True) == 'b', b.branch_name(add_tree_name = True))
-        self.assert_(p.b.branch_name(add_path = True, add_tree_name = True) == 'tc_root.b',
-                     p.b.branch_name(add_path = True, add_tree_name = True))
+        self.assert_(b.branchName(add_tree_name = True) == 'b', b.branchName(add_tree_name = True))
+        self.assert_(p.b.branchName(add_path = True, add_tree_name = True) == 'tc_root.b',
+                     p.b.branchName(add_path = True, add_tree_name = True))
+
+    def testCopying_05b_central_system(self):
+        # This test constrains the central system to have the same
+        # name system as regular trees (I was tempted to do it
+        # otherwise to make the constraints of copied branches
+        # easier.)
+
+        p = getTree('tc_root')
+        b = p.makeBranch('b').copy()
+    
+        self.assert_(b.branchName(add_tree_name = True) == 'b', b.branchName(add_tree_name = True))
+        self.assert_(p.b.branchName(add_path = True, add_tree_name = True) == 'tc_root.b',
+                     p.b.branchName(add_path = True, add_tree_name = True))
 
     def testCopying_06_setting_linked_branch_02_copy(self):
         p = TreeDict()
@@ -207,21 +207,21 @@ class TestCopying(unittest.TestCase):
 
         p.freeze()
 
-        self.assert_(p.is_frozen())
-        self.assert_(p.b.is_frozen())
-        self.assert_(p.b.c.is_frozen())
+        self.assert_(p.isFrozen())
+        self.assert_(p.b.isFrozen())
+        self.assert_(p.b.c.isFrozen())
 
         p2 = p.copy()
 
-        self.assert_(not p2.is_frozen())
-        self.assert_(not p2.b.is_frozen())
-        self.assert_(not p2.b.c.is_frozen())
+        self.assert_(not p2.isFrozen())
+        self.assert_(not p2.b.isFrozen())
+        self.assert_(not p2.b.c.isFrozen())
         
         p3 = copy(p)
         
-        self.assert_(not p3.is_frozen())
-        self.assert_(not p3.b.is_frozen())
-        self.assert_(not p3.b.c.is_frozen())
+        self.assert_(not p3.isFrozen())
+        self.assert_(not p3.b.isFrozen())
+        self.assert_(not p3.b.c.isFrozen())
 
 
     # Also need tests covering cases where flags are cleared on copied

@@ -167,7 +167,7 @@ cdef class _NoDefault(object): pass
 cdef dict _tree_lookup_dict = {}
 
 cdef inline registerTree(TreeDict tree):
-    registerTreeByName(tree._branch_name(False, True), tree)
+    registerTreeByName(tree._branchName(False, True), tree)
 
 cdef inline registerTreeByName(str name, TreeDict tree):
     _tree_lookup_dict[name] = tree
@@ -386,7 +386,7 @@ cdef class _PTreeNode(object):
         self._v = v
 
         if type(v) is TreeDict:
-            if (<TreeDict>v).parent_node() is node:
+            if (<TreeDict>v).parentNode() is node:
                 self._t = t_Branch
             else:
                 self._t = t_Tree
@@ -411,7 +411,7 @@ cdef class _PTreeNode(object):
     # Basically there are three classes; trees, mutable local types,
     # and immutable local types
 
-    cdef bint is_mutable(self):
+    cdef bint isMutable(self):
         return (self._t == t_Mutable_Simple
                 or self._t == t_Mutable_Complex)
 
@@ -425,14 +425,14 @@ cdef class _PTreeNode(object):
     cdef bint isNonBranchTree(self):
         return self._t == t_Tree
 
-    cdef bint is_danglingBranch(self):
-        return self.isBranch() and (<TreeDict>self._v).is_dangling()
+    cdef bint isDanglingBranch(self):
+        return self.isBranch() and (<TreeDict>self._v).isDangling()
 
     cdef bint isTree(self):
         return self.isBranch() or self.isNonBranchTree()
 
-    cdef bint is_danglingTree(self):
-        return self.isTree() and (<TreeDict>self._v).is_dangling()
+    cdef bint isDanglingTree(self):
+        return self.isTree() and (<TreeDict>self._v).isDangling()
 
     cdef TreeDict tree(self):
         if RUN_ASSERTS:
@@ -444,7 +444,7 @@ cdef class _PTreeNode(object):
         if RUN_ASSERTS:
             assert self.isTree()
         
-        return (<TreeDict>self._v).parent_node() is parent
+        return (<TreeDict>self._v).parentNode() is parent
 
     cdef str fullHash(self):
         h = md5()
@@ -457,7 +457,7 @@ cdef class _PTreeNode(object):
         
         if self._t == t_Tree or self._t == t_Branch:
             p = (<TreeDict>self._v)
-            if not p.is_dangling():
+            if not p.isDangling():
                 p._runFullHash(hf)
         elif self._t == t_Mutable_Simple:
             hf(repr(self._v))
@@ -528,13 +528,13 @@ def _special_hash(TreeDict p):
     return p._self_hash()
 
 def _special_parent(TreeDict p): 
-    if p.is_root():
+    if p.isRoot():
         raise _SpecialFunctionNotAvailable
 
-    return p.parent_node()
+    return p.parentNode()
 
 def _special_root(TreeDict p):
-    return p.root_node()
+    return p.rootNode()
 
 cdef dict _special_functions = { 
     "$hash"     : _special_hash,
@@ -689,7 +689,7 @@ cdef class TreeDictIterator(object):
                 self._last_pn  = (<_PTreeNode>pn_obj)
 
             if self._last_pn.isBranch():
-                if self._last_pn.is_danglingBranch():
+                if self._last_pn.isDanglingBranch():
                     continue
 
                 if self._branch_mode != i_BranchMode_None:
@@ -737,7 +737,7 @@ cdef class TreeDictIterator(object):
         
         self._decRefToCurTree(self._cur_depth)
         self._cur_depth -= 1
-        self._cur_pt = self._cur_pt.parent_node()
+        self._cur_pt = self._cur_pt.parentNode()
         self._key_stack.pop()
 
         return True
@@ -877,7 +877,7 @@ cdef class TreeDict(object):
         cdef _PTreeNode pn, pn2
 
         for k, pn in p._param_dict.iteritems():
-            if pn.isBranch() and not pn.is_danglingTree():
+            if pn.isBranch() and not pn.isDanglingTree():
 
                 try:
                     pn2 = self._param_dict[k]
@@ -894,7 +894,7 @@ cdef class TreeDict(object):
                 self._setLocal(k, pn.value(), 0)
 
 
-    def set_from_string(self, str key, str value, dict extra_variables = {}):
+    def setFromString(self, str key, str value, dict extra_variables = {}):
         """
         A convenience function for setting arguments from sources in
         which a python type or expression is embedded inside a string
@@ -902,7 +902,7 @@ cdef class TreeDict(object):
 
         For example::
 
-          p.set_from_string('a', '(1,2,3)')
+          p.setFromString('a', '(1,2,3)')
 
         would set ``p.a`` to ``(1,2,3)``, a python tuple.
 
@@ -919,13 +919,13 @@ cdef class TreeDict(object):
 
             >>> from treedict import TreeDict
             >>> t = TreeDict()
-            >>> t.set_from_string('x', '1')
+            >>> t.setFromString('x', '1')
             True
-            >>> t.set_from_string('y', '(1,2,["abc",None])') 
+            >>> t.setFromString('y', '(1,2,["abc",None])') 
             True
-            >>> t.set_from_string('z', '{"abc" : 1}')
+            >>> t.setFromString('z', '{"abc" : 1}')
             True
-            >>> print t.make_report()
+            >>> print t.makeReport()
             x = 1
             y = (1, 2, ['abc', None])
             z = {'abc': 1}
@@ -955,7 +955,7 @@ cdef class TreeDict(object):
 
             >>> from treedict import TreeDict
             >>> t = TreeDict.fromkeys(['a', 'b', 'c'])
-            >>> print t.make_report()
+            >>> print t.makeReport()
             a = None
             c = None
             b = None
@@ -964,7 +964,7 @@ cdef class TreeDict(object):
         
             >>> from treedict import TreeDict
             >>> t = TreeDict.fromkeys('abc', 'abc')
-            >>> print t.make_report()
+            >>> print t.makeReport()
             a = 'abc'
             c = 'abc'
             b = 'abc'
@@ -990,13 +990,13 @@ cdef class TreeDict(object):
 
             >>> from treedict import TreeDict
             >>> t = TreeDict(x = 1)
-            >>> print t.make_report()
+            >>> print t.makeReport()
             x = 1
             >>> t.setdefault('x', 2)
             1
             >>> t.setdefault('y', 2)
             2
-            >>> print t.make_report()
+            >>> print t.makeReport()
             x = 1
             y = 2
           
@@ -1027,7 +1027,7 @@ cdef class TreeDict(object):
             >>> t.set(z = 3)
             >>> t.set("ya", 2, "yb", 2, yc = 3)
             >>> t.set("a.b.c.v", 1)
-            >>> print t.make_report()
+            >>> print t.makeReport()
             x       = 1
             z       = 3
             ya      = 2
@@ -1040,14 +1040,14 @@ cdef class TreeDict(object):
             >>> from treedict import TreeDict
             >>> t = TreeDict()
             >>> t.set("x", 1)
-            >>> print t.make_report()
+            >>> print t.makeReport()
             x = 1
             >>> t.set("a", 3, "b", 4, "1badvalue", 5)
             Traceback (most recent call last):
              File "<stdin>", line 1, in <module>
              File "treedict.pyx", line 967, in treedict.treedict.TreeDict.set (treedict/treedict.c:8318)
             NameError: '1badvalue' not a valid branch name.
-            >>> print t.make_report()
+            >>> print t.makeReport()
             x = 1
         """
 
@@ -1142,14 +1142,14 @@ cdef class TreeDict(object):
             self._setLocal(k, value, gsp)
 
     cdef _ensureWriteable(self, str k):
-        if self.is_frozen():
+        if self.isFrozen():
             if k is not None:
-                raise TypeError("%s frozen; cannot modify '%s'" % (self._branch_name(False, True), k))
+                raise TypeError("%s frozen; cannot modify '%s'" % (self._branchName(False, True), k))
             else:
-                raise TypeError("%s frozen; cannot modify." % self._branch_name(False, True))
+                raise TypeError("%s frozen; cannot modify." % self._branchName(False, True))
 
         if self.isIterReferenced():
-            raise RuntimeError("%s cannot be changed while being iterated over." % self._branch_name(False, True))
+            raise RuntimeError("%s cannot be changed while being iterated over." % self._branchName(False, True))
         
 
     cdef _setLocal(self, str k, v, flagtype gsp):
@@ -1309,23 +1309,23 @@ cdef class TreeDict(object):
         
             >>> from treedict import TreeDict
             >>> t = TreeDict() ; t.set('a.b', 1, 'b.c', 2, x = 1, y = 2)
-            >>> print t.make_report()
+            >>> print t.makeReport()
             a.b = 1
             b.c = 2
             y   = 2
             x   = 1
             >>> t1 = t.copy() ; t2 = t.copy()
             >>> t.clear()
-            >>> t.is_empty()
+            >>> t.isEmpty()
             True
             >>> 
             >>> t1.clear(branch_mode = 'none')
-            >>> print t1.make_report()
+            >>> print t1.makeReport()
             a.b = 1
             b.c = 2
             >>> 
             >>> t2.clear(branch_mode = 'only')
-            >>> print t2.make_report()
+            >>> print t2.makeReport()
             y = 2
             x = 1
         """
@@ -1335,7 +1335,7 @@ cdef class TreeDict(object):
 
         # Check if it's a dangling node; this is bad
 
-        if self.is_dangling():
+        if self.isDangling():
             self._raiseErrorAtFirstNonDanglingBranch(True)
 
         # First check if it's frozen or can't be written
@@ -1360,16 +1360,16 @@ cdef class TreeDict(object):
     # Some methods for raising attribute errors at the proper time
 
     cdef _raiseAttributeError(self, str key):
-        raise AttributeError("branch/value/method '%s' does not exist in tree/branch '%s'." % (key, self._branch_name(False, True)))
+        raise AttributeError("branch/value/method '%s' does not exist in tree/branch '%s'." % (key, self._branchName(False, True)))
 
     cdef _raiseErrorAtFirstNonDanglingBranch(self, bint raise_attribute_error):
-        cdef TreeDict p = self.parent_node()
+        cdef TreeDict p = self.parentNode()
 
         if RUN_ASSERTS:
             assert p is not None
 
-        if not p.is_dangling():
-            if self.is_dangling():
+        if not p.isDangling():
+            if self.isDangling():
                 if raise_attribute_error:
                     p._raiseAttributeError(self._name)
                 else:
@@ -1427,7 +1427,7 @@ cdef class TreeDict(object):
             False
             >>> "b.c" in t
             True
-            >>> t.is_empty()
+            >>> t.isEmpty()
             False
             >>> t.pop('nothere')
             Traceback (most recent call last):
@@ -1485,10 +1485,10 @@ cdef class TreeDict(object):
         cdef TreeDict p 
         
         if name is None:
-            if self.is_dangling():
+            if self.isDangling():
                 self._raiseErrorAtFirstNonDanglingBranch(True)
 
-            p = self.parent_node()
+            p = self.parentNode()
 
             if p is None:
                 raise TypeError("Cannot detach root node.")
@@ -1535,8 +1535,8 @@ cdef class TreeDict(object):
         if aggressive:
             bottom = self._getBottomNode(k)
 
-            while b is not bottom and not b.is_root() and b.is_empty():
-                p = b.parent_node()
+            while b is not bottom and not b.isRoot() and b.isEmpty():
+                p = b.parentNode()
                 p._cut(b._name)
                 b = p
 
@@ -1564,7 +1564,7 @@ cdef class TreeDict(object):
             >>> t = TreeDict('root')
             >>> t1 = TreeDict('t1')
             >>> t.attach(t1, name = "new_t1", copy = False)
-            >>> t1.root_node()
+            >>> t1.rootNode()
             TreeDict <root>
             >>> t.new_t1 is t1
             True
@@ -1575,11 +1575,11 @@ cdef class TreeDict(object):
             >>> t = TreeDict('root')
             >>> t1 = TreeDict('t1')
             >>> t.attach(t1, copy = True)
-            >>> t1.root_node()
+            >>> t1.rootNode()
             TreeDict <t1>
             >>> t.t1 is t1
             False
-            >>> t.t1.root_node()
+            >>> t.t1.rootNode()
             TreeDict <root>
 
         Example 3::
@@ -1591,13 +1591,13 @@ cdef class TreeDict(object):
             >>> t.a = 1
             >>> t.t1 = t1
             >>> t.attach(t2)
-            >>> print t.make_report()
+            >>> print t.makeReport()
             a     = 1
             t1    = TreeDict <t1>
             t2.x2 = 10
             t2.y2 = 20
             >>> t.attach(recursive = True)
-            >>> print t.make_report()
+            >>> print t.makeReport()
             a     = 1
             t1.y1 = 2
             t1.x1 = 1
@@ -1663,7 +1663,7 @@ cdef class TreeDict(object):
             if not copy and tree._inPathToRoot(b) or b._inPathToRoot(tree):
                 raise ValueError("Attaching to a child or parent node forbidden.")
 
-            if not copy and tree.root_node() is b.root_node():
+            if not copy and tree.rootNode() is b.rootNode():
                 raise ValueError("Attaching a tree with same root requires copy.")
 
             if not copy and tree._parent is not None:
@@ -1694,7 +1694,7 @@ cdef class TreeDict(object):
                 
     
     cdef bint _inPathToRoot(self, TreeDict p):
-        if self.is_root():
+        if self.isRoot():
             return (self is p)
         else:
             if self is p:
@@ -1720,7 +1720,7 @@ cdef class TreeDict(object):
     # Methods that manage the flags
 
     # Freezing
-    cpdef bint is_frozen(self):
+    cpdef bint isFrozen(self):
         """
         Returns True if the current branch is frozen, and False
         otherwise. Like a tuple or other immutable python containers,
@@ -1733,17 +1733,17 @@ cdef class TreeDict(object):
         _setFlag(&self._flags, f_is_frozen, frozen)
 
     # Dangling
-    cpdef bint is_dangling(self):
+    cpdef bint isDangling(self):
         """
         Returns True if this branch was created implicitly and is
         still dangling, and False otherwise.  Example:
 
           >>> t = TreeDict()
           >>> b = t.a
-          >>> t.a.is_dangling()
+          >>> t.a.isDangling()
           True
           >>> t.a.v = 1
-          >>> t.a.is_dangling()
+          >>> t.a.isDangling()
           False
         """
         return _flagOn(&self._flags, f_is_dangling)
@@ -1759,7 +1759,7 @@ cdef class TreeDict(object):
         _setFlag(&self._flags, f_is_detached_dangling, dangling)
 
     # Registration
-    cpdef bint is_registered(self):
+    cpdef bint isRegistered(self):
         """
         Returns true if the current tree structure is registered in
         the module-level tree index and can be accessed through the
@@ -1845,13 +1845,13 @@ cdef class TreeDict(object):
     ################################################################################
     # Methods that return information about the tree
 
-    cpdef TreeDict parent_node(self):
+    cpdef TreeDict parentNode(self):
         """
         Returns the parant node of the current node.
         """
         return self._parent
     
-    cpdef TreeDict root_node(self):
+    cpdef TreeDict rootNode(self):
         """
         Returns the root node of current tree.
         """
@@ -1859,16 +1859,16 @@ cdef class TreeDict(object):
         if self._parent is None:
             return self
         else:
-            return self._parent.root_node()
+            return self._parent.rootNode()
 
-    cpdef bint is_root(self):
+    cpdef bint isRoot(self):
         """
         Returns True if the current node is the root of the tree, and
         False otherwise.
         """
         return self._parent is None
 
-    cpdef bint is_empty(self):
+    cpdef bint isEmpty(self):
         """
         Returns True if the current branch has no branches or leaves.
         (Note that dangling branches don't count, but empty branches do.)
@@ -1878,13 +1878,13 @@ cdef class TreeDict(object):
             return True
 
         for b in self._branches:
-            if not (<TreeDict>b).is_dangling():
+            if not (<TreeDict>b).isDangling():
                 return False
         
         return len(self._branches) == len(self._param_dict)
 
 
-    cpdef bint node_in_same_tree(self, TreeDict node):
+    cpdef bint nodeInSameTree(self, TreeDict node):
         """
         Tests whether `node` is a node in the current tree.  This is
         equal to testing whether they have the same root node.  Note
@@ -1892,10 +1892,10 @@ cdef class TreeDict(object):
         are not considered nodes of the current tree.
         """
 
-        return (self.root_node() is node.root_node())
+        return (self.rootNode() is node.rootNode())
 
 
-    cpdef interactive_tree(self):
+    cpdef interactiveTree(self):
         """
         Returns an interactive version of the TreeDict for use in an
         interpreted shell.  While the branch, node, and leaf values in
@@ -1904,7 +1904,7 @@ cdef class TreeDict(object):
         one to use tab completion in Ipython to interact with the tree
         more easily.
 
-        The `treedict()` method of the interactive tree returns the
+        The `treeDict()` method of the interactive tree returns the
         original TreeDict instance.
 
         Example::
@@ -1915,33 +1915,33 @@ cdef class TreeDict(object):
 
             In [5]: t.set('alpha.beta', 1, beta = 1, gamma = 2)
 
-            In [6]: ti = t.interactive_tree()
+            In [6]: ti = t.interactiveTree()
 
             In [7]: ti.alpha.
 
             ti.alpha.__class__             ti.alpha.__eq__                ti.alpha.__init__              ti.alpha.__reduce_ex__         ti.alpha.__str__               ti.alpha._setAttrDirect
             ti.alpha.__delattr__           ti.alpha.__format__            ti.alpha.__module__            ti.alpha.__repr__              ti.alpha.__subclasshook__      ti.alpha.beta
-            ti.alpha.__dict__              ti.alpha.__getattribute__      ti.alpha.__new__               ti.alpha.__setattr__           ti.alpha.__weakref__           ti.alpha.treedict
+            ti.alpha.__dict__              ti.alpha.__getattribute__      ti.alpha.__new__               ti.alpha.__setattr__           ti.alpha.__weakref__           ti.alpha.treeDict
             ti.alpha.__doc__               ti.alpha.__hash__              ti.alpha.__reduce__            ti.alpha.__sizeof__            ti.alpha._original_param_tree  
 
-            In [7]: ti.alpha.treedict() is t
+            In [7]: ti.alpha.treeDict() is t
             Out[7]: False
 
-            In [8]: ti.alpha.treedict() is t.alpha
+            In [8]: ti.alpha.treeDict() is t.alpha
             Out[8]: True
 
             In [9]: t.
-            t.__call__                  t.__getattr__               t.__pyx_vtable__            t._getSettingOrderPosition  t.fromkeys                  t.is_root                    t.pop
+            t.__call__                  t.__getattr__               t.__pyx_vtable__            t._getSettingOrderPosition  t.fromkeys                  t.isRoot                    t.pop
             t.__class__                 t.__getattribute__          t.__reduce__                t._isDetachedDangling       t.get                       t.items                     t.popitem
-            t.__contains__              t.__getitem__               t.__reduce_ex__             t._iteratorRefCount         t.get_closest_key             t.iterbranches              t.root_node
+            t.__contains__              t.__getitem__               t.__reduce_ex__             t._iteratorRefCount         t.getClosestKey             t.iterbranches              t.rootNode
             t.__copy__                  t.__gt__                    t.__repr__                  t._numDangling              t.has_key                   t.iteritems                 t.set
-            t.__deepcopy__              t.__hash__                  t.__setattr__               t.attach                    t.hash                      t.iterkeys                  t.set_from_string
-            t.__delattr__               t.__init__                  t.__setitem__               t.branch_name                t.interactive_tree           t.itervalues                t.setdefault
-            t.__delitem__               t.__le__                    t.__sizeof__                t.branches                  t.is_dangling                t.keys                      t.size
-            t.__doc__                   t.__len__                   t.__str__                   t.clear                     t.is_empty                   t.make_branch                t.tree_name
-            t.__eq__                    t.__lt__                    t.__subclasshook__          t.copy                      t.is_frozen                  t.make_report                t.update
-            t.__format__                t.__ne__                    t._branch_nameOf             t.dryset                    t.is_mutable                 t.node_in_same_tree            t.values
-            t.__ge__                    t.__new__                   t._fullNameOf               t.freeze                    t.is_registered              t.parent_node                
+            t.__deepcopy__              t.__hash__                  t.__setattr__               t.attach                    t.hash                      t.iterkeys                  t.setFromString
+            t.__delattr__               t.__init__                  t.__setitem__               t.branchName                t.interactiveTree           t.itervalues                t.setdefault
+            t.__delitem__               t.__le__                    t.__sizeof__                t.branches                  t.isDangling                t.keys                      t.size
+            t.__doc__                   t.__len__                   t.__str__                   t.clear                     t.isEmpty                   t.makeBranch                t.treeName
+            t.__eq__                    t.__lt__                    t.__subclasshook__          t.copy                      t.isFrozen                  t.makeReport                t.update
+            t.__format__                t.__ne__                    t._branchNameOf             t.dryset                    t.isMutable                 t.nodeInSameTree            t.values
+            t.__ge__                    t.__new__                   t._fullNameOf               t.freeze                    t.isRegistered              t.parentNode                
 
             In [9]: t.
             """
@@ -1949,18 +1949,18 @@ cdef class TreeDict(object):
         return InteractiveTreeDict(self)
 
     def __call__(self, *args, **kwargs):
-        if self.is_dangling():
+        if self.isDangling():
             raise TypeError('<%s> not a TreeDict method or branch, illegally called.'
-                            % self._branch_name(False, True))
+                            % self._branchName(False, True))
         else:
             self._setAll(args, kwargs, False)
             return self
         
     def __repr__(self):
-        if self.is_dangling():
-            return "Dangling TreeDict <%s>" % self._branch_name(False, True)
+        if self.isDangling():
+            return "Dangling TreeDict <%s>" % self._branchName(False, True)
         else:
-            return "TreeDict <%s>" % self._branch_name(False, True)
+            return "TreeDict <%s>" % self._branchName(False, True)
 
     cpdef str _fullNameOf(self, str key):
         """
@@ -1968,16 +1968,16 @@ cdef class TreeDict(object):
         """
 
         checkKeyNotNone(key)
-        return self._branch_name(False, True) + "." + key
+        return self._branchName(False, True) + "." + key
 
-    cpdef str _branch_nameOf(self, str key):
+    cpdef str _branchNameOf(self, str key):
         """
         Returns the full name of `key`, not including the root name of the tree.
         """
 
-        return catNames(self._branch_name(False, False), key)
+        return catNames(self._branchName(False, False), key)
 
-    cpdef str tree_name(self):
+    cpdef str treeName(self):
         """
         Returns the name of the tree (defined as the name of the root
         node).
@@ -1986,17 +1986,17 @@ cdef class TreeDict(object):
 
             >>> from treedict import TreeDict
             >>> t = TreeDict('mytree')
-            >>> t.tree_name()
+            >>> t.treeName()
             'mytree'
-            >>> t.make_branch('a.b.c')
+            >>> t.makeBranch('a.b.c')
             TreeDict <mytree.a.b.c>
-            >>> t.a.b.tree_name()
+            >>> t.a.b.treeName()
             'mytree'
         """
         
-        return self.root_node()._branch_name(True, True)
+        return self.rootNode()._branchName(True, True)
 
-    cpdef str branch_name(self, bint add_path = False, bint add_tree_name = False):
+    cpdef str branchName(self, bint add_path = False, bint add_tree_name = False):
         """
         Returns the name of the branch.
 
@@ -2009,23 +2009,23 @@ cdef class TreeDict(object):
 
             >>> from treedict import TreeDict
             >>> t = TreeDict('root')
-            >>> t.make_branch("a.b.c")
+            >>> t.makeBranch("a.b.c")
             TreeDict <root.a.b.c>
-            >>> t.a.b.c.branch_name()
+            >>> t.a.b.c.branchName()
             'c'
-            >>> t.a.b.c.branch_name(add_path = True)
+            >>> t.a.b.c.branchName(add_path = True)
             'a.b.c'
-            >>> t.a.b.c.branch_name(add_path = True, add_tree_name = True)
+            >>> t.a.b.c.branchName(add_path = True, add_tree_name = True)
             'root.a.b.c'
         """
 
-        return self._branch_name(not add_path, add_tree_name)
+        return self._branchName(not add_path, add_tree_name)
 
-    cdef str _branch_name(self, bint local_only, bint include_tree_name):
+    cdef str _branchName(self, bint local_only, bint include_tree_name):
         # Now a little trickier since we have to handle empty tree
         # names properly, so we can't special case ''
 
-        cdef TreeDict p = self.parent_node()
+        cdef TreeDict p = self.parentNode()
         cdef str base
 
         if p is None:
@@ -2037,15 +2037,15 @@ cdef class TreeDict(object):
             if local_only:
                 return self._name
 
-            if p.is_root():
+            if p.isRoot():
                 if include_tree_name:
                     return p._name + '.' + self._name
                 else:
                     return self._name
             else:
-                return p._branch_name(False, include_tree_name) + '.' + self._name
+                return p._branchName(False, include_tree_name) + '.' + self._name
 
-    def make_report(self, bint recursive = True, bint add_path = False, bint add_tree_name = True):
+    def makeReport(self, bint recursive = True, bint add_path = False, bint add_tree_name = True):
         """
         Creates a report listing all values present in this node,
         formatted as ``[branch].name = value``.  Parameters are
@@ -2054,7 +2054,7 @@ cdef class TreeDict(object):
         If `add_path` is True, then the full path of each value is
         given instead of just the path from the current node.  If, in
         addition, `add_tree_name` is True, the name of the tree is
-        prepended to the path.  (Note: if self.tree_name() is not a
+        prepended to the path.  (Note: if self.treeName() is not a
         valid python variable name, then it is enclosed in single
         quotes, and if it is '', it is omitted.) `add_tree_name` is
         ignored if `add_path` is False.
@@ -2076,7 +2076,7 @@ cdef class TreeDict(object):
             >>> t.a.x = None
             >>> t.b.z = 2
             >>> 
-            >>> print t.make_report()
+            >>> print t.makeReport()
             x   = 1
             y   = 2
             a.z = [1, 2, 3]
@@ -2084,15 +2084,15 @@ cdef class TreeDict(object):
             a.x = None
             b.x = 'hello'
             b.z = 2
-            >>> print t.a.make_report()
+            >>> print t.a.makeReport()
             z = [1, 2, 3]
             y = {1: 2}
             x = None
-            >>> print t.a.make_report(add_path = True)
+            >>> print t.a.makeReport(add_path = True)
             mytree.a.z = [1, 2, 3]
             mytree.a.y = {1: 2}
             mytree.a.x = None
-            >>> print t.a.make_report(add_path = True, add_tree_name = False)
+            >>> print t.a.makeReport(add_path = True, add_tree_name = False)
             a.z = [1, 2, 3]
             a.y = {1: 2}
             a.x = None
@@ -2100,11 +2100,11 @@ cdef class TreeDict(object):
 
 
         if add_path and add_tree_name:
-            tn = self.tree_name()
+            tn = self.treeName()
 
         prepend_list = [((tn if isValidName(tn) else '%s' % tn)
                          if add_path and add_tree_name and len(tn) != 0 else ""),
-                        self.branch_name(False, False) if add_path else ""]
+                        self.branchName(False, False) if add_path else ""]
 
         cdef str prepend_string = ".".join([k for k in prepend_list if len(<str>k) != 0])
 
@@ -2163,22 +2163,22 @@ cdef class TreeDict(object):
 
 
         cdef flagtype gsp = (f_dangling_okay 
-                             | (f_create_if_needed if not self.is_frozen() else 0))
+                             | (f_create_if_needed if not self.isFrozen() else 0))
 
-        cdef bint allow_dangling_nodes = False if self.is_frozen() else True
+        cdef bint allow_dangling_nodes = False if self.isFrozen() else True
 
         try:
             _setFlagOn(&self._flags, f_getattr_called)
 
             if self._existsLocal(k, allow_dangling_nodes):
                 return self._getLocal(k, allow_dangling_nodes)
-            elif not self.is_frozen():
+            elif not self.isFrozen():
                 return self._newLocalBranch(k, f_create_if_needed | f_create_dangling)
             else:
                 self._raiseAttributeError(k)
 
             #except TypeError:
-            #    raise AttributeError("branch/value/method '%s' does not exist in tree/branch '%s' (Frozen)." % (k, self.branch_name()))
+            #    raise AttributeError("branch/value/method '%s' does not exist in tree/branch '%s' (Frozen)." % (k, self.branchName()))
 
         finally:
             _setFlagOff(&self._flags, f_getattr_called)
@@ -2296,7 +2296,7 @@ cdef class TreeDict(object):
     cdef _get(self, str k, bint dangling_okay):
         cdef _PTreeNode pn = self._getPTNode(k)
 
-        if pn is None or (not dangling_okay and pn.is_danglingBranch()):
+        if pn is None or (not dangling_okay and pn.isDanglingBranch()):
             raise KeyError
         else:
             return pn.value()
@@ -2304,7 +2304,7 @@ cdef class TreeDict(object):
     cdef _getLocal(self, str k, bint dangling_okay):
         cdef _PTreeNode pn = self._getLocalPTNode(k)
 
-        if pn is None or (not dangling_okay and pn.is_danglingBranch()):
+        if pn is None or (not dangling_okay and pn.isDanglingBranch()):
             raise KeyError
         else:
             return pn.value()
@@ -2318,7 +2318,7 @@ cdef class TreeDict(object):
         elif dangling_okay:
             return True
         else:
-            return not pn.is_danglingTree()
+            return not pn.isDanglingTree()
 
     cdef bint _existsLocal(self, str k, bint dangling_okay):
         cdef _PTreeNode pn
@@ -2331,7 +2331,7 @@ cdef class TreeDict(object):
             if pn is None:
                 return False
             else:
-                return not pn.is_danglingTree()
+                return not pn.isDanglingTree()
 
 
     ########################################
@@ -2353,7 +2353,7 @@ cdef class TreeDict(object):
                     raise TypeError("Node \"%s\" is not a branch as requested."
                                     % self._fullNameOf(k) )
 
-            if pn.is_danglingBranch() and not (gsp & f_dangling_okay):
+            if pn.isDanglingBranch() and not (gsp & f_dangling_okay):
                 return None
         
             return pn.tree()
@@ -2399,7 +2399,7 @@ cdef class TreeDict(object):
     ################################################################################
     # Methods relating to branch creation and manipulation
 
-    def make_branch(self, str name, bint only_new = False):
+    def makeBranch(self, str name, bint only_new = False):
         """
         Explicitly creates a branch named `name` and returns it.
 
@@ -2432,10 +2432,10 @@ cdef class TreeDict(object):
 
         if RUN_ASSERTS:
 
-            assert not b.is_dangling()
+            assert not b.isDangling()
 
             if '.' not in name:
-                assert not (<_PTreeNode>self._param_dict[name]).is_danglingBranch()
+                assert not (<_PTreeNode>self._param_dict[name]).isDanglingBranch()
 
         return b
             
@@ -2474,7 +2474,7 @@ cdef class TreeDict(object):
         if not (gsp & f_dry_run):
 
             if RUN_ASSERTS:
-                assert tree.parent_node() is self
+                assert tree.parentNode() is self
 
             if RUN_ASSERTS:
                 for t in self._branches:
@@ -2483,10 +2483,10 @@ cdef class TreeDict(object):
             self._branches.append(tree)
 
     cdef _attachDanglingSelf(self):
-        if not self.is_dangling():
+        if not self.isDangling():
             return
 
-        cdef TreeDict p = self.parent_node()
+        cdef TreeDict p = self.parentNode()
 
         if RUN_ASSERTS:
             assert p is not None
@@ -2497,7 +2497,7 @@ cdef class TreeDict(object):
         self._setDangling(False)
                 
         if RUN_ASSERTS:
-            assert not self.is_dangling()
+            assert not self.isDangling()
         
         if self._isDetachedDangling():
             self._setDetachedDangling(False)
@@ -2558,7 +2558,7 @@ cdef class TreeDict(object):
 
         # Attempt reject based on other equality measures
 
-        if self.is_dangling() != p.is_dangling():
+        if self.isDangling() != p.isDangling():
             return False
         
         if (len(self._param_dict) - self._n_dangling
@@ -2578,7 +2578,7 @@ cdef class TreeDict(object):
             if pn1.isImmutable():
                 continue
 
-            if pn1.is_danglingBranch(): 
+            if pn1.isDanglingBranch(): 
                 continue
 
             try:
@@ -2596,10 +2596,10 @@ cdef class TreeDict(object):
     # hash stuff
 
     def __hash__(self):
-        if not self.is_frozen():
+        if not self.isFrozen():
             raise TypeError("Only frozen trees are python hashable.")
 
-        if self.is_mutable():
+        if self.isMutable():
             s = self._firstMutableType()
             if s is not None:
                 raise TypeError("Node '%s' (and possibly more) not hashable." % s)
@@ -2613,7 +2613,7 @@ cdef class TreeDict(object):
         # Mutable tests; if there are no mutable items, then go with
 
         for k, pn in self._param_dict.iteritems():
-            if pn.is_mutable() or (pn.isTree() and pn.tree().is_mutable()):
+            if pn.isMutable() or (pn.isTree() and pn.tree().isMutable()):
                 return k
             
             if pn.isBranch():
@@ -2623,7 +2623,7 @@ cdef class TreeDict(object):
 
         return None
 
-    cpdef bint is_mutable(self):
+    cpdef bint isMutable(self):
         """
         Returns true if the current tree is frozen and contains no
         mutable values, otherwise returns False.
@@ -2632,7 +2632,7 @@ cdef class TreeDict(object):
         # Just like the previous version, but doesn't take as long
         # cause it just does quick checks
 
-        if not self.is_frozen():
+        if not self.isFrozen():
             return True
 
         if self._n_mutable != 0:
@@ -2641,7 +2641,7 @@ cdef class TreeDict(object):
         cdef _PTreeNode pn
         
         for k, pn in self._param_dict.iteritems():
-            if pn.isTree() and pn.tree().is_mutable():
+            if pn.isTree() and pn.tree().isMutable():
                 return True
 
         return False
@@ -2788,7 +2788,7 @@ cdef class TreeDict(object):
 
     cdef _runFullHash(self, hf):
         
-        if self.is_dangling():
+        if self.isDangling():
             raise TypeError("Dangling nodes not hashable.")
 
         hf(self._getImmutableItemsHash())
@@ -2797,13 +2797,13 @@ cdef class TreeDict(object):
         cdef _PTreeNode pn
 
         for k, pn in sorted(self._param_dict.iteritems()):
-            if not pn.isImmutable() and not pn.is_danglingTree():
+            if not pn.isImmutable() and not pn.isDanglingTree():
                 self._update_hash_with_key(hf, k)
                 self._update_hash_with_context(hf, pn)
                 pn.runFullHash(hf)
 
     cdef _runImmutableHash(self, hf):
-        if self.is_dangling():
+        if self.isDangling():
             raise TypeError("Dangling nodes not hashable.")
 
         # This takes care of all the immutable local values
@@ -2813,7 +2813,7 @@ cdef class TreeDict(object):
         cdef _PTreeNode pn
         
         for k, pn in sorted(self._param_dict.iteritems()):
-            if pn.isBranch() and not pn.is_danglingBranch():
+            if pn.isBranch() and not pn.isDanglingBranch():
                 self._update_hash_with_key(hf, k)
                 self._update_hash_with_context(hf, pn)
                 pn.runImmutableHash(hf)
@@ -2824,7 +2824,7 @@ cdef class TreeDict(object):
         cdef _PTreeNode pn
         cdef str hs
         
-        if self.is_dangling():
+        if self.isDangling():
             raise TypeError("Dangling nodes not hashable.")
 
         if s_immutable_items_hash not in self._aux_dict:
@@ -2860,7 +2860,7 @@ cdef class TreeDict(object):
     cdef void _keyDeleted(self, str key, _PTreeNode pn):
         cdef size_t i
         
-        if pn.is_mutable():
+        if pn.isMutable():
             self._n_mutable -= 1
 
             if RUN_ASSERTS:
@@ -2876,20 +2876,20 @@ cdef class TreeDict(object):
                     del self._branches[i]
                     break
             
-        if pn.is_danglingBranch():
+        if pn.isDanglingBranch():
             self._n_dangling -= 1
             
     cdef _keyInserted(self, str key, _PTreeNode pn):
         cdef TreeDict p
 
-        if pn.is_mutable():
+        if pn.isMutable():
             self._n_mutable += 1
         elif pn.isImmutable():
             self._resetImmutableHashes()
             
         # Now if we are a dangling node, inserting a key turns us into
         # a non-dangling node...
-        if pn.is_danglingBranch():
+        if pn.isDanglingBranch():
             
             # Only count if we need to; this would be an issue with links
             p = pn.tree()
@@ -2925,7 +2925,7 @@ cdef class TreeDict(object):
     cdef TreeDict _copy(self, bint deep, bint frozen):
         # Wraps the recursive function _recursiveCopy() that 
     
-        if self.is_dangling():
+        if self.isDangling():
             self._raiseErrorAtFirstNonDanglingBranch(True)
 
         cdef TreeDict p
@@ -2979,7 +2979,7 @@ cdef class TreeDict(object):
 
         for k, pn in self._param_dict.iteritems():
 
-            if pn.is_danglingBranch():
+            if pn.isDanglingBranch():
                 continue
 
             new_pn = self._copyValue(p, pn, deep)
@@ -3051,7 +3051,7 @@ cdef class TreeDict(object):
 
             >>> from treedict import TreeDict
             >>> t = TreeDict() ; t.set('b.x', 1, 'b.c.y', 2, x = 1)
-            >>> print t.make_report()
+            >>> print t.makeReport()
             b.x   = 1
             b.c.y = 2
             x     = 1
@@ -3091,7 +3091,7 @@ cdef class TreeDict(object):
             n = self._local_size(branch_mode)
 
             for b in self._branches:
-                if not b.is_dangling():
+                if not b.isDangling():
                     n += b._size(recursive, branch_mode)
 
             return n
@@ -3139,7 +3139,7 @@ cdef class TreeDict(object):
         
             >>> from treedict import TreeDict
             >>> t = TreeDict() ; t.set('b.x', 1, 'b.c.y', 2, x = 1)
-            >>> print t.make_report()
+            >>> print t.makeReport()
             b.x   = 1
             b.c.y = 2
             x     = 1
@@ -3179,7 +3179,7 @@ cdef class TreeDict(object):
         
             >>> from treedict import TreeDict
             >>> t = TreeDict() ; t.set('b.x', 1, 'b.c.y', 2, x = 1)
-            >>> print t.make_report()
+            >>> print t.makeReport()
             b.x   = 1
             b.c.y = 2
             x     = 1
@@ -3224,7 +3224,7 @@ cdef class TreeDict(object):
 
             >>> from treedict import TreeDict
             >>> t = TreeDict() ; t.set('b.x', 1, 'b.c.y', 2, x = 1)
-            >>> print t.make_report()
+            >>> print t.makeReport()
             b.x   = 1
             b.c.y = 2
             x     = 1
@@ -3258,7 +3258,7 @@ cdef class TreeDict(object):
             >>> from treedict import TreeDict
             >>> t = TreeDict()
             >>> t.set('a.b', 1, 'b.c', 2, x = 1, y = 2)
-            >>> print t.make_report()
+            >>> print t.makeReport()
             a.b = 1
             b.c = 2
             y   = 2
@@ -3336,7 +3336,7 @@ cdef class TreeDict(object):
             >>> from treedict import TreeDict
             >>> t = TreeDict()
             >>> t.set('a.b', 1, 'b.c', 2, x = 1, y = 2)
-            >>> print t.make_report()
+            >>> print t.makeReport()
             a.b = 1
             b.c = 2
             y   = 2
@@ -3351,7 +3351,7 @@ cdef class TreeDict(object):
     ################################################################################
     # Methods relating to testing on this class
 
-    def get_closest_key(self, str key, int n = 0, bint recursive = True, branch_mode = 'none'):
+    def getClosestKey(self, str key, int n = 0, bint recursive = True, branch_mode = 'none'):
         """
         Returns the closest match(s) in the tree to the key `key`.
 
@@ -3378,11 +3378,11 @@ cdef class TreeDict(object):
             >>> t.gamma.beta = 1
             >>> "alpah.x" in t
             False
-            >>> t.get_closest_key("alpah.x")
+            >>> t.getClosestKey("alpah.x")
             'alpha.x1'
-            >>> t.get_closest_key("alpah.x", 1)
+            >>> t.getClosestKey("alpah.x", 1)
             ['alpha.x1']
-            >>> t.get_closest_key("alpah.x", 3)
+            >>> t.getClosestKey("alpah.x", 3)
             ['alpha.x1', 'beta.x', 'alpha.y1']
            
         """
@@ -3505,7 +3505,7 @@ class InteractiveTreeDict(object):
     attributes in an InteractiveTreeDict.  This allows one to use tab
     completion in Ipython to interact with the tree more easily.
 
-    The :meth:`treedict()` method returns the original TreeDict
+    The :meth:`treeDict()` method returns the original TreeDict
     instance.
 
     Example::
@@ -3516,33 +3516,33 @@ class InteractiveTreeDict(object):
 
         In [5]: t.set('alpha.beta', 1, beta = 1, gamma = 2)
 
-        In [6]: ti = t.interactive_tree()
+        In [6]: ti = t.interactiveTree()
 
         In [7]: ti.alpha.
 
         ti.alpha.__class__             ti.alpha.__eq__                ti.alpha.__init__              ti.alpha.__reduce_ex__         ti.alpha.__str__               ti.alpha._setAttrDirect
         ti.alpha.__delattr__           ti.alpha.__format__            ti.alpha.__module__            ti.alpha.__repr__              ti.alpha.__subclasshook__      ti.alpha.beta
-        ti.alpha.__dict__              ti.alpha.__getattribute__      ti.alpha.__new__               ti.alpha.__setattr__           ti.alpha.__weakref__           ti.alpha.treedict
+        ti.alpha.__dict__              ti.alpha.__getattribute__      ti.alpha.__new__               ti.alpha.__setattr__           ti.alpha.__weakref__           ti.alpha.treeDict
         ti.alpha.__doc__               ti.alpha.__hash__              ti.alpha.__reduce__            ti.alpha.__sizeof__            ti.alpha._original_param_tree  
 
-        In [7]: ti.alpha.treedict() is t
+        In [7]: ti.alpha.treeDict() is t
         Out[7]: False
 
-        In [8]: ti.alpha.treedict() is t.alpha
+        In [8]: ti.alpha.treeDict() is t.alpha
         Out[8]: True
 
         In [9]: t.
-        t.__call__                  t.__getattr__               t.__pyx_vtable__            t._getSettingOrderPosition  t.fromkeys                  t.is_root                    t.pop
+        t.__call__                  t.__getattr__               t.__pyx_vtable__            t._getSettingOrderPosition  t.fromkeys                  t.isRoot                    t.pop
         t.__class__                 t.__getattribute__          t.__reduce__                t._isDetachedDangling       t.get                       t.items                     t.popitem
-        t.__contains__              t.__getitem__               t.__reduce_ex__             t._iteratorRefCount         t.get_closest_key             t.iterbranches              t.root_node
+        t.__contains__              t.__getitem__               t.__reduce_ex__             t._iteratorRefCount         t.getClosestKey             t.iterbranches              t.rootNode
         t.__copy__                  t.__gt__                    t.__repr__                  t._numDangling              t.has_key                   t.iteritems                 t.set
-        t.__deepcopy__              t.__hash__                  t.__setattr__               t.attach                    t.hash                      t.iterkeys                  t.set_from_string
-        t.__delattr__               t.__init__                  t.__setitem__               t.branch_name                t.interactive_tree           t.itervalues                t.setdefault
-        t.__delitem__               t.__le__                    t.__sizeof__                t.branches                  t.is_dangling                t.keys                      t.size
-        t.__doc__                   t.__len__                   t.__str__                   t.clear                     t.is_empty                   t.make_branch                t.tree_name
-        t.__eq__                    t.__lt__                    t.__subclasshook__          t.copy                      t.is_frozen                  t.make_report                t.update
-        t.__format__                t.__ne__                    t._branch_nameOf             t.dryset                    t.is_mutable                 t.node_in_same_tree            t.values
-        t.__ge__                    t.__new__                   t._fullNameOf               t.freeze                    t.is_registered              t.parent_node                
+        t.__deepcopy__              t.__hash__                  t.__setattr__               t.attach                    t.hash                      t.iterkeys                  t.setFromString
+        t.__delattr__               t.__init__                  t.__setitem__               t.branchName                t.interactiveTree           t.itervalues                t.setdefault
+        t.__delitem__               t.__le__                    t.__sizeof__                t.branches                  t.isDangling                t.keys                      t.size
+        t.__doc__                   t.__len__                   t.__str__                   t.clear                     t.isEmpty                   t.makeBranch                t.treeName
+        t.__eq__                    t.__lt__                    t.__subclasshook__          t.copy                      t.isFrozen                  t.makeReport                t.update
+        t.__format__                t.__ne__                    t._branchNameOf             t.dryset                    t.isMutable                 t.nodeInSameTree            t.values
+        t.__ge__                    t.__new__                   t._fullNameOf               t.freeze                    t.isRegistered              t.parentNode                
 
         In [9]: t.
     """
@@ -3558,8 +3558,8 @@ class InteractiveTreeDict(object):
         for k, pn in ptree._param_dict.iteritems():
 
             if pn.isBranch():
-                if not pn.tree().is_dangling():
-                    self._setAttrDirect(k, pn.tree().interactive_tree())
+                if not pn.tree().isDangling():
+                    self._setAttrDirect(k, pn.tree().interactiveTree())
             else:
                 self._setAttrDirect(k, pn.value())
 
@@ -3572,7 +3572,7 @@ class InteractiveTreeDict(object):
         else:
             return (<TreeDict>ipt1._original_param_tree)._isEqual(<TreeDict>ipt2._original_param_tree)
     
-    def treedict(self):
+    def treeDict(self):
         return self._original_param_tree
 
     def __reduce__(self):

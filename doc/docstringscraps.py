@@ -1,5 +1,5 @@
 
-# For the make_report example
+# For the makeReport example
 from treedict import TreeDict
 
 t = TreeDict("mytree")
@@ -11,10 +11,10 @@ t.b.x = "hello"
 t.a.x = None
 t.b.z = 2
 
-print t.make_report()
-print t.a.make_report()
-print t.a.make_report(add_path = True)
-print t.a.make_report(add_path = True, add_tree_name = False)
+print t.makeReport()
+print t.a.makeReport()
+print t.a.makeReport(add_path = True)
+print t.a.makeReport(add_path = True, add_tree_name = False)
 
 
 # For set()
@@ -24,16 +24,16 @@ t.set("x", 1)
 t.set(z = 3)
 t.set("ya", 2, "yb", 2, yc = 3)
 t.set("a.b.c.v", 1)
-print t.make_report()
+print t.makeReport()
 
 # for set
 
 from treedict import TreeDict
 t = TreeDict()
 t.set("x", 1)
-print t.make_report()
+print t.makeReport()
 t.set("a", 3, "b", 4, "1badvalue", 5)
-print t.make_report()
+print t.makeReport()
 
 # For attach
 
@@ -41,15 +41,15 @@ from treedict import TreeDict
 t = TreeDict('root')
 t1 = TreeDict('t1')
 t.attach(t1, copy = True)
-t1.root_node()
+t1.rootNode()
 t.t1 is t1
-t.t1.root_node()
+t.t1.rootNode()
 
 from treedict import TreeDict
 t = TreeDict('root')
 t1 = TreeDict('t1')
 t.attach(t1, name = "new_t1", copy = False)
-t1.root_node()
+t1.rootNode()
 t.new_t1 is t1
 
 from treedict import TreeDict
@@ -60,19 +60,19 @@ t2 = TreeDict('t2', x2 = 10, y2 = 20)
 t.a = 1
 t.t1 = t1
 t.attach(t2)
-print t.make_report()
+print t.makeReport()
 t.attach(recursive = True)
-print t.make_report()
+print t.makeReport()
 
 #########################################
 # For branch name
 
 from treedict import TreeDict
 t = TreeDict('root')
-t.make_branch("a.b.c")
-t.a.b.c.branch_name()
-t.a.b.c.branch_name(add_path = True)
-t.a.b.c.branch_name(add_path = True, add_tree_name = True)
+t.makeBranch("a.b.c")
+t.a.b.c.branchName()
+t.a.b.c.branchName(add_path = True)
+t.a.b.c.branchName(add_path = True, add_tree_name = True)
 
 ########################################
 # Branches
@@ -80,13 +80,13 @@ t.a.b.c.branch_name(add_path = True, add_tree_name = True)
 from treedict import TreeDict
 t = TreeDict()
 t.set('a.b', 1, 'b.c', 2, x = 1, y = 2)
-print t.make_report()
+print t.makeReport()
 list(t.iterbranches())
 
 from treedict import TreeDict
 t = TreeDict()
 t.set('a.b', 1, 'b.c', 2, x = 1, y = 2)
-print t.make_report()
+print t.makeReport()
 t.branches()
 
 ########################################
@@ -94,37 +94,37 @@ t.branches()
 
 from treedict import TreeDict
 t = TreeDict() ; t.set('a.b', 1, 'b.c', 2, x = 1, y = 2)
-print t.make_report()
+print t.makeReport()
 t1 = t.copy() ; t2 = t.copy()
 t.clear()
-t.is_empty()
+t.isEmpty()
 
 t1.clear(branch_mode = 'none')
-print t1.make_report()
+print t1.makeReport()
 
 t2.clear(branch_mode = 'only')
-print t2.make_report()
+print t2.makeReport()
 
 ########################################
 # fromkeys
 
 from treedict import TreeDict
 t = TreeDict.fromkeys(['a', 'b', 'c'])
-print t.make_report()
+print t.makeReport()
 
 from treedict import TreeDict
 t = TreeDict.fromkeys('abc', 'abc')
-print t.make_report()
+print t.makeReport()
 
 ########################################
 # setdefault
 
 from treedict import TreeDict
 t = TreeDict(x = 1)
-print t.make_report()
+print t.makeReport()
 t.setdefault("x", 2)
 t.setdefault("y", 2)
-print t.make_report()
+print t.makeReport()
 
 ########################################
 # get
@@ -136,7 +136,7 @@ t.get("y")
 t.get("y", [])
 
 ########################################
-# get_closest_key
+# getClosestKey
 
 t = TreeDict()
 t.alpha.x1 = 1
@@ -145,9 +145,9 @@ t.alpha.zzz = 1
 t.beta.x = 1
 t.gamma.beta = 1
 "alpah.x" in t
-t.get_closest_key("alpah.x")
-t.get_closest_key("alpah.x", 1)
-t.get_closest_key("alpah.x", 3)
+t.getClosestKey("alpah.x")
+t.getClosestKey("alpah.x", 1)
+t.getClosestKey("alpah.x", 3)
 
 ########################################
 # hash
@@ -164,20 +164,20 @@ t.hash(keys = ['x', 'y'])
 t.hash('nothere')
 
 ########################################
-# tree_name
+# treeName
 
 from treedict import TreeDict
 t = TreeDict('mytree')
-t.tree_name()
-t.make_branch('a.b.c')
-t.a.b.tree_name()
+t.treeName()
+t.makeBranch('a.b.c')
+t.a.b.treeName()
 
 ########################################
 # iteritems
 
 from treedict import TreeDict
 t = TreeDict() ; t.set('b.x', 1, 'b.c.y', 2, x = 1)
-print t.make_report()
+print t.makeReport()
 list(t.iteritems())
 list(t.iteritems(recursive=False))
 list(t.iteritems(recursive=False, branch_mode='none'))
@@ -192,7 +192,7 @@ list(t.iteritems(recursive=True, branch_mode='all'))
 
 from treedict import TreeDict
 t = TreeDict() ; t.set('b.x', 1, 'b.c.y', 2, x = 1)
-print t.make_report()
+print t.makeReport()
 list(t.iterkeys())
 list(t.iterkeys(recursive=False))
 list(t.iterkeys(recursive=False, branch_mode='none'))
@@ -207,7 +207,7 @@ list(t.iterkeys(recursive=True, branch_mode='all'))
 
 from treedict import TreeDict
 t = TreeDict() ; t.set('b.x', 1, 'b.c.y', 2, x = 1)
-print t.make_report()
+print t.makeReport()
 list(t.itervalues())
 list(t.itervalues(recursive=False))
 list(t.itervalues(recursive=False, branch_mode='none'))
@@ -231,7 +231,7 @@ t.b.c.d.e.pop()
 t.b.c.d.pop(prune_empty = True)
 "b.c.d" in t
 "b.c" in t
-t.is_empty()
+t.isEmpty()
 t.pop('nothere')
 t.pop('nothere', silent=True)
 
@@ -240,7 +240,7 @@ t.pop('nothere', silent=True)
 
 from treedict import TreeDict
 t = TreeDict() ; t.set('b.x', 1, 'b.c.y', 2, x = 1)
-print t.make_report()
+print t.makeReport()
 t.size()
 t.size(recursive=False)
 t.size(recursive=False, branch_mode='none')
@@ -250,14 +250,14 @@ t.size(recursive=True, branch_mode='only')
 t.size(recursive=True, branch_mode='all')
 
 ########################################
-# set_from_string
+# setFromString
 
 from treedict import TreeDict
 t = TreeDict()
-t.set_from_string('x', '1')
-t.set_from_string('y', '(1,2,["abc",None])') 
-t.set_from_string('z', '{"abc" : 1}')
-print t.make_report()
+t.setFromString('x', '1')
+t.setFromString('y', '(1,2,["abc",None])') 
+t.setFromString('z', '{"abc" : 1}')
+print t.makeReport()
 
 ########################################
 # __call__
@@ -265,9 +265,9 @@ print t.make_report()
 from treedict import TreeDict
 t = TreeDict()
 t('a.b.x', 1, x = 2)
-print t.make_report()
+print t.makeReport()
 t(y = 3)(z = 4)
-print t.make_report()
+print t.makeReport()
 
 ########################################
 # The globals
@@ -320,7 +320,7 @@ from treedict import TreeDict
 d = {"x" : 1, "y" : 2, "a.b.x" : 3, "a.b.c.y" : 4}
 t = TreeDict()
 t.update(d)
-print t.make_report()
+print t.makeReport()
 
 from treedict import TreeDict
 t = TreeDict() ; t.set("x" , 1, "y" , 2, "a.b.x", 3, "a.b.c.y", 4)

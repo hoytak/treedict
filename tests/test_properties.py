@@ -42,65 +42,65 @@ class TestProperties(unittest.TestCase):
         p1 = TreeDict()
         p1.a
 
-        self.assert_(p1.a.is_dangling())
+        self.assert_(p1.a.isDangling())
 
     def testIsDangling_02(self):
         p1 = TreeDict()
         p1.a.b
 
-        self.assert_(p1.a.is_dangling())
+        self.assert_(p1.a.isDangling())
         
     def testIsDangling_03(self):
         p1 = TreeDict()
         p1.a.b = 1
 
-        self.assert_(not p1.a.is_dangling())
+        self.assert_(not p1.a.isDangling())
 
     def testIsDangling_04(self):
         p1 = sample_tree()
         p1.a
 
-        self.assert_(p1.a.is_dangling())
+        self.assert_(p1.a.isDangling())
 
     def testIsDangling_05(self):
         p1 = sample_tree()
         p1.a.b
 
-        self.assert_(p1.a.is_dangling())
+        self.assert_(p1.a.isDangling())
 
     def testIsDangling_05b(self):
         p1 = sample_tree()
         p1.a
         p1.a.b
 
-        self.assert_(p1.a.is_dangling())
+        self.assert_(p1.a.isDangling())
         
     def testIsDangling_06(self):
         p1 = sample_tree()
         p1.a.b = 1
 
-        self.assert_(not p1.a.is_dangling())
+        self.assert_(not p1.a.isDangling())
 
-    def testis_empty_01(self):
+    def testisEmpty_01(self):
         p = TreeDict('emptytest')
-        self.assert_(p.is_empty())
+        self.assert_(p.isEmpty())
 
-    def testis_empty_02(self):
+    def testisEmpty_02(self):
         p = TreeDict('emptytest')
         p.a.b = 2
-        self.assert_(not p.is_empty())
-        self.assert_(not p.a.is_empty())
+        self.assert_(not p.isEmpty())
+        self.assert_(not p.a.isEmpty())
         
-    def testis_empty_03_key_deletion(self):
+    def testisEmpty_03_key_deletion(self):
         p = TreeDict('emptytest')
         p.a = 2
         del p.a
-        self.assert_(p.is_empty())
+        self.assert_(p.isEmpty())
 
-    def testis_empty_04_dangling_nodes(self):
+    def testisEmpty_04_dangling_nodes(self):
         p = TreeDict()
         p.a
-        self.assert_(p.is_empty())
+        self.assert_(p.isEmpty())
 
 
     def testMutability_01(self):
@@ -111,11 +111,11 @@ class TestProperties(unittest.TestCase):
         p1.c.a = 145
         p1.c.b = "1231321321231321"
 
-        self.assert_(p1.is_mutable())
+        self.assert_(p1.isMutable())
 
         p1.freeze()
 
-        self.assert_(not p1.is_mutable())
+        self.assert_(not p1.isMutable())
 
         
     def testMutability_02(self):
@@ -127,11 +127,11 @@ class TestProperties(unittest.TestCase):
         p1.c.b = "1231321321231321"
         p1.c.c = {}
 
-        self.assert_(p1.is_mutable())
+        self.assert_(p1.isMutable())
 
         p1.freeze()
 
-        self.assert_(p1.is_mutable())
+        self.assert_(p1.isMutable())
         
     def testMutability_03(self):
         # Makes sure that stored branches are handled correctly
@@ -149,15 +149,15 @@ class TestProperties(unittest.TestCase):
 
         p1.node = p2
 
-        self.assert_(p1.is_mutable())
+        self.assert_(p1.isMutable())
 
         p1.freeze()
         
-        self.assert_(p1.is_mutable())
+        self.assert_(p1.isMutable())
 
         p2.freeze()
         
-        self.assert_(not p1.is_mutable())
+        self.assert_(not p1.isMutable())
 
     ################################################################################
     # Sizing
@@ -165,7 +165,7 @@ class TestProperties(unittest.TestCase):
     def testSize_01_empty(self):
         p = TreeDict()
 
-        print p.make_report()
+        print p.makeReport()
         
         self.assert_(len(p) == 0, len(p))
         self.assert_(p.size() == 0, p.size())
@@ -186,7 +186,7 @@ class TestProperties(unittest.TestCase):
     def testSize_03_dangling(self):
         p = TreeDict()
 
-        p.make_branch("a")
+        p.makeBranch("a")
         p.a.b
 
         self.assert_(len(p) == 0)

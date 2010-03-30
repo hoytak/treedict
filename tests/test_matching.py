@@ -46,52 +46,52 @@ class TestMatching(unittest.TestCase):
     def testMatch_01(self):
         p = TreeDict()
         p.a = 1
-        self.assert_(p.get_closest_key('a') == 'a')
-        self.assert_(p.get_closest_key('a', 1) == ['a'])
+        self.assert_(p.getClosestKey('a') == 'a')
+        self.assert_(p.getClosestKey('a', 1) == ['a'])
 
     def testMatch_02(self):
         p = TreeDict()
         p.aa = 1
         p.bb = 1
-        self.assert_(p.get_closest_key('a') == 'aa')
-        self.assert_(p.get_closest_key('a',1) == ['aa'])
+        self.assert_(p.getClosestKey('a') == 'aa')
+        self.assert_(p.getClosestKey('a',1) == ['aa'])
         
     def testMatch_03(self):
         p = TreeDict()
         p.set(a=1, b=1, c=1, d=1,e=1,f=1)
-        self.assert_(p.get_closest_key('cc') == 'c')
-        self.assert_(p.get_closest_key('cc', 1) == ['c'])
+        self.assert_(p.getClosestKey('cc') == 'c')
+        self.assert_(p.getClosestKey('cc', 1) == ['c'])
 
     def testMatch_04(self):
         p = TreeDict()
         p.a.b = 1
         p.a.a.b = 1
         p.a.a.a.c = 1
-        self.assert_(p.get_closest_key('a') == 'a.b')
-        self.assert_(p.get_closest_key('a', 1) == ['a.b'])
+        self.assert_(p.getClosestKey('a') == 'a.b')
+        self.assert_(p.getClosestKey('a', 1) == ['a.b'])
 
     def testMatch_05(self):
         p = TreeDict()
         p.a.b = 1
         p.a.a.b = 1
         p.a.a.a.c = 1
-        self.assert_(p.get_closest_key('a.a.b') == 'a.a.b')
-        self.assert_(p.get_closest_key('a.a.b',1) == ['a.a.b'])
+        self.assert_(p.getClosestKey('a.a.b') == 'a.a.b')
+        self.assert_(p.getClosestKey('a.a.b',1) == ['a.a.b'])
 
     def testMatch_06(self):
         p = TreeDict()
         p.a.b = 1
         p.a.a.b = 1
         p.a.a.a.c = 1
-        self.assert_(p.get_closest_key('a.ab') == 'a.a.b')
-        self.assert_(p.get_closest_key('a.ab',1) == ['a.a.b'])
+        self.assert_(p.getClosestKey('a.ab') == 'a.a.b')
+        self.assert_(p.getClosestKey('a.ab',1) == ['a.a.b'])
 
     def testMatch_07(self):
         p = TreeDict()
         p.a.b = 1
         p.a.a.b = 1
         p.a.a.a.c = 1
-        self.assert_(p.get_closest_key('', 2) == ['a.b', 'a.a.b'])
+        self.assert_(p.getClosestKey('', 2) == ['a.b', 'a.a.b'])
 
     def testMatch_08(self):
         p = TreeDict()
@@ -102,51 +102,51 @@ class TestMatching(unittest.TestCase):
         p.a.a.bc = 1
         p.a.a.a.c = 1
 
-        self.assert_(p.get_closest_key('', 4) == ['ab', 'a.b', 'a.ab', 'a.a.b'])
+        self.assert_(p.getClosestKey('', 4) == ['ab', 'a.b', 'a.ab', 'a.a.b'])
 
     def testMatch_09(self):
         p = TreeDict()
         p.set(gambol = 2, bumble = 3)
-        self.assert_(p.get_closest_key('gumbo') == 'gambol')
-        self.assert_(p.get_closest_key('gumbo', 1) == ['gambol'])
+        self.assert_(p.getClosestKey('gumbo') == 'gambol')
+        self.assert_(p.getClosestKey('gumbo', 1) == ['gambol'])
 
     def testMatch_10(self):
         p = TreeDict()
         p.set(gambol = 2, bumble = 3, borkborkbork=None)
-        self.assert_(p.get_closest_key('gumbo', 2) == ['gambol', 'bumble'])
+        self.assert_(p.getClosestKey('gumbo', 2) == ['gambol', 'bumble'])
 
     def testMatch_11(self):
         p = TreeDict()
         p.a.b = 1
         p.a.a.b = 1
         p.a.a.a.c = 1
-        self.assert_(p.get_closest_key('', 200000) == ['a.b', 'a.a.b', 'a.a.a.c'])
+        self.assert_(p.getClosestKey('', 200000) == ['a.b', 'a.a.b', 'a.a.a.c'])
 
     def testMatch_12_empty(self):
         p = TreeDict()
-        self.assert_(p.get_closest_key('123221321321') is None)
-        self.assert_(p.get_closest_key('123221321321', 1) == [])
-        self.assert_(p.get_closest_key('123221321321', 10000) == [])
+        self.assert_(p.getClosestKey('123221321321') is None)
+        self.assert_(p.getClosestKey('123221321321', 1) == [])
+        self.assert_(p.getClosestKey('123221321321', 10000) == [])
 
     def testMatch_13_empty(self):
         p = TreeDict()
-        self.assert_(p.get_closest_key('') is None)
-        self.assert_(p.get_closest_key('', 1) == [])
-        self.assert_(p.get_closest_key('', 10000) == [])
+        self.assert_(p.getClosestKey('') is None)
+        self.assert_(p.getClosestKey('', 1) == [])
+        self.assert_(p.getClosestKey('', 10000) == [])
 
     def testMatch_14_first(self):
         p = TreeDict()
         p.asdfdjdjd.eiudkdkdk = 1
         p.basdfdjdjd = 1
         
-        self.assert_(p.get_closest_key('asdfdjdjd') == 'asdfdjdjd.eiudkdkdk')
+        self.assert_(p.getClosestKey('asdfdjdjd') == 'asdfdjdjd.eiudkdkdk')
 
     def testMatch_15_last(self):
         p = TreeDict()
         p.asdfdjdjd.eiudkdkdk = 1
         p.basdfdjdjd.eiudkddk = 1
         
-        self.assert_(p.get_closest_key('asdfjd.eiudkdkdk') == 'asdfdjdjd.eiudkdkdk')
+        self.assert_(p.getClosestKey('asdfjd.eiudkdkdk') == 'asdfdjdjd.eiudkdkdk')
 
     def testMatch_16_first(self):
         p = TreeDict()
@@ -154,8 +154,8 @@ class TestMatching(unittest.TestCase):
         p.basdfdjdjd.eiudkddk = 1
         p.a.b = None
         
-        self.assert_(p.get_closest_key('asdfdjdjd', 2) == 
-                     ['asdfdjdjd.eiudkdkdk', 'basdfdjdjd.eiudkddk'], p.get_closest_key('asdfdjdjd', 2))
+        self.assert_(p.getClosestKey('asdfdjdjd', 2) == 
+                     ['asdfdjdjd.eiudkdkdk', 'basdfdjdjd.eiudkddk'], p.getClosestKey('asdfdjdjd', 2))
 
     def testMatch_17_last(self):
         p = TreeDict()
@@ -163,7 +163,7 @@ class TestMatching(unittest.TestCase):
         p.basdfdjdjd.eiudkddk = 1
         p.a.b = None
         
-        self.assert_(p.get_closest_key('asdfjd.eiudkdkdk', 2) == 
+        self.assert_(p.getClosestKey('asdfjd.eiudkdkdk', 2) == 
                      ['asdfdjdjd.eiudkdkdk', 'basdfdjdjd.eiudkddk'])
 
 
