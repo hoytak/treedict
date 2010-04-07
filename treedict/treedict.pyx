@@ -2929,7 +2929,52 @@ cdef class TreeDict(object):
 
         return self._copy(deep, freeze)
 
+    def importFrom(self, TreeDict source_tree, bint copy_deep=False, overwrite_existing = True):
+        """
+        Copies all the branches and values from a source branch/tree
+        `source_tree` into the current branch.
 
+        If `copy_deep` is True, then copies are made of all the values
+        held in the source tree, otherwise, only the tree structure
+        and references to the values are copied (default).
+
+        If `overwrite_existing` is True (default), then conflicting
+        values in the local tree are overwritten by the corresponding
+        values in the source tree.  If `overwrite_existing` is False,
+        all local values already present are preserved.
+        """
+
+        cdef dict d = dict(source_tree._getIter(True, i_BranchMode_All, i_Items))
+        cdef set existing_items
+        
+
+        if overwrite_existing:
+            
+            if copy_deep:
+                for k, v in d.iteritems():
+                    d[k] = deepcopy_f(v)
+
+            self._setAll(None, d, False)
+            
+        else:
+
+            # First see if there will be any problems, so do a dryset
+            for k, v in d.items():
+                if not self._exists(<str>k, False):
+                    self._dryset(<str>k, v)
+                else:
+                    del d[k]
+                    
+            # don't make unneccesary copies 
+            if copy_deep:
+                for k, v in d.iteritems():
+                    d[k] = deepcopy_f(v)
+
+            # Then go ahead and set them
+            for k, v in d.iteritems():
+                self._set(<str>k, v, True)
+
+                    
     cdef TreeDict _copy(self, bint deep, bint frozen):
         # Wraps the recursive function _recursiveCopy() that 
     

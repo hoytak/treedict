@@ -224,6 +224,101 @@ class TestCopying(unittest.TestCase):
         self.assert_(not p3.b.c.isFrozen())
 
 
+    def testImport_01(self):
+
+        p = TreeDict()
+
+        p.a.b = 1
+        p.a.c = 2
+        p.b   = [1,2,3]
+
+        p2 = TreeDict()
+        p2.importFrom(p)
+
+        self.assert_(p.a.b is p2.a.b)
+        self.assert_(p.a.c is p2.a.c)
+        self.assert_(p.b is p2.b)
+
+        self.assert_(p == p2)
+
+    def testImport_02_deepcopy(self):
+
+        p = TreeDict()
+
+        p.a.b = 1
+        p.a.c = 2
+        p.b   = [1,2,3]
+
+        p2 = TreeDict()
+        p2.importFrom(p, copy_deep = True)
+
+        self.assert_(p.a.b == p2.a.b)
+        self.assert_(p.a.c == p2.a.c)
+        self.assert_(p.b == p2.b)
+        self.assert_(p.b is not p2.b)
+
+        self.assert_(p == p2)
+
+    def testImport_03_local_values_preserved(self):
+
+        p = TreeDict()
+
+        p.a.b = 1
+        p.a.c = 2
+        p.b   = [1,2,3]
+
+        p2 = TreeDict()
+        p2.c  = [1,2]
+        p2.importFrom(p)
+
+        self.assert_(p.a.b is p2.a.b)
+        self.assert_(p.a.c is p2.a.c)
+        self.assert_(p.b is p2.b)
+        self.assert_(p2.c == [1,2])
+
+        self.assert_(p != p2)
+
+    def testImport_04_keep_local(self):
+
+        p = TreeDict()
+
+        p.a.b = 1
+        p.a.c = 2
+        p.b   = [1,2,3]
+
+        p2 = TreeDict()
+        p2.b  = [1,2]
+        p2.importFrom(p, overwrite_existing = False)
+
+        self.assert_(p.a.b == p2.a.b)
+        self.assert_(p.a.c == p2.a.c)
+        self.assert_(p.b == [1,2,3])
+        self.assert_(p2.b == [1,2])
+
+        self.assert_(p != p2)
+        
+
+    def testImport_05_keep_local__local_values_preserved(self):
+
+        p = TreeDict()
+
+        p.a.b = 1
+        p.a.c = 2
+        p.b   = [1,2,3]
+
+        p2 = TreeDict()
+        p2.b  = [1,2]
+        p2.c  = [1]
+        p2.importFrom(p, overwrite_existing = False)
+
+        self.assert_(p.a.b == p2.a.b)
+        self.assert_(p.a.c == p2.a.c)
+        self.assert_(p.b == [1,2,3])
+        self.assert_(p2.b == [1,2])
+        self.assert_(p2.c == [1])
+
+        self.assert_(p != p2)
+
     # Also need tests covering cases where flags are cleared on copied
     # nodes
 
