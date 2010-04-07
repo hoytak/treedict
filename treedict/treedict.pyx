@@ -3467,7 +3467,7 @@ cdef class TreeDict(object):
     cdef list _getListOfClosest(self, str key, size_t n, TreeDictIterator pti, size_t_v *bufp):
 
         cdef str k
-        cdef long cost, high_cost_cutoff = -(2**(sizeof(long) - 2) )
+        cdef long cost, highest_cost_cutoff = -(2**(sizeof(long) - 2) )
         cdef size_t n_els = 0
         cdef tuple t
         cdef list kl = []
