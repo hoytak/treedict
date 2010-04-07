@@ -1227,7 +1227,7 @@ cdef class TreeDict(object):
     ################################################################################
     # Methods that freeze the state of the tree
 
-    cpdef freeze(self, str branch=None):
+    cpdef freeze(self, str branch=None, bint quiet = True):
         """
         Freezes the tree and all branches so no further manipulations
         can happen.  The tree cannot be unfrozen except by creating an
@@ -1236,6 +1236,11 @@ cdef class TreeDict(object):
 
         If `branch` is given, then only that branch (and all
         sub-branches) are frozen.
+
+        If `quiet` is True, then no error is raised if `branch` refers
+        to a value instead of a branch.  Otherwise, a TypeError
+        exception is raised. This parameter is ignored if `branch` is
+        None.
 
         Note: TreeDict values stored in the tree as values -- not as
         branches -- are not affected by this freezing operation.
@@ -1247,7 +1252,10 @@ cdef class TreeDict(object):
             b = self.get(branch)
 
             if not type(b) is TreeDict:
-                raise ValueError("Cannot freeze non-branch value at key '%s'" % branch)
+                if not quiet:
+                    raise TypeError("Cannot freeze non-branch value at key '%s'" % branch)
+                else:
+                    return
 
             (<TreeDict>b)._freeze_tree()
 

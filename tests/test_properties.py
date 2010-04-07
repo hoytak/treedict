@@ -158,6 +158,22 @@ class TestProperties(unittest.TestCase):
         p2.freeze()
         
         self.assert_(not p1.isMutable())
+        
+    def testFreezingValues_01(self):
+        p1 = TreeDict('root')
+        
+        p1.a = (13, (123, 32))
+        p1.b = 123
+        p1.c.a = 145
+        p1.c.b = "1231321321231321"
+      
+        p1.freeze("a")
+        self.assertRaises(TypeError, lambda: p1.freeze("b", quiet=False))
+        p1.freeze("b", quiet=True)
+
+        p1.freeze("c", quiet=False)
+
+        self.assert_(p1.c.isFrozen())
 
     ################################################################################
     # Sizing

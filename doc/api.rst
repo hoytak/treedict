@@ -102,7 +102,7 @@ functions, `getTree` and `treeExists`.
 
         .. automethod:: dryset(self, *args, **kwargs)
 
-        .. automethod:: freeze(self, branch=None)
+        .. automethod:: freeze(self, branch=None, quiet = True)
 
         .. automethod:: fromkeys(key_iterable, value = None)
 
