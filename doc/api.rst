@@ -114,6 +114,8 @@ functions, `getTree` and `treeExists`.
 
         .. automethod:: hash(self, key=None, add_name = False, keys=None)
 
+	.. automethod:: importFrom(self, source_tree, copy_deep = False, overwrite_existing = True)
+
         .. automethod:: interactiveTree(self)
 
         .. automethod:: isDangling(self)
