@@ -2929,7 +2929,7 @@ cdef class TreeDict(object):
 
         return self._copy(deep, freeze)
 
-    def importFrom(self, TreeDict source_tree, bint copy_deep=False, overwrite_existing = True):
+    def importFrom(self, TreeDict source_tree, bint copy_deep=False, bint overwrite_existing = True):
         """
         Copies all the branches and values from a source branch/tree
         `source_tree` into the current branch.
@@ -2946,7 +2946,6 @@ cdef class TreeDict(object):
 
         cdef dict d = dict(source_tree._getIter(True, i_BranchMode_All, i_Items))
         cdef set existing_items
-        
 
         if overwrite_existing:
             
