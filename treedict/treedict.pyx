@@ -2936,7 +2936,9 @@ cdef class TreeDict(object):
     def importFrom(self, TreeDict source_tree, bint copy_deep=False, bint overwrite_existing = True):
         """
         Copies all the branches and values from a source branch/tree
-        `source_tree` into the current branch.
+        `source_tree` into the current branch.  Branch structures are
+        recreated in this node, with the new branches reference this
+        node as their parent.
 
         If `copy_deep` is True, then copies are made of all the values
         held in the source tree, otherwise, only the tree structure
@@ -2948,34 +2950,31 @@ cdef class TreeDict(object):
         all local values already present are preserved.
         """
 
-        cdef dict d = dict(source_tree._getIter(True, i_BranchMode_All, i_Items))
-        cdef set existing_items
+        cdef dict branch_dict = dict(source_tree._getIter(False, i_BranchMode_Only, i_Items))
+        cdef dict value_dict  = dict(source_tree._getIter(False, i_BranchMode_None, i_Items))
 
-        if overwrite_existing:
-            
-            if copy_deep:
-                for k, v in d.iteritems():
-                    d[k] = deepcopy_f(v)
+        # First see if there will be any problems, so do a dryset
+        for k, v in branch_dict.items():
+            if overwrite_existing or not self._exists(<str>k, False):
+                self._dryset(<str>k, v)
+            else:
+                del branch_dict[k]
 
-            self._setAll(None, d, False)
-            
-        else:
+        for k, v in value_dict.items():
+            if overwrite_existing or not self._exists(<str>k, False):
+                self._dryset(<str>k, v)
+            else:
+                del value_dict[k]
 
-            # First see if there will be any problems, so do a dryset
-            for k, v in d.items():
-                if not self._exists(<str>k, False):
-                    self._dryset(<str>k, v)
-                else:
-                    del d[k]
-                    
-            # don't make unneccesary copies 
-            if copy_deep:
-                for k, v in d.iteritems():
-                    d[k] = deepcopy_f(v)
+        cdef TreeDict p
 
-            # Then go ahead and set them
-            for k, v in d.iteritems():
-                self._set(<str>k, v, True)
+        for k, v in value_dict.iteritems():
+            self._set(<str>k, deepcopy_f(v) if copy_deep else v, True)
+
+        for k, v in branch_dict.iteritems():
+            p = (<TreeDict>v)._copy(copy_deep, False)
+            p._resetParentNode(self)
+            self._setLocalBranch(p, f_already_dryset)
 
                     
     cdef TreeDict _copy(self, bint deep, bint frozen):

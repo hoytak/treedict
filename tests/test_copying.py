@@ -255,21 +255,55 @@ class TestCopying(unittest.TestCase):
         self.assert_(p._numMutable() == p2._numMutable())
         self.assert_(p.a._numMutable() == p2.a._numMutable())
 
+    def testCopying_07b_Regression_empty_branches(self):
 
-    def testImport_01(self):
+        p = TreeDict()
+        p.makeBranch("a")
+
+        p2 = copy(p)
+       
+        self.assert_(p.a == p2.a)
+        self.assert_(p.a.parentNode() is p)
+        self.assert_(p2.a.parentNode() is p2)
+        self.assert_(p.a is not p2.a)
+
+    def testImport_01_branches(self):
 
         p = TreeDict()
 
-        p.a.b = 1
-        p.a.c = 2
+        p.makeBranch("a")
+
+        p2 = TreeDict()
+
+        p2.importFrom(p)
+
+        self.assert_(p.a == p2.a)
+        self.assert_(p.a.parentNode() is p)
+        self.assert_(p2.a.parentNode() is p2)
+        self.assert_(p.a is not p2.a)
+        
+    def testImport_02(self):
+
+        p = TreeDict()
+
+        p.a.b = [1,2,3,4,534]
+        p.a.c = [1,22,534]
         p.b   = [1,2,3]
 
         p2 = TreeDict()
         p2.importFrom(p)
 
+        self.assert_(p.a is not p2.a)
+        self.assert_(p.a.rootNode() is p)
+        self.assert_(p.a.parentNode() is p)
+        self.assert_(p2.a.rootNode() is p2)
+        self.assert_(p2.a.parentNode() is p2)
+
+        self.assert_(p.a.b == p2.a.b)
         self.assert_(p.a.b is p2.a.b)
+        
+        self.assert_(p.a.c == p2.a.c)
         self.assert_(p.a.c is p2.a.c)
-        self.assert_(p.b is p2.b)
 
         self.assert_(p == p2)
 
@@ -277,15 +311,23 @@ class TestCopying(unittest.TestCase):
 
         p = TreeDict()
 
-        p.a.b = 1
-        p.a.c = 2
+        p.a.b = [1,2,3,4,534]
+        p.a.c = [1,22,534]
         p.b   = [1,2,3]
 
         p2 = TreeDict()
         p2.importFrom(p, copy_deep = True)
 
+        self.assert_(p.a is not p2.a)
+        self.assert_(p.a.rootNode() is p)
+        self.assert_(p2.a.rootNode() is p2)
+
         self.assert_(p.a.b == p2.a.b)
+        self.assert_(p.a.b is not p2.a.b)
+        
         self.assert_(p.a.c == p2.a.c)
+        self.assert_(p.a.c is not p2.a.c)
+
         self.assert_(p.b == p2.b)
         self.assert_(p.b is not p2.b)
 
