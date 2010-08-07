@@ -2445,6 +2445,9 @@ cdef class TreeDict(object):
             if '.' not in name:
                 assert not (<_PTreeNode>self._param_dict[name]).isDanglingBranch()
 
+            assert self[name] is b
+            assert name in self
+
         return b
             
     cdef TreeDict _newLocalBranch(self, str k, flagtype gsp):
