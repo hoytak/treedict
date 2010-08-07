@@ -223,6 +223,38 @@ class TestCopying(unittest.TestCase):
         self.assert_(not p3.b.isFrozen())
         self.assert_(not p3.b.c.isFrozen())
 
+    def testCopying_07a_Regression(self):
+
+        p = TreeDict()
+
+        p.a.b = [1,2,3,4,534]
+        p.a.c = [1,22,534]
+        p.b   = [1,2,3]
+
+        p2 = TreeDict()
+
+        p2.a.b = [1,2,3,4,534]
+        p2.a.c = [1,22,534]
+        p2.b   = [1,2,3]
+
+        p3 = copy(p)
+        
+        self.assert_(p == p2)
+        self.assert_(p == p3)
+
+    def testCopying_07a_Regression_mutability_count_test(self):
+        
+        p = TreeDict()
+
+        p.a.b = [1,2,3,4,534]
+        p.a.c = [1,22,534]
+        p.b   = [1,2,3]
+
+        p2 = copy(p)
+
+        self.assert_(p._numMutable() == p2._numMutable())
+        self.assert_(p.a._numMutable() == p2.a._numMutable())
+
 
     def testImport_01(self):
 

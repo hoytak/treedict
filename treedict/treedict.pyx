@@ -2654,6 +2654,10 @@ cdef class TreeDict(object):
 
         return False
 
+    def _numMutable(self):
+        # For testing
+        return self._n_mutable
+
     ########################################
     # Hashes that handle mutability, for things like database lookups, etc.
     
@@ -3026,7 +3030,7 @@ cdef class TreeDict(object):
         p._flags = self._flags & f_copybranch_propegating_flags
 
         p._n_dangling = 0
-        p._n_mutable = self._n_mutable
+        p._n_mutable = 0
         p._next_item_order_position = self._next_item_order_position
 
         for k, pn in self._param_dict.iteritems():
