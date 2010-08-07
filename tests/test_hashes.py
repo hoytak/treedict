@@ -257,6 +257,28 @@ class TestHashes(unittest.TestCase):
         p = TreeDict(a = 1, b = 2, c = 3)
         self.assert_(p.hash(keys=['a', 'b']) != p.hash(keys=['a','c']))
 
+    def testhashes_20a_infinite_recursion_raises_error(self):
+        p = TreeDict()
+
+        p.makeBranch("a")
+
+        p.a.b.c = p.a
+
+        self.assertRaises(RuntimeError, lambda: p.hash())
+        
+    def testhashes_20b_infinite_recursion_raises_error__frozen(self):
+        p = TreeDict()
+
+        p.makeBranch("a")
+
+        p.a.b.c = p.a
+
+        p.freeze()
+
+        self.assertRaises(RuntimeError, lambda: p.hash())
+        
+
+
 if __name__ == '__main__':
     unittest.main()
 

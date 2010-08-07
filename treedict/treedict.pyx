@@ -302,6 +302,10 @@ DEF f_already_dryset   = 512
 
 DEF f_ignore_nonbranches = 1024
 
+DEF f_visited_by_hash_function = 2048
+
+DEF f_visited_by_im_hash_function = 4096
+
 DEF f_allFlags         = (2**31 - 1)
 
 
@@ -2802,36 +2806,56 @@ cdef class TreeDict(object):
     # Thus we need to do this sort to ensure proper order.
 
     cdef _runFullHash(self, hf):
-        
+
+        # Need to specifically account for the case of recursion
+
+        if _flagOn(&self._flags, f_visited_by_hash_function):
+            raise RuntimeError("Infinite recusion encountered in hashing.") 
+
         if self.isDangling():
             raise TypeError("Dangling nodes not hashable.")
-
-        hf(self._getImmutableItemsHash())
 
         # This takes care of all the mutable items
         cdef _PTreeNode pn
+        
+        try:
+            _setFlagOn(&self._flags, f_visited_by_hash_function)
 
-        for k, pn in sorted(self._param_dict.iteritems()):
-            if not pn.isImmutable() and not pn.isDanglingTree():
-                self._update_hash_with_key(hf, k)
-                self._update_hash_with_context(hf, pn)
-                pn.runFullHash(hf)
+            hf(self._getImmutableItemsHash())
+
+            for k, pn in sorted(self._param_dict.iteritems()):
+                if not pn.isImmutable() and not pn.isDanglingTree():
+                    self._update_hash_with_key(hf, k)
+                    self._update_hash_with_context(hf, pn)
+                    pn.runFullHash(hf)
+
+        finally:
+            _setFlagOff(&self._flags, f_visited_by_hash_function)
 
     cdef _runImmutableHash(self, hf):
+        
+        if _flagOn(&self._flags, f_visited_by_im_hash_function):
+            raise RuntimeError("Infinite recusion encountered in hashing.") 
+
         if self.isDangling():
             raise TypeError("Dangling nodes not hashable.")
-
-        # This takes care of all the immutable local values
-        hf(self._getImmutableItemsHash())
 
         cdef TreeDict b
         cdef _PTreeNode pn
         
-        for k, pn in sorted(self._param_dict.iteritems()):
-            if pn.isBranch() and not pn.isDanglingBranch():
-                self._update_hash_with_key(hf, k)
-                self._update_hash_with_context(hf, pn)
-                pn.runImmutableHash(hf)
+        try:
+            _setFlagOn(&self._flags, f_visited_by_im_hash_function)
+
+            # This takes care of all the immutable local values
+            hf(self._getImmutableItemsHash())
+
+            for k, pn in sorted(self._param_dict.iteritems()):
+                if pn.isBranch() and not pn.isDanglingBranch():
+                    self._update_hash_with_key(hf, k)
+                    self._update_hash_with_context(hf, pn)
+                    pn.runImmutableHash(hf)
+        finally:
+            _setFlagOff(&self._flags, f_visited_by_im_hash_function)
 
         
     # Now going back on the immutable hash cases
