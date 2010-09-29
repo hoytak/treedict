@@ -522,29 +522,6 @@ cdef inline newPTreeNodeExact(value, int t, size_t order_pos):
     pn._aux_dict = {}
     return pn
 
-
-################################################################################
-# Special functions and a corresponding dictionary for use within the tree
-
-class _SpecialFunctionNotAvailable(Exception): pass
-
-def _special_hash(TreeDict p):
-    return p._self_hash()
-
-def _special_parent(TreeDict p): 
-    if p.isRoot():
-        raise _SpecialFunctionNotAvailable
-
-    return p.parentNode()
-
-def _special_root(TreeDict p):
-    return p.rootNode()
-
-cdef dict _special_functions = { 
-    "$hash"     : _special_hash,
-    "@"         : _special_parent,
-    "@@"        : _special_root }
-
 ################################################################################
 # Iterator Container
 
@@ -2281,26 +2258,7 @@ cdef class TreeDict(object):
             return (<_PTreeNode> self._param_dict[k])
 
         except KeyError:
-            if len(k) == 0:
-                return None
-
-            elif k[0] in ['$', '@']:
-
-                # See if there's a special method associated with this 
-                try:
-                    f = _special_functions[k]
-                except KeyError:
-                    return None
-
-                try:
-                    v = f(self)
-                except _SpecialFunctionNotAvailable:
-                    return None
-                
-                return newPTreeNode(self, v, 0)
-
-            else:
-                return None
+            return None
 
     ##############################
     # General value retrieval / existance checking
