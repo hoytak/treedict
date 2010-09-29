@@ -2165,18 +2165,16 @@ cdef class TreeDict(object):
                 return self._newLocalBranch(k, f_create_if_needed | f_create_dangling)
             else:
                 self._raiseAttributeError(k)
-
-            #except TypeError:
-            #    raise AttributeError("branch/value/method '%s' does not exist in tree/branch '%s' (Frozen)." % (k, self.branchName()))
-
+                
         finally:
             _setFlagOff(&self._flags, f_getattr_called)
 
     def __getitem__(self, key):
         if type(key) is not str:
-            raise TypeError("Indexing keys must be strings, not %s" % repr(type(key)))
+            raise KeyError("'%s' (Indexing keys must be strings, not %s)"
+                           % (repr(key), repr(type(key))))
         
-        return self.get(key)
+        return self._get(key,False)
     
     cpdef get(self, str key, default_value = _NoDefault):
         """

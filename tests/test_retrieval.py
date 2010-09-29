@@ -157,7 +157,6 @@ class TestRetrieval(unittest.TestCase):
         
         p.a.d
 
-
     def testRetrieve_03_ThroughLink(self):
         p = TreeDict()
         p.a.b.link = p.d
@@ -185,6 +184,27 @@ class TestRetrieval(unittest.TestCase):
         self.assert_(p.l3.v == 1)
         self.assert_(p.l2.v == 1)
         self.assert_(p.l1.v == 1)
+
+    def testNonexistantValues_01(self):
+
+        p = TreeDict()
+        self.assertRaises(KeyError, lambda: p["a"])
+
+    def testNonexistantValues_02(self):
+
+        p = TreeDict()
+        self.assertRaises(KeyError, lambda: p[0])
+
+    def testNonexistantValues_03(self):
+
+        p = TreeDict()
+        self.assertRaises(KeyError, lambda: p[None])
+
+    def testNonexistantValues_04(self):
+
+        p = TreeDict()
+        p.freeze()
+        self.assertRaises(AttributeError, lambda: p.a)
 
 if __name__ == '__main__':
     unittest.main()
