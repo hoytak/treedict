@@ -359,23 +359,6 @@ class TestSetting(unittest.TestCase):
 
         self.assert_(p.a.v == 1)
 
-    def testSetCall_01(self):
-        p = TreeDict()
-
-        p(a = 1)
-
-        self.assert_(p.a == 1)
-
-    def testSetCall_02_return(self):
-        p = TreeDict()
-
-        self.assert_(p(a = 1) is p)
-    
-    def testSetCall_03(self):
-        p = TreeDict()
-
-        self.assert_(p.copy()(a = 1).a == 1)
-
     def testSetInit_01(self):
         p = TreeDict(a = 1, b = 2)
         self.assert_(p.a == 1)

@@ -1939,14 +1939,6 @@ cdef class TreeDict(object):
             """
 
         return InteractiveTreeDict(self)
-
-    def __call__(self, *args, **kwargs):
-        if self.isDangling():
-            raise TypeError('<%s> not a TreeDict method or branch, illegally called.'
-                            % self._branchName(False, True))
-        else:
-            self._setAll(args, kwargs, False)
-            return self
         
     def __repr__(self):
         if self.isDangling():
