@@ -1251,7 +1251,10 @@ cdef class TreeDict(object):
     # Methods for deleting / pruning the tree
                 
     def __delattr__(self, str k):
-        self._prune(k, False)
+        try:
+            self._prune(k, False)
+        except KeyError, ke:
+            raise AttributeError(str(ke))
 
     def __delitem__(self, k):
         if type(k) is not str:

@@ -185,9 +185,35 @@ class TestDeletion(unittest.TestCase):
         self.assert_(a.rootNode() is not p)
         self.assert_(a.parentNode() is None)
         
-    
+    def testDeletion_04_properException_Attribute(self):
+        p = TreeDict()
 
+        def f():
+            del p.a
+        
+        self.assertRaises(AttributeError, f)
 
+    def testDeletion_05_properException_Keys_1(self):
+        p = TreeDict()
+
+        def f():
+            del p["a"]
+        
+        self.assertRaises(KeyError, f)
+
+    def testDeletion_05_properException_Keys_2(self):
+        p = TreeDict()
+        def f():
+            del p[0]
+        
+        self.assertRaises(KeyError, f)
+
+    def testDeletion_05_properException_Keys_3(self):
+        p = TreeDict()
+        def f():
+            del p[None]
+        
+        self.assertRaises(KeyError, f)
 
 if __name__ == '__main__':
     unittest.main()
