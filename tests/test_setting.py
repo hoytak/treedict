@@ -317,38 +317,43 @@ class TestSetting(unittest.TestCase):
         p = sample_tree()
         self.assertRaises(TypeError, lambda: p.set('a'))
 
-    def testSet_19_overwriting_value_with_branch_01(self):
+    def testSet_19_overwriting_value_with_branch_01_okay(self):
         p = TreeDict()
 
         p.a = 12
 
-        p.set("a.b.c", 1)
+        p.set("a.b.c", 1, implicit_overwrite=True)
         
         self.assert_(p.a.b.c == 1)
 
-    def testSet_19_overwriting_value_with_branch_02(self):
-        p = TreeDict()
-
-        p.a = 12
-
-        p["a.b.c"] = 1
-        
-        self.assert_(p.a.b.c == 1)
-
-    def testSet_19_overwriting_value_with_branch_03_nochange_on_bad(self):
+    def testSet_19_overwriting_value_with_branch_02_nochange_on_bad(self):
         p = TreeDict()
 
         p.a = 12
 
         pc = p.copy()
 
-        def f():
-            p["a.b.c.123.d"] = 1
-        
-        self.assertRaises(NameError, f)
+        self.assertRaises(NameError, lambda: p.set("a.b.c.123.d", 1, implicit_overwrite = True))
 
         self.assert_(p.a == 12)
         self.assert_(p == pc)
+
+    def testSet_19_overwriting_value_with_branch_03_error(self):
+        p = TreeDict()
+
+        p.a = 12
+
+        self.assertRaises(TypeError, lambda: p.set("a.b.c", 1))
+
+    def testSet_19_overwriting_value_with_branch_04_error(self):
+        p = TreeDict()
+
+        p.a = 12
+
+        def f():
+            p["a.b.c"] = 1
+
+        self.assertRaises(TypeError, f)
 
     def testSet_20_setting_linked_branch_01(self):
         p = TreeDict()
