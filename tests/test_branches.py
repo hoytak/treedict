@@ -93,9 +93,7 @@ class TestAttachPop(unittest.TestCase):
         p1 = TreeDict('root')
         p1.a.b = 123
         
-        def f(): p1.a.attach(p1)
-
-        self.assertRaises(ValueError, f)
+        self.assertRaises(ValueError, lambda: p1.a.attach(p1))
 
     def testAttaching_06(self):
         p1 = TreeDict('root')
@@ -147,6 +145,28 @@ class TestAttachPop(unittest.TestCase):
         self.assert_(not p2.p.isFrozen())
         self.assert_(not p2.p.b.isFrozen())
         self.assert_(not p2.isFrozen())
+
+    def testAttaching_10_Atomic_01_noImplicitOverwrite(self):
+        p = TreeDict()
+        p.a.b = 1
+
+        self.assertRaises(TypeError, lambda: p.attach("a.b.c.d", TreeDict(x = 1)))
+
+        self.assert_(p.a.b == 1)
+        
+    def testAttaching_10_Atomic_02_noImplicitOverwrite(self):
+        p = TreeDict()
+        p.makeBranch('a')
+        p.freeze()
+
+        self.assert_('a' in p.keys(branch_mode = 'only', recursive=False))
+
+        self.assertRaises(TypeError, lambda: p.attach("a.b.c.d", TreeDict(x = 1)))
+
+        self.assert_('a' in p.keys(branch_mode = 'only', recursive=False))
+        
+        self.assert_(p.a.size() == 0)
+        
 
     def testRecursiveAttach_01(self):
         p1 = TreeDict('root')
@@ -201,6 +221,18 @@ class TestAttachPop(unittest.TestCase):
         p.adef.a.v = 1
 
         p.attach(recursive=True)
+
+    def testRecursiveAttaching_04_error_on_frozen(self):
+        
+        p = TreeDict()
+        p.b = TreeDict(x = 1)
+        p.freeze()
+
+        self.assertRaises(TypeError, lambda: p.attach(recursive = True))
+                         
+        self.assert_(p.b.isRoot())
+        self.assert_(p.b not in p.branches())
+        self.assert_(p.size() == 1)
 
 
     def testAttaching_10_EqualityTestingWithRecursiveAttach(self):

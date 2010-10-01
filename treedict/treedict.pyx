@@ -42,7 +42,7 @@ import time
 ################################################################################
 # Some preliminary debug stuff
 
-DEF RUN_ASSERTS = False
+DEF RUN_ASSERTS = True
 
 ################################################################################
 # Early bindings to avoid unneeded lookups in the c code
@@ -95,7 +95,7 @@ cdef str s_cached_hash = "_cached_hash"
 cdef str s_auth_key = "_auth_key"
 cdef str s_hit_flag = "_hit_flag"
 cdef str s_immutable_items_hash = "_immutable_items_hash"
-cdef str s_implicit_overwrite = "implicit_overwrite"
+cdef str s_protect_structure = "protect_structure"
 
 ################################################################################
 # Special, faster constructor method for use in this file
@@ -267,48 +267,35 @@ cdef _runValueHash(hf, value):
 
 ctypedef unsigned long int flagtype
 
-DEF f_is_frozen            = 1
-DEF f_is_dangling          = 2
-DEF f_is_detached_dangling = 4  # for during an atomic set operation
-DEF f_is_registered        = 8
-DEF f_one_iterators_referencing = 16
-DEF f_many_iterators_referencing = 32
-DEF f_is_already_copied    = 64
+DEF f_is_frozen                    = 1
+DEF f_is_dangling                  = (2*f_is_frozen)
+DEF f_is_detached_dangling         = (2*f_is_dangling)  # for during an atomic set operation
+DEF f_is_registered                = (2*f_is_detached_dangling)
+DEF f_one_iterators_referencing    = (2*f_is_registered)
+DEF f_many_iterators_referencing   = (2*f_one_iterators_referencing)
+DEF f_is_already_copied            = (2*f_many_iterators_referencing)
+DEF f_is_copy_referenced           = (2*f_is_already_copied)
+DEF f_visited_by_hash_function     = (2*f_is_copy_referenced)
+DEF f_visited_by_im_hash_function  = (2*f_visited_by_hash_function)
+DEF f_getattr_called               = (2*f_visited_by_im_hash_function)
 
-DEF f_newbranch_propegating_flags = (f_is_frozen | f_is_registered)
+DEF f_newbranch_propegating_flags  = (f_is_frozen | f_is_registered)
 DEF f_copybranch_propegating_flags = (f_is_dangling)
-
-# Error checking 
-DEF f_getattr_called   = 1024
 
 ####################
 # Getting / retrieving
-
-# Create the node if the desired node isn't there.
-DEF f_create_if_needed = 16
-
-# If dangling nodes can be returned in the operation
-DEF f_retrieve_dangling_okay    = 32
-
-# If the operation will not leave any dangling nodes or intermediate
-# objects around; optimizes some of the setting and getting
-DEF f_atomic_set       = 64
-
-# If we're just doing a dry run with no changes to the tree
-DEF f_check_only          = 128
-
-DEF f_create_dangling  = 256
-
-DEF f_already_checked   = 512
-
-DEF f_implicit_value_overwrite = 1024
-
-DEF f_visited_by_hash_function = 2048
-
-DEF f_visited_by_im_hash_function = 4096
+DEF f_create_node_if_needed        = 1
+DEF f_retrieve_dangling_okay       = (2*f_create_node_if_needed)
+DEF f_atomic_set                   = (2*f_retrieve_dangling_okay)
+DEF f_check_only                   = (2*f_atomic_set)
+DEF f_create_dangling              = (2*f_check_only)
+DEF f_already_checked              = (2*f_create_dangling)
+DEF f_protect_structure            = (2*f_already_checked)
+DEF f_copy                         = (2*f_protect_structure)
+DEF f_retrieve_treedict_value_okay = (2*f_copy)
+DEF f_no_overwrite                 = (2*f_retrieve_treedict_value_okay)
 
 DEF f_allFlags         = (2**31 - 1)
-
 
 cdef inline void _setFlagOn(flagtype *f, flagtype flag):
     f[0] |= flag
@@ -322,7 +309,6 @@ cdef inline void _setFlag(flagtype *f, flagtype flag, bint on):
 
 cdef inline bint _flagOn(flagtype *f, flagtype flag):
     return (f[0] & flag) != 0
-
 
 ########################################
 # Typing stuff
@@ -809,7 +795,7 @@ cdef class TreeDict(object):
         self._run__init__(tree_name)
         
         if len(kwargs) != 0:
-            self._setAll(None, kwargs, False)
+            self._setAll(None, kwargs, 0)
 
     cdef _run__init__(self, str name):
 
@@ -831,50 +817,6 @@ cdef class TreeDict(object):
 
     def __setitem__(self, str k, v):
         self._set(k, v, 0)
-
-    def update(self, d):
-        """
-        Updates the current TreeDict instance with another set of
-        values. `d` may be either a dictionary or another TreeDict
-        instance.
-
-        Note: Unlike the update method of dict, this method may fail
-        and raise an exception.  This can occur either because one or
-        more of the keys in `d` is not a valid key name (only occurs
-        if `d` is a dict), or if all/part of the tree being updated is
-        frozen.  If this happens, no changes are made to the tree
-        (i.e, this method is atomic).
-        """
-
-        if type(d) is dict:
-            self._setAll(None, d, False)
-        elif type(d) is TreeDict:
-            self._update(d)
-        else:
-            self._setAll(None, dict(d), False)
-
-    cdef _update(self, TreeDict p):
-
-        cdef str k 
-        cdef _PTreeNode pn, pn2
-
-        for k, pn in p._param_dict.iteritems():
-            if pn.isBranch() and not pn.isDanglingTree():
-
-                try:
-                    pn2 = self._param_dict[k]
-                    
-                    if pn2.isBranch():
-                        pn2.tree()._update(pn.tree())
-                    else:
-                        self._cut(k)
-                        self._attach(pn.tree(), k, True)
-                except KeyError:
-                    self._attach(pn.tree(), k, True)
-
-            else:
-                self._setLocal(k, pn.value(), 0)
-
 
     def setFromString(self, str key, str value, dict extra_variables = {}):
         """
@@ -951,11 +893,30 @@ cdef class TreeDict(object):
             c = 'abc'
             b = 'abc'
         """
+        try:
+            return TreeDict.fromdict(dict.fromkeys(key_iterable, value))
+        except Exception, e:
+            raise e
+
+    @classmethod
+    def fromdict(cls, d):
+        """
+        A convenience method that creates a new TreeDict instance from
+        a dictionary or other object convertable to a dictionary.
+        This is analagous to the `fromkeys()` method, except that the
+        keys and associated values are given by a dictionary.  It is
+        equivalent to::
+
+           t = TreeDict()
+           t.update(d)
+           return t
+        
+        """
 
         cdef TreeDict p = newTreeDict(None, False)
-        
+
         try:
-            p._setAll(None, dict.fromkeys(key_iterable, value), False)
+            p._setAll(None, d, 0)
             return p
         except Exception, e:
             raise e
@@ -994,19 +955,23 @@ cdef class TreeDict(object):
         """
         Sets the value of a particular key or set of keys.
 
-        If `implicit_overwrite=True` is given as a keyword argument,
-        then values can be implicitly overwritten by branches.  For
-        example, if `b = 1` is in the tree, then setting `b.x = 2`
-        would overwrite b with an implicitly created branch.
-        Normally, this operation would raise a TypeError (for
-        consistency with attribute style setting).
-
         In the case of name conflicts, keyword arguments take
         precedence over all others, and key-value pairs given later in
         the args list take precedence over earlier values.
 
-        In the case of an error or exception on any set of keys, none
-        of the arguments are set.
+        If ``protect_structure = True`` is given as a keyword
+        argument, then values cannot be implicitly overwritten by
+        branches.  For example, if `b = 1` is in the tree, then
+        setting `b.x = 2` would overwrite b with an implicitly created
+        branch.  Normally, this operation is allowed; however, it
+        would raise a TypeError under this situation.  Similarly,
+        overwriting branch or TreeDict value -- both seen as part of
+        the tree structure -- with a non-TreeDict value would normally
+        be allowed, but would raise a TypeError if protect_structure
+        is true.
+
+        In the case of an error or exception in any part of the
+        opereration, nothing is changed in the tree.
 
         Examples::
         
@@ -1042,10 +1007,10 @@ cdef class TreeDict(object):
         """
 
         try:
-            if s_implicit_overwrite in kwargs:
-                v = kwargs.pop(s_implicit_overwrite)
+            if s_protect_structure in kwargs:
+                v = kwargs.pop(s_protect_structure)
                 if v:
-                    self._setAll(args, kwargs, f_implicit_value_overwrite)
+                    self._setAll(args, kwargs, f_protect_structure)
                 else:
                     self._setAll(args, kwargs, 0)
                     
@@ -1064,12 +1029,15 @@ cdef class TreeDict(object):
         """
 
         try:
-            if s_implicit_overwrite in kwargs:
-                v = kwargs.pop(s_implicit_overwrite)
+            if s_protect_structure in kwargs:
+                v = kwargs.pop(s_protect_structure)
+                
                 if v:
-                    self._setAll(args, kwargs, f_implicit_value_overwrite | f_check_only)
+                    self._setAll(args, kwargs, f_protect_structure | f_check_only)
                 else:
                     self._setAll(args, kwargs, f_check_only)
+                    
+            self._setAll(args, kwargs, f_check_only)
 
         except Exception, e:
             raise e
@@ -1123,9 +1091,10 @@ cdef class TreeDict(object):
                 self._set(<str>k, v, flags | f_already_checked)
 
     cdef _set(self, str k, value, flagtype base_flags):
-        
-        cdef flagtype gsp = (f_retrieve_dangling_okay 
-                             | f_create_if_needed 
+
+        cdef flagtype gsp = (f_retrieve_dangling_okay
+                             | f_retrieve_treedict_value_okay
+                             | f_create_node_if_needed 
                              | f_atomic_set
                              | base_flags)
         
@@ -1153,30 +1122,39 @@ cdef class TreeDict(object):
         if RUN_ASSERTS:
             checkKeyNotNone(k)
 
-        if not (gsp & f_already_checked): # Skip things we've already checked
-            self._ensureWriteable(k)
-            
-            # Check the name
-            checkNameValidity(k)
-            
-        # Possible (extremely rare) bug: I chose to put this before
-        # the cutting to make sure dry_run ensured things would
-        # work. However, it will now throw, even if it could work, if
-        # there are the maximum number of nodes present and one is
-        # replaced.  But that won't happen often, if ever.
-        self._checkNodeAvailability()
+        cdef _PTreeNode lpn, new_pn
 
-        if (gsp & f_check_only):
+        if not (gsp & f_already_checked): 
+            checkNameValidity(k)
+
+        lpn = self._getLocalPTNode(k)
+
+        if lpn is not None and (gsp & f_no_overwrite) != 0:
             return
 
-        cdef _PTreeNode lpn, new_pn
-                
+        if not (gsp & f_already_checked): # Skip things we've already checked
+            self._ensureWriteable(k)
+            self._checkNodeAvailability()
+
         ########################################
         # Now go through the above
 
-        if self._existsLocal(k, True):
+        if lpn is not None:
+
+            if (gsp & f_protect_structure):
+
+                if lpn.isTree() and type(v) is not TreeDict:
+                    raise TypeError("Branch/Tree '%s' would be overwritten by value."
+                                    % self._fullNameOf(k))
+                
+                elif (not lpn.isTree()) and type(v) is TreeDict:
+                    raise TypeError("Value '%s' would be overwritten by Branch/Tree."
+                                    % self._fullNameOf(k))
+
+            if (gsp & f_check_only):
+                return
+            
             # Most common case, # 1 above
-            lpn = self._getLocalPTNode(k)
             self._keyDeleted(k, lpn)
 
             new_pn = newPTreeNode(self, v, lpn.orderPosition())
@@ -1184,6 +1162,9 @@ cdef class TreeDict(object):
             self._keyInserted(k, new_pn)
 
         else:
+            if (gsp & f_check_only):
+                return
+
             new_pn = newPTreeNode(self, v, self._getNextOrderValue())
             self._param_dict[k] = new_pn
             self._keyInserted(k, new_pn)
@@ -1549,7 +1530,8 @@ cdef class TreeDict(object):
         return v
 
     def attach(self, tree_or_node = None, str name = None,
-               bint copy = True, bint recursive = False):
+               bint copy = True, bint recursive = False,
+               bint protect_structure = False):
         """
         Attaches a parameter tree 'p' to node `name`.  If `p` is the
         root node of a tree, then the exact object is attached in;
@@ -1558,7 +1540,7 @@ cdef class TreeDict(object):
         exception is raised.
 
         If `recursive` is true, then `tree_or_node` and `alt_name`
-        must be None (default), Attach then goes through the tree,
+        must be None (default). Attach then goes through the tree,
         attaching all the TreeDict nodes that are not part of this
         tree.  If `force_copy` is True, then all TreeDicts not already
         part of this tree are copied in; otherwise, only those that
@@ -1616,25 +1598,30 @@ cdef class TreeDict(object):
             if tree_or_node is not None or name is not None:
                 raise TypeError("Setting recursive option requires 'tree_or_node' and 'alt_name' to be None (default).")
 
-            self._recursiveAttach(copy)
+            self._recursiveAttach(f_copy if copy else 0)
             
             return
             
         if tree_or_node is None:
             raise TypeError("String or TreeDict expected for tree_or_node parameter, got NoneType.")
 
+        cdef flagtype flags = ((f_copy if copy else 0)
+                               | (f_protect_structure if protect_structure else 0))
+
         if type(tree_or_node) is TreeDict:
-            self._attach(<TreeDict>tree_or_node, name, copy)
+            self._attach(name, <TreeDict>tree_or_node, flags)
+            
         elif type(tree_or_node) is str:
             p = self.get(tree_or_node)
             if type(p) is not TreeDict:
                 raise TypeError("Attempting to attach non-tree node '%s'." % name)
-            self._attach(<TreeDict>p, name, copy)
+            self._attach(name, <TreeDict>p, flags)
+            
         else:
             raise TypeError("Argument tree_or_node must be a TreeDict or name of existing treedict.")
 
     
-    cdef _attach(self, TreeDict tree, str name, bint copy):
+    cdef _attach(self, str name, TreeDict tree, flagtype flags):
 
         if tree is None:
             raise TypeError("TreeDict instance expected, got NoneType.")
@@ -1653,7 +1640,8 @@ cdef class TreeDict(object):
                                 % name)
             b = self
         else:
-            b = self._getBaseOf(name, (f_retrieve_dangling_okay | f_create_if_needed | f_atomic_set))
+            b = self._getBaseOf(
+                name, flags | f_retrieve_dangling_okay | f_create_node_if_needed | f_atomic_set)
             attach_name = self._shortKeyName(name)
 
         # Need to do some gymnastics as the dry_run may fail if the
@@ -1661,32 +1649,38 @@ cdef class TreeDict(object):
         # it back when we're done checking.
 
         cdef str old_name = tree._name
-        tree._name = attach_name
+        cdef bint copy = ((flags & f_copy) != 0)
 
-        try:
-            b._setLocalBranch(tree, f_check_only)
+        if (f_already_checked & flags) == 0:
 
-            if not copy and tree._inPathToRoot(b) or b._inPathToRoot(tree):
-                raise ValueError("Attaching to a child or parent node forbidden.")
+            tree._name = attach_name
 
-            if not copy and tree.rootNode() is b.rootNode():
-                raise ValueError("Attaching a tree with same root requires copy.")
+            try:
+                b._setLocalBranch(tree, flags | f_check_only)
 
-            if not copy and tree._parent is not None:
-                raise ValueError("Tree to be attached (%s) must be copied or be a root tree."
-                                 % name)
-        finally:
-            tree._name = old_name
+                if (not copy and tree._inPathToRoot(b)) or b._inPathToRoot(tree):
+                    raise ValueError("Attaching to a child or parent node forbidden.")
 
-        if copy:
-            tree = tree._copy(False, False)
+                if not copy and tree.rootNode() is b.rootNode():
+                    raise ValueError("Attaching a tree with same root requires copy.")
+
+                if not copy and tree._parent is not None:
+                    raise ValueError("Tree to be attached (%s) must be copied or be a root tree."
+                                     % name)
+            finally:
+                tree._name = old_name
+
+        if (f_check_only & flags) == 0:
             
-        tree._name = attach_name
-        tree._resetParentNode(b)
-        b._setLocalBranch(tree, f_already_checked)
+            if copy:
+                tree = tree._copy(False, False)
+
+            tree._name = attach_name
+            tree._resetParentNode(b)
+            b._setLocalBranch(tree, flags | f_already_checked)
 
 
-    cdef _recursiveAttach(self, bint copy):
+    cdef _recursiveAttach(self, flagtype flags):
 
         self._ensureWriteable(None)
 
@@ -1694,9 +1688,9 @@ cdef class TreeDict(object):
 
         for k, pn in self._param_dict.iteritems():
             if pn.isTree():
-                pn.tree()._recursiveAttach(copy)
+                pn.tree()._recursiveAttach(flags)
             if pn.isNonBranchTree():
-                self._attach(pn.tree(), k, copy)
+                self._attach(<str>k, pn.tree(), flags)
                 
     
     cdef bint _inPathToRoot(self, TreeDict p):
@@ -2096,7 +2090,6 @@ cdef class TreeDict(object):
             a.x = None
         """
 
-
         if add_path and add_tree_name:
             tn = self.treeName()
 
@@ -2161,7 +2154,7 @@ cdef class TreeDict(object):
 
 
         cdef flagtype gsp = (f_retrieve_dangling_okay 
-                             | (f_create_if_needed if not self.isFrozen() else 0))
+                             | (f_create_node_if_needed if not self.isFrozen() else 0))
 
         cdef bint allow_dangling_nodes = False if self.isFrozen() else True
 
@@ -2171,7 +2164,7 @@ cdef class TreeDict(object):
             if self._existsLocal(k, allow_dangling_nodes):
                 return self._getLocal(k, allow_dangling_nodes)
             elif not self.isFrozen():
-                return self._newLocalBranch(k, f_create_if_needed | f_create_dangling)
+                return self._newLocalBranch(k, f_create_node_if_needed | f_create_dangling)
             else:
                 self._raiseAttributeError(k)
                 
@@ -2238,7 +2231,6 @@ cdef class TreeDict(object):
             return False
         else:
             return self._exists(<str>k, False)
-
 
     ##############################
     # Now the core methods for retrieving PTNodes; the others are
@@ -2321,13 +2313,15 @@ cdef class TreeDict(object):
             pn = self._getLocalPTNode(k)
 
             if not pn.isBranch():
-                if (gsp & f_implicit_value_overwrite):
-                    if (gsp & f_create_if_needed):
+                if (gsp & f_retrieve_treedict_value_okay) and pn.isTree():
+                    return pn.tree()
+                elif (gsp & f_protect_structure) == 0:
+                    if (gsp & f_create_node_if_needed):
                         return self._newLocalBranch(k, gsp)
                     else:
                         return None
                 else:
-                    raise TypeError("Node \"%s\" is not a branch as requested."
+                    raise TypeError("Node \"%s\" is not a branch as required."
                                     % self._fullNameOf(k) )
 
             if pn.isDanglingBranch() and not (gsp & f_retrieve_dangling_okay):
@@ -2335,7 +2329,7 @@ cdef class TreeDict(object):
         
             return pn.tree()
 
-        elif (gsp & f_create_if_needed):
+        elif (gsp & f_create_node_if_needed):
             return self._newLocalBranch(k, gsp)
 
         else:
@@ -2401,7 +2395,7 @@ cdef class TreeDict(object):
                 raise ValueError("'%s' already exists; cannot create new branch."
                                  % name)
 
-        cdef flagtype gsp = (f_retrieve_dangling_okay | f_create_if_needed
+        cdef flagtype gsp = (f_retrieve_dangling_okay | f_create_node_if_needed
                              | f_atomic_set | f_create_dangling)
 
         cdef TreeDict b = self._getBranch(name, gsp)
@@ -2926,18 +2920,19 @@ cdef class TreeDict(object):
 
         return self._copy(deep, freeze)
 
-    def __call__(self, *args, **kwargs):
-        raise TypeError('<%s> not a TreeDict method or branch, illegally called.'
-                        % self._branchName(False, True))
-
-    def importFrom(self, TreeDict source_tree, bint copy_deep=False, bint overwrite_existing = True):
+    def update(self, source, bint overwrite = True,
+               bint protect_structure = False):
         """
-        Copies all the branches and values from a source branch/tree
-        `source_tree` into the current branch.  Branch structures are
-        recreated in this node, with the new branches reference this
-        node as their parent.
+        Copies all the branches and values from a source
+        branch/tree/dict `source` into the current branch.  Branch
+        structures are recreated in this node, with the new branches
+        reference this node as their parent.
 
-        If `copy_deep` is True, then copies are made of all the values
+        If `source` is not of type dict or a TreeDict, it must be
+        convertable to a dictionary; if this fails, a TypeError is
+        raised.
+
+        If `deepcopy` is True, then copies are made of all the values
         held in the source tree, otherwise, only the tree structure
         and references to the values are copied (default).
 
@@ -2945,33 +2940,96 @@ cdef class TreeDict(object):
         values in the local tree are overwritten by the corresponding
         values in the source tree.  If `overwrite_existing` is False,
         all local values already present are preserved.
+
+        If `protect_structure` is False (default = True), then values
+        can be implicitly overwritten by branches.  For example, if `b
+        = 1` is in the tree, then setting `b.x = 2` would overwrite b
+        with an implicitly created branch.  Normally, this operation
+        would raise a TypeError (for consistency with attribute style
+        setting).
+
+        Note: Unlike the update method of dict, this method may fail
+        and raise an exception.  This can occur either because one or
+        more of the keys in `d` is not a valid key name (only occurs
+        if `d` is a dict), or if all/part of the tree being updated is
+        frozen.  If this happens, no changes are made to the tree
+        (i.e, this method is atomic).
+
+        Examples::
+
+        
         """
+        
+        cdef flagtype flags = ((0 if overwrite else f_no_overwrite)
+                               | (f_protect_structure
+                                  if protect_structure and overwrite
+                                  else 0))
 
-        cdef dict branch_dict = dict(source_tree._getIter(False, i_BranchMode_Only, i_Items))
-        cdef dict value_dict  = dict(source_tree._getIter(False, i_BranchMode_None, i_Items))
+        cdef TreeDict p 
 
-        # First see if there will be any problems, so do a dryset
-        for k, v in branch_dict.items():
-            if overwrite_existing or not self._exists(<str>k, False):
-                self._set(<str>k, v, f_check_only)
+        if type(source) is TreeDict:
+            self._update(<TreeDict>source, flags | f_check_only)
+            self._update(<TreeDict>source, flags | f_already_checked)
+
+        else:
+            p = newTreeDict(None, False)
+            if type(source) is dict:
+                p._setAll(None, <dict>source, 0)
             else:
-                del branch_dict[k]
+                p._setAll(None, dict(source), 0)
+                
+            self._update(p, flags | f_check_only)
+            self._update(p, flags | f_already_checked)
 
-        for k, v in value_dict.items():
-            if overwrite_existing or not self._exists(<str>k, False):
-                self._set(<str>k, v, f_check_only)
+
+    cdef _update(self, TreeDict t, flagtype flags):
+
+        # Relevant Flags: f_check_only, f_already_checked,
+        cdef str k
+        cdef _PTreeNode pn, lpn
+
+        for k, pn in t._param_dict.iteritems():
+
+            if pn.isTree():
+
+                if pn.isDanglingBranch():
+                    continue
+
+                lpn = self._getLocalPTNode(k)
+
+                if lpn is None:
+                    if pn.isBranch():
+                        self._attach(k, pn.tree(), f_copy | flags)
+                    else:
+                        self._setLocal(k, pn.tree(), flags)
+                    
+                elif lpn.isTree():
+                    lpn.tree()._update(pn.tree(), flags)
+
+                elif (flags & f_no_overwrite):
+                    continue
+                                       
+                elif not (flags & f_protect_structure):
+                    self._attach(k, pn.tree(), f_copy | flags)
+
+                else:
+                    raise TypeError(
+                        ("Value '%s' would get implicitly overwritten by branch on merge; "
+                         % self._fullNameOf(k))
+                        + "set protect_structure=False to allow overwriting.")
             else:
-                del value_dict[k]
 
-        cdef TreeDict p
+                if (flags & f_protect_structure) and not (flags & f_already_checked):
 
-        for k, v in value_dict.iteritems():
-            self._set(<str>k, deepcopy_f(v) if copy_deep else v, f_already_checked)
+                    lpn = self._getLocalPTNode(k)
 
-        for k, v in branch_dict.iteritems():
-            p = (<TreeDict>v)._copy(copy_deep, False)
-            p._resetParentNode(self)
-            self._setLocalBranch(p, f_already_checked)
+                    if lpn is not None and lpn.isTree():
+                            raise TypeError(
+                                ("Tree/Branch '%s' would get implicitly overwritten by value on merge; "
+                                 % self._fullNameOf(k))
+                                + "set protect_structure=False to allow overwriting.")
+                
+                self._setLocal(k, pn.value(), flags)
                     
     cdef TreeDict _copy(self, bint deep, bint frozen):
         # Wraps the recursive function _recursiveCopy() that 
@@ -3049,11 +3107,9 @@ cdef class TreeDict(object):
     cdef _copyValue(self, TreeDict parent, _PTreeNode pn, bint deep):
         cdef TreeDict p
 
-        if pn.isTree():
+        if pn.isBranch():
             p = pn.tree()._recursiveCopy(deep)
-
-            if pn.isBranch():
-                p._parent = parent
+            p._parent = parent
 
             return newPTreeNodeExact(p, pn.type(), pn.orderPosition())
         else:

@@ -96,6 +96,15 @@ def random_node_list(seed, n, dp):
             
     return l
 
+def random_tree(seed = 0, n = 100):
+
+    t = TreeDict()
+
+    for k in random_node_list(seed, n, 0.7):
+        t[k] = unique_object()
+
+    return t
+
 class TestObject:
     def __init__(self, v1, v2, v3):
         self.v1 = v1 
@@ -108,3 +117,6 @@ test_list  = [1,324, TestObject(12321, "adsfs", 123)]
 test_dict  = {1:2, "3323" : "dfas"} 
 
 
+
+def unique_object():
+    return deepcopy(set(range(20) + [unique_name()]))

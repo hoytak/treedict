@@ -48,6 +48,7 @@ if __name__ == '__main__':
     import test_properties
     import test_retrieval	
     import test_setting
+    import test_update
 
     ts = unittest.TestSuite([
         dtl.loadTestsFromModule(test_badvalues),
@@ -66,7 +67,8 @@ if __name__ == '__main__':
         dtl.loadTestsFromModule(test_names),
         dtl.loadTestsFromModule(test_properties),
         dtl.loadTestsFromModule(test_retrieval),
-        dtl.loadTestsFromModule(test_setting)])
+        dtl.loadTestsFromModule(test_setting),
+        dtl.loadTestsFromModule(test_update)])
 
     if '--verbose' in sys.argv:
         unittest.TextTestRunner(verbosity=2).run(ts)

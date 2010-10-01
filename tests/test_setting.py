@@ -105,58 +105,6 @@ class TestSetting(unittest.TestCase):
         self.assert_(q.x == 1)
 
 
-    ################################################################################
-    # Updating stuff
-
-    def testUpdate_01_bydict(self):
-        p = TreeDict()
-        p.a = 1
-        p.b = 2
-        p.c = 3
-        
-        d = {'a' : 11, 'b' : 12}
-
-        p.update(d)
-
-        self.assert_(p.a == 11)
-        self.assert_(p.b == 12)
-        self.assert_(p.c == 3)
-
-    def testUpdate_02(self):
-        p = TreeDict()
-        
-        p.a = 1
-        p.b = 2
-        p.c = 3
-        
-        d = {'aa.b.c.d.e' : 11, 'b' : 12}
-
-        p.update(d)
-
-        self.assert_(p.a == 1)
-        self.assert_(p.b == 12)
-        self.assert_(p.c == 3)
-        self.assert_(p.aa.b.c.d.e == 11)
-        
-    def testUpdate_03(self):
-        p = TreeDict()
-        p.a = 1
-        p.b = 2
-        p.c = 3
-
-        q = TreeDict()
-        q.a = 11
-        q.b.bb = 2
-        q.aa.b.c.d.e = 11
-
-        p.update(q)
-
-        self.assert_(p.a == 11)
-        self.assert_(p.b.bb == 2)
-        self.assert_(p.c == 3)
-        self.assert_(p.aa.b.c.d.e == 11)
-
-
     ############################################################
     # Testing more advanced functionality of the set() method
 
@@ -322,7 +270,7 @@ class TestSetting(unittest.TestCase):
 
         p.a = 12
 
-        p.set("a.b.c", 1, implicit_overwrite=True)
+        p.set("a.b.c", 1, protect_values=False)
         
         self.assert_(p.a.b.c == 1)
 
@@ -333,7 +281,7 @@ class TestSetting(unittest.TestCase):
 
         pc = p.copy()
 
-        self.assertRaises(NameError, lambda: p.set("a.b.c.123.d", 1, implicit_overwrite = True))
+        self.assertRaises(NameError, lambda: p.set("a.b.c.123.d", 1, protect_structure = False))
 
         self.assert_(p.a == 12)
         self.assert_(p == pc)
@@ -343,17 +291,7 @@ class TestSetting(unittest.TestCase):
 
         p.a = 12
 
-        self.assertRaises(TypeError, lambda: p.set("a.b.c", 1))
-
-    def testSet_19_overwriting_value_with_branch_04_error(self):
-        p = TreeDict()
-
-        p.a = 12
-
-        def f():
-            p["a.b.c"] = 1
-
-        self.assertRaises(TypeError, f)
+        self.assertRaises(TypeError, lambda: p.set("a.b.c", 1, protect_structure = True))
 
     def testSet_20_setting_linked_branch_01(self):
         p = TreeDict()
@@ -364,6 +302,33 @@ class TestSetting(unittest.TestCase):
 
         self.assert_(p.a.v == 1)
 
+    def testSet_20_setting_linked_branch_02(self):
+        p = TreeDict()
+
+        p.a = p.defs.a1
+
+        p.set("defs.a1.v", 1)
+
+        self.assert_(p.a.v == 1)
+
+    def testSet_21_Setting_ThroughTreeDict_01(self):
+        p = TreeDict()
+
+        p.a.b = TreeDict()
+
+        p.set("a.b.c.d.x", 1)
+
+        self.assert_(p.a.b.c.d.x == 1)
+        self.assert_(p.a.b.isRoot())
+
+    def testSet_21_Setting_ThroughTreeDict_02(self):
+        p = TreeDict()
+        p.a.b = TreeDict()
+        p["a.b.c.d.x"] = 1
+
+        self.assert_(p.a.b.c.d.x == 1)
+        self.assert_(p.a.b.isRoot())
+        
     def testSetInit_01(self):
         p = TreeDict(a = 1, b = 2)
         self.assert_(p.a == 1)
@@ -405,6 +370,26 @@ class TestSetting(unittest.TestCase):
 
         self.assert_(p1 == p2)
 
+    def testDrySet_04_value_overwrite(self):
+        p = TreeDict()
+        p.b = 1
+
+        p_before = p.copy()
+
+        self.assertRaises(TypeError, lambda: p.dryset("b.a", None, protect_structure = True))
+
+        self.assert_(p_before == p)
+
+    def testDrySet_05_makeBranch_Frozen(self):
+        p = TreeDict()
+        p.makeBranch('b')
+        p.b.freeze()
+
+        p_before = p.copy()
+
+        self.assertRaises(TypeError, lambda: p.dryset("b.a", None))
+
+        self.assert_(p_before == p)
 
     ############################################################
     # Setting arguments from string
@@ -517,6 +502,10 @@ class TestSetting(unittest.TestCase):
         
         self.assert_(p == sample_tree())
 
+    # Add in fromdict testing here
+
+    def testFromDict_01(self):
+        pass
 
     def testOrdering_01(self):
         t = TreeDict()

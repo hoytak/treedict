@@ -267,131 +267,50 @@ class TestCopying(unittest.TestCase):
         self.assert_(p2.a.parentNode() is p2)
         self.assert_(p.a is not p2.a)
 
-    def testImport_01_branches(self):
+    def testCopying_08_TreeDictValues(self):
 
         p = TreeDict()
 
-        p.makeBranch("a")
+        ab = p.a.b = TreeDict()
 
-        p2 = TreeDict()
+        q = p.copy()
 
-        p2.importFrom(p)
+        self.assert_(p == q)
+        self.assert_(p.a is not q.a)
+        self.assert_(ab is q.a.b)
 
-        self.assert_(p.a == p2.a)
-        self.assert_(p.a.parentNode() is p)
-        self.assert_(p2.a.parentNode() is p2)
-        self.assert_(p.a is not p2.a)
+    def testCopying_09_LinkedValuesPreserved(self):
+
+        p = TreeDict()
+        p.a.x = 1
+        p.al = p.a
+
+        q = p.copy()
+
+        self.assert_(p.a is not q.a)
+        self.assert_(q.al is q.a)
         
-    def testImport_02(self):
+    def testCopying_09_LinkedValuesPreserved(self):
 
         p = TreeDict()
+        p.a.x = 1
+        p.b = p.a
 
-        p.a.b = [1,2,3,4,534]
-        p.a.c = [1,22,534]
-        p.b   = [1,2,3]
+        q = p.copy()
 
-        p2 = TreeDict()
-        p2.importFrom(p)
+        self.assert_(p.a is not q.a)
+        self.assert_(q.b is q.a)
 
-        self.assert_(p.a is not p2.a)
-        self.assert_(p.a.rootNode() is p)
-        self.assert_(p.a.parentNode() is p)
-        self.assert_(p2.a.rootNode() is p2)
-        self.assert_(p2.a.parentNode() is p2)
-
-        self.assert_(p.a.b == p2.a.b)
-        self.assert_(p.a.b is p2.a.b)
-        
-        self.assert_(p.a.c == p2.a.c)
-        self.assert_(p.a.c is p2.a.c)
-
-        self.assert_(p == p2)
-
-    def testImport_02_deepcopy(self):
+    def testCopying_09_LinkedValuesPreserved_Reversed(self):
 
         p = TreeDict()
+        p.b.x = 1
+        p.a = p.b
 
-        p.a.b = [1,2,3,4,534]
-        p.a.c = [1,22,534]
-        p.b   = [1,2,3]
+        q = p.copy()
 
-        p2 = TreeDict()
-        p2.importFrom(p, copy_deep = True)
-
-        self.assert_(p.a is not p2.a)
-        self.assert_(p.a.rootNode() is p)
-        self.assert_(p2.a.rootNode() is p2)
-
-        self.assert_(p.a.b == p2.a.b)
-        self.assert_(p.a.b is not p2.a.b)
-        
-        self.assert_(p.a.c == p2.a.c)
-        self.assert_(p.a.c is not p2.a.c)
-
-        self.assert_(p.b == p2.b)
-        self.assert_(p.b is not p2.b)
-
-        self.assert_(p == p2)
-
-    def testImport_03_local_values_preserved(self):
-
-        p = TreeDict()
-
-        p.a.b = 1
-        p.a.c = 2
-        p.b   = [1,2,3]
-
-        p2 = TreeDict()
-        p2.c  = [1,2]
-        p2.importFrom(p)
-
-        self.assert_(p.a.b is p2.a.b)
-        self.assert_(p.a.c is p2.a.c)
-        self.assert_(p.b is p2.b)
-        self.assert_(p2.c == [1,2])
-
-        self.assert_(p != p2)
-
-    def testImport_04_keep_local(self):
-
-        p = TreeDict()
-
-        p.a.b = 1
-        p.a.c = 2
-        p.b   = [1,2,3]
-
-        p2 = TreeDict()
-        p2.b  = [1,2]
-        p2.importFrom(p, overwrite_existing = False)
-
-        self.assert_(p.a.b == p2.a.b)
-        self.assert_(p.a.c == p2.a.c)
-        self.assert_(p.b == [1,2,3])
-        self.assert_(p2.b == [1,2])
-
-        self.assert_(p != p2)
-        
-
-    def testImport_05_keep_local__local_values_preserved(self):
-
-        p = TreeDict()
-
-        p.a.b = 1
-        p.a.c = 2
-        p.b   = [1,2,3]
-
-        p2 = TreeDict()
-        p2.b  = [1,2]
-        p2.c  = [1]
-        p2.importFrom(p, overwrite_existing = False)
-
-        self.assert_(p.a.b == p2.a.b)
-        self.assert_(p.a.c == p2.a.c)
-        self.assert_(p.b == [1,2,3])
-        self.assert_(p2.b == [1,2])
-        self.assert_(p2.c == [1])
-
-        self.assert_(p != p2)
+        self.assert_(p.b is not q.b)
+        self.assert_(q.b is q.a)
 
     # Also need tests covering cases where flags are cleared on copied
     # nodes
