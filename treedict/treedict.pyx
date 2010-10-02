@@ -38,6 +38,7 @@ import inspect
 import base64
 import heapq
 import time
+from weakref import ref as new_weakref
 
 ################################################################################
 # Some preliminary debug stuff
@@ -62,6 +63,7 @@ cdef object strfind     = str.find
 cdef object strrfind    = str.rfind
 cdef object strlower    = str.lower
 cdef object strsplit    = str.split
+
 
 cdef class TreeDict(object) 
 cdef class TreeDictIterator(object)
@@ -96,6 +98,9 @@ cdef str s_auth_key = "_auth_key"
 cdef str s_hit_flag = "_hit_flag"
 cdef str s_immutable_items_hash = "_immutable_items_hash"
 cdef str s_protect_structure = "protect_structure"
+cdef str s_copied_node = "copied_node"
+cdef str s_copy_referencing_keys = "copy_referencing_keys"
+cdef str s_dangling_reference_queue = "dangling_reference_queue"
 
 ################################################################################
 # Special, faster constructor method for use in this file
@@ -372,12 +377,16 @@ cdef class _PTreeNode(object):
     cdef size_t    _order_position
     cdef dict      _aux_dict
 
-    cdef _set_it(self, TreeDict node, v, size_t _order_position):
+    cdef _set_it(self, TreeDict node, str key, v, size_t _order_position):
         
         self._v = v
 
         if type(v) is TreeDict:
-            if (<TreeDict>v).parentNode() is node:
+            if ((<TreeDict>v)._parent is node) and ((<TreeDict>v)._name == key):
+
+                if RUN_ASSERTS:
+                    assert (<TreeDict>v)._name is key
+                
                 self._t = t_Branch
             else:
                 self._t = t_Tree
@@ -492,9 +501,9 @@ cdef class _PTreeNode(object):
 cdef extern from "py_new_wrapper.h":
     cdef _PTreeNode createPTreeNode "PY_NEW" (object t)
 
-cdef inline _PTreeNode newPTreeNode(TreeDict node, value, size_t order_pos):
+cdef inline _PTreeNode newPTreeNode(TreeDict node, str key, value, size_t order_pos):
     cdef _PTreeNode pn = createPTreeNode(_PTreeNode)
-    pn._set_it(node, value, order_pos)
+    pn._set_it(node, key, value, order_pos)
     return pn
 
 def _PTreeNode_unpickler(value, int t, size_t order_pos):
@@ -657,6 +666,7 @@ cdef class TreeDictIterator(object):
                 self._last_pn  = (<_PTreeNode>pn_obj)
 
             if self._last_pn.isBranch():
+                
                 if self._last_pn.isDanglingBranch():
                     continue
 
@@ -1157,7 +1167,7 @@ cdef class TreeDict(object):
             # Most common case, # 1 above
             self._keyDeleted(k, lpn)
 
-            new_pn = newPTreeNode(self, v, lpn.orderPosition())
+            new_pn = newPTreeNode(self, k, v, lpn.orderPosition())
             self._param_dict[k] = new_pn
             self._keyInserted(k, new_pn)
 
@@ -1165,7 +1175,7 @@ cdef class TreeDict(object):
             if (gsp & f_check_only):
                 return
 
-            new_pn = newPTreeNode(self, v, self._getNextOrderValue())
+            new_pn = newPTreeNode(self, k, v, self._getNextOrderValue())
             self._param_dict[k] = new_pn
             self._keyInserted(k, new_pn)
 
@@ -1780,6 +1790,13 @@ cdef class TreeDict(object):
 
     cdef void _setHasBeenCopiedFlag(self, bint copied):
         _setFlag(&self._flags, f_is_already_copied, copied)
+
+    # HasBeenCopied flag
+    cdef bint isCopyReferenced(self):
+        return _flagOn(&self._flags, f_is_copy_referenced)
+
+    cdef void _setCopyReferencedFlag(self, bint cr):
+        _setFlag(&self._flags, f_is_copy_referenced, cr)
 
     # Iterator control
     cdef bint isIterReferenced(self):
@@ -2413,7 +2430,7 @@ cdef class TreeDict(object):
             assert name in self
 
         return b
-            
+    
     cdef TreeDict _newLocalBranch(self, str k, flagtype gsp):
         
         cdef TreeDict b
@@ -2435,7 +2452,10 @@ cdef class TreeDict(object):
             if RUN_ASSERTS:
                 assert n_d == self._n_dangling
 
-        else:
+        elif gsp & f_create_dangling:
+            b._setDangling(True)
+            self._setLocalBranch(b, 0)
+            
             b._setDangling(True if (gsp & f_create_dangling) else False)
             self._setLocalBranch(b, 0)
             
@@ -2458,6 +2478,7 @@ cdef class TreeDict(object):
             self._branches.append(tree)
 
     cdef _attachDanglingSelf(self):
+
         if not self.isDangling():
             return
 
@@ -2477,11 +2498,15 @@ cdef class TreeDict(object):
         if self._isDetachedDangling():
             self._setDetachedDangling(False)
             p._setLocalBranch(self, f_already_checked)
+            
         else:
             if RUN_ASSERTS:
                 assert p._n_dangling != 0
 
             p._n_dangling -= 1
+
+        if s_dangling_reference_queue in self._aux_dict:
+            del self._aux_dict[s_dangling_reference_queue]
 
     ###############################################################################
     # Equality comparisons
@@ -2874,8 +2899,37 @@ cdef class TreeDict(object):
                 if b is v:
                     del self._branches[i]
                     break
+
+        cdef list l
+        cdef TreeDict t_wr, t_pn
+        
+        if pn.isDanglingTree():
+
+            # Tricky dangling node stuff; if we delete this dangling
+            # node, then it's possible that it is still referenced by
+            # other branches in the tree.  If that is the case, move
+            # the main anchor to the next place in the queue.
+
+            t_pn = pn.tree()
+
+            if s_dangling_reference_queue in t_pn._aux_dict:
+                l = <list>(t_pn._aux_dict[s_dangling_reference_queue])
+
+                while True:
+                    
+                    if len(l) == 0:
+                        del t_pn._aux_dict[s_dangling_reference_queue]
+                        break
+                    
+                    tree_wr, key_name = l.pop(0)
+
+                    t_wr = tree_wr()
+
+                    if t_wr != None and (<TreeDict>t_wr)._getLocalPTNode(key_name).value() is t_pn:
+                        t_pn._name = key_name
+                        t_pn._parent = t_wr
+                        break
             
-        if pn.isDanglingBranch():
             self._n_dangling -= 1
             
     cdef _keyInserted(self, str key, _PTreeNode pn):
@@ -2888,12 +2942,16 @@ cdef class TreeDict(object):
             
         # Now if we are a dangling node, inserting a key turns us into
         # a non-dangling node...
-        if pn.isDanglingBranch():
-            
-            # Only count if we need to; this would be an issue with links
-            p = pn.tree()
-            
+        if pn.isDanglingTree():
             self._n_dangling += 1
+
+            if not pn.isDanglingBranch():
+                p = pn.tree()
+                
+                if s_dangling_reference_queue in p._aux_dict:
+                    (<list> (p._aux_dict[s_dangling_reference_queue])).append( (new_weakref(self, None), key) )
+                else:
+                    p._aux_dict[s_dangling_reference_queue] = [(new_weakref(self, None), key)]
             
         else:
             self._attachDanglingSelf()
@@ -3050,24 +3108,33 @@ cdef class TreeDict(object):
         return p
 
     cdef _clearHasBeenCopiedFlags(self):
-        if self.hasBeenCopied():
-            del self._aux_dict["copied_node"]
-
-        self._setHasBeenCopiedFlag(False)
 
         cdef _PTreeNode pn
 
-        for pnv in self._param_dict.itervalues():
-            pn = <_PTreeNode>pnv
+        if self.hasBeenCopied():
+            del self._aux_dict[s_copied_node]
 
-            if pn.isTree():
-                pn.tree()._clearHasBeenCopiedFlags()
+            self._setHasBeenCopiedFlag(False)
+
+            for pnv in self._param_dict.itervalues():
+                pn = <_PTreeNode>pnv
+
+                if pn.isTree():
+                    pn.tree()._clearHasBeenCopiedFlags()
+                    
+        if self.isCopyReferenced():
+            self._setCopyReferencedFlag(False)
+            del self._aux_dict[s_copy_referencing_keys]
 
     cdef TreeDict _recursiveCopy(self, bint deep):
         # The recursive version of the above;
-    
-        if self.hasBeenCopied():
-            return self._aux_dict["copied_node"]
+
+        if not deep:
+            if RUN_ASSERTS:
+                assert not self.hasBeenCopied()
+        else:
+            if self.hasBeenCopied():
+                return self._aux_dict[s_copied_node]
 
         cdef TreeDict p = newTreeDict(self._name, False)
         cdef _PTreeNode pn, new_pn
@@ -3091,35 +3158,70 @@ cdef class TreeDict(object):
             if pn.isDanglingBranch():
                 continue
 
-            new_pn = self._copyValue(p, pn, deep)
+            new_pn = self._copyValue(p, k, pn, deep)
 
             p._param_dict[k] = new_pn
             p._keyInserted(k, new_pn)
 
         p._reset_branches()
 
-        self._aux_dict["copied_node"] = p
+        self._aux_dict[s_copied_node] = p
         self._setHasBeenCopiedFlag(True)
+
+        if self.isCopyReferenced():
+            # Now have to go through and update keys in trees that
+            # previously reference this one
+            for t, k in (<list>self._aux_dict[s_copy_referencing_keys]):
+
+                if RUN_ASSERTS:
+                    assert type(t) is TreeDict
+                    assert type(k) is str
+
+                (<TreeDict>t)._setLocal(k, p, f_already_checked)
+
+            del self._aux_dict[s_copy_referencing_keys]
+            self._setCopyReferencedFlag(False)
 
         return p
      
 
-    cdef _copyValue(self, TreeDict parent, _PTreeNode pn, bint deep):
+    cdef _copyValue(self, TreeDict parent, str key, _PTreeNode pn, bint deep):
+        
         cdef TreeDict p
 
-        if pn.isBranch():
+        if pn.isBranch() and pn.tree()._parent is self and pn.tree()._name == key:
+
+            # print "Here; key = %s; tree id = %s" % (key, id(pn.tree()))
+            
             p = pn.tree()._recursiveCopy(deep)
             p._parent = parent
 
             return newPTreeNodeExact(p, pn.type(), pn.orderPosition())
-        else:
-            if deep:
-                return newPTreeNodeExact(
-                    deepcopy_f(pn.value()),
-                    pn.type(), pn.orderPosition())
+        
+        elif deep:
+            return newPTreeNodeExact(
+                deepcopy_f(pn.value()),
+                pn.type(), pn.orderPosition())
+            
+        elif pn.isTree():
+
+            p = pn.tree()
+            
+            if p.hasBeenCopied():
+                return newPTreeNodeExact(<TreeDict>(p._aux_dict[s_copied_node]),
+                                         pn.type(), pn.orderPosition())
             else:
-                return newPTreeNodeExact(pn.value(),
-                    pn.type(), pn.orderPosition())
+                p._setCopyReferencedFlag(True)
+
+                if s_copy_referencing_keys in p._aux_dict:
+                    (<list>p._aux_dict[s_copy_referencing_keys]).append( (parent, key) )
+                else:
+                    p._aux_dict[s_copy_referencing_keys] = [ (parent, key) ]
+
+                return newPTreeNodeExact(pn.value(), pn.type(), pn.orderPosition())
+        
+        else:
+            return newPTreeNodeExact(pn.value(), pn.type(), pn.orderPosition())
           
 
     cdef _reset_branches(self):
@@ -3131,7 +3233,7 @@ cdef class TreeDict(object):
 
     def __reduce__(self):
         return (_TreeDict_unpickler,
-                (self._name, self._param_dict, self._flags,
+                (self._name, self._param_dict, self._flags, self._aux_dict,
                  self._n_mutable, self._next_item_order_position, self._n_dangling) )
     
 
@@ -3581,13 +3683,14 @@ cdef class TreeDict(object):
 
 
 def _TreeDict_unpickler(
-    name, dict param_dict, flagtype _flags, 
+    name, dict param_dict, flagtype _flags, dict aux_dict,
     size_t _n_mutable, size_t _next_item_order_position, size_t _n_dangling):
 
     cdef TreeDict b, p = newTreeDict(name, False)
 
     p._param_dict = param_dict
     p._flags = _flags
+    p._aux_dict = aux_dict
     p._n_mutable = _n_mutable
     p._next_item_order_position = _next_item_order_position
     p._n_dangling = _n_dangling

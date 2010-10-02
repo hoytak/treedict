@@ -686,11 +686,38 @@ class TestDangling(unittest.TestCase):
         self.assert_(p.l2.n.n.n.n.n.v is v)
         self.assert_(p.l1.n.n.n.n.n.v is v)
 
-    def testDangling_11_ForwardAssingmentSetCorrectlyWithReference(self):
+    def testDangling_11_ReferenceEquivalence_01(self):
 
         p = TreeDict()
 
-        v = "SG$VE#D##"
+        b = p.a = p.b
+
+        self.assert_(p.a is p.b)
+
+        p.b = 1
+
+        self.assert_(p.a is b)
+
+    def testDangling_11_ReferenceEquivalence_02(self):
+
+        p = TreeDict()
+
+        a1 = p.a1 = p.b
+        a2 = p.a2 = p.b
+
+        self.assert_(p.a1 is p.b)
+        self.assert_(p.a2 is p.b)
+        self.assert_(a1 is a2)
+
+        p.b = 1
+
+        self.assert_(p.a1 is a1)
+        self.assert_(p.a2 is a1)
+
+    def testDangling_12_ForwardAssingmentSetCorrectlyWithReference(self):
+
+        p = TreeDict()
+        v = unique_object()
         
         b = p.a = p.c
         p.c = v
@@ -705,7 +732,103 @@ class TestDangling(unittest.TestCase):
         self.assert_(b.v is v)
         self.assert_(b is p.a)
         self.assert_(p.c is v)
+
+    def testDangling_13_CorrectCountsThroughSiblingReferences(self):
+
+        p = TreeDict()
+
+        p.a = p.d
+        self.assert_(p._numDangling() == 2)
+
+        # Overwrite p.d; p.a still points to the dangling node, so the
+        # count should not go down.
+
+        p.d = 1
+        self.assert_(p._numDangling() == 1)
         
+    def testDangling_14_CorrectParentingSetAtFixing_01(self):
+
+        p = TreeDict()
+        v = unique_object()
+
+        p.b = p.c
+        p.a = p.b
+
+        # Set c and fix p.b
+        p.c = 1
+        p.b.x = 1
+
+        # Now b should be 
+        self.assert_(p.b.branchName() == 'b')
+        self.assert_(p.a is p.b)
+
+    def testDangling_14_CorrectParentingSetAtFixing_02(self):
+
+        p = TreeDict()
+        v = unique_object()
+
+        p.b = p.c
+        p.a = p.b
+
+        # Set c and fix p.b
+        p.c = 1
+        p.a.x = 1
+
+        # Now b should be 
+        self.assert_(p.b.branchName() == 'b')
+        self.assert_(p.a is p.b)
+
+    def testDangling_14_CorrectParentingSetAtFixing_03(self):
+
+        p = TreeDict()
+        v = unique_object()
+
+        p.b = p.c
+        p.a = p.b
+
+        # Set c and fix p.b
+        p.c = 1
+        p.b = 1
+        p.a.x = 1
+
+        # Now b should be 
+        self.assert_(p.a.branchName() == 'a')
+        
+    def testDangling_14_CorrectParentingSetAtFixing_04(self):
+
+        p = TreeDict()
+        v = unique_object()
+
+        p.makeBranch('cc')
+        
+        p.b = p.cc.c
+        p.a = p.b
+
+        # Set c and fix p.b
+        p.cc.c = 1
+        p.b.x = 1
+
+        # Now b should be 
+        self.assert_(p.b.branchName() == 'b')
+        self.assert_(p.a is p.b)
+
+    def testDangling_14_CorrectParentingSetAtFixing_05(self):
+
+        p = TreeDict()
+        v = unique_object()
+
+        p.makeBranch('cc')
+        
+        p.b = p.cc.c
+        p.aa.a = p.b
+
+        # Set c and fix p.b
+        p.cc.c = 1
+        p.b = 1
+
+        # Now b should be 
+        self.assert_(p.aa.a.branchName() == 'a')
+
 if __name__ == '__main__':
     unittest.main()
 

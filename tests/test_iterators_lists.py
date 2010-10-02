@@ -848,6 +848,22 @@ class TestIteratorsLists(unittest.TestCase):
             p.pop(tm)
 
 
+    def testIterators_14_Links_are_not_branches_01(self):
+
+        p = TreeDict()
+        p.a.x = 1
+        p.b.c = p.a
+
+        self.assert_('c' not in p.b.keys(recursive = False, branch_mode = 'only'))
+
+    def testIterators_14_Links_are_not_branches_02(self):
+
+        p = TreeDict()
+        p.a.x = 1
+        p.b = p.a
+
+        self.assert_('b' not in p.keys(recursive = False, branch_mode = 'only'))
+
     ########################################
     # The corresponding tests for values
 

@@ -100,10 +100,35 @@ def random_tree(seed = 0, n = 100):
 
     t = TreeDict()
 
-    for k in random_node_list(seed, n, 0.7):
+    for k in random_node_list(seed, n, 0.75):
         t[k] = unique_object()
 
     return t
+
+def random_selflinked_tree(seed = 0, n = 100):
+    random.seed(seed)
+
+    def slt(m):
+        p = random_tree(0, m)
+
+        p_links = list(p.itervalues(branch_mode='only', recursive=True))
+
+        random.seed(1)
+        random.shuffle(p_links)
+
+        for name, branch in zip(random_node_list(0,2*m, 0.75), p_links):
+            p[name] = branch
+            
+        return p
+
+    # Now a bunch of branches that reference themselves
+    q = slt(n)
+    
+    for name in random_node_list(0,n,0):
+        q.attach(slt(10), name)
+
+    return q
+
 
 class TestObject:
     def __init__(self, v1, v2, v3):
@@ -116,7 +141,5 @@ test_tuple = (1,324, TestObject(12321, "adsfs", 123))
 test_list  = [1,324, TestObject(12321, "adsfs", 123)]
 test_dict  = {1:2, "3323" : "dfas"} 
 
-
-
 def unique_object():
-    return deepcopy(set(range(20) + [unique_name()]))
+    return [unique_name()]

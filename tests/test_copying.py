@@ -312,6 +312,103 @@ class TestCopying(unittest.TestCase):
         self.assert_(p.b is not q.b)
         self.assert_(q.b is q.a)
 
+    def testCopying_09_LinkedValuesPreserved(self):
+
+        p = TreeDict()
+        p.a.x = 1
+        p.b = p.a
+
+        q = p.copy()
+
+        self.assert_(p.a is not q.a)
+        self.assert_(q.b is q.a)
+
+    def testCopying_10_Cousins(self):
+
+        p = TreeDict()
+        p.a.c.x = 1
+        p.b.c = p.a.c
+
+        q = p.copy()
+
+        self.assert_(p.a is not q.a)
+        self.assert_(p.a.c is not q.a.c)
+        self.assert_(q.b.c is q.a.c)
+
+    def testCopying_10_Cousins_subcopy(self):
+
+        p = TreeDict()
+        p.a.c.x = 1
+        p.b.c = p.a.c
+        p.b.d.x = 1
+
+        qb = p.b.copy()
+
+        self.assert_(qb.c.rootNode() is p)
+        self.assert_(qb.d.rootNode() is qb)
+        self.assert_(qb.d.x == 1)
+
+    def testCopying_11_Cousins_multiple_copy(self):
+        p = random_selflinked_tree(0, 4)
+        # print "\np_before = "
+        # print p.makeReport()
+
+        q = p.copy()
+
+        # print "\np = "
+        # print p.makeReport()
+
+        # print "\nq = "
+        # print q.makeReport()
+
+        self.assert_(q == p)
+
+    def testCopying_12_Large_straight(self):
+        p = random_selflinked_tree(0, 100)
+
+        q = p.copy()
+
+        for k, v in p.iteritems(branch_mode='all', recursive = True):
+
+            if type(v) is TreeDict:
+
+                pbn = p[k].branchName(add_path = True)
+                qbn = q[k].branchName(add_path = True)
+
+                self.assert_(pbn == qbn, "qbn = %s != %s = pbn" % (qbn, pbn))
+
+                self.assert_(p[k] is not q[k])
+                self.assert_(p[k] == q[k])
+
+    def testCopying_13_Large_interwoven(self):
+        p = random_selflinked_tree(0, 100)
+
+        for bk, b in p.iteritems(recursive = False, branch_mode = 'only'):
+
+            q = b.copy()
+
+            # print "#"*40
+
+            # print "\nbk = %s; b = " % bk
+            # print b.makeReport()
+
+            # print "\nbk = %s q = " % bk
+            # print q.makeReport()
+
+            for k, v in b.iteritems(branch_mode='all', recursive = True):
+
+                if type(v) is TreeDict:
+
+                    pbn = v.branchName(add_path = True)
+                    qbn = q[k].branchName(add_path = True)
+
+                    if q[k].rootNode() is not q:
+                        self.assert_(q[k].rootNode() is p)
+                        self.assert_(q[k] is v)
+                    else:
+                        self.assert_(v is not q[k])
+                        self.assert_(pbn == bk + '.' + qbn, "pbn='%s' != '%s' = bk+qbn" % (pbn, bk+'.' + qbn))
+
     # Also need tests covering cases where flags are cleared on copied
     # nodes
 
