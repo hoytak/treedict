@@ -1031,7 +1031,7 @@ cdef class TreeDict(object):
         except Exception, e:
             raise e
 
-    def dryset(self, *args, **kwargs):
+    def checkset(self, *args, **kwargs):
         """
         Same as :meth:`set()`, and will raise the same exceptions on
         failure, but doesn't actually change the tree in any way.
@@ -1951,7 +1951,7 @@ cdef class TreeDict(object):
             t.__hash__                  t.branches                  t.nodeInSameTree
             t.__init__                  t.clear                     t.parentNode
             t.__iter__                  t.copy                      t.pop
-            t.__le__                    t.dryset                    t.popitem
+            t.__le__                    t.checkset                  t.popitem
             t.__len__                   t.freeze                    t.rootNode
             t.__lt__                    t.fromdict                  t.set
             t.__ne__                    t.fromkeys                  t.setFromString
@@ -3809,7 +3809,7 @@ class InteractiveTreeDict(object):
             t.__hash__                  t.branches                  t.nodeInSameTree
             t.__init__                  t.clear                     t.parentNode
             t.__iter__                  t.copy                      t.pop
-            t.__le__                    t.dryset                    t.popitem
+            t.__le__                    t.checkset                  t.popitem
             t.__len__                   t.freeze                    t.rootNode
             t.__lt__                    t.fromdict                  t.set
             t.__ne__                    t.fromkeys                  t.setFromString

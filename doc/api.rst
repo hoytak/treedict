@@ -102,7 +102,7 @@ Setting Groups of Values
 Convenience Setting Methods
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. automethod:: TreeDict.dryset(self, *args, **kwargs)
+.. automethod:: TreeDict.checkset(self, *args, **kwargs)
 
 .. automethod:: TreeDict.setdefault(self, key, value = None)
 

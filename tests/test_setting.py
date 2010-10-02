@@ -335,14 +335,14 @@ class TestSetting(unittest.TestCase):
         self.assert_(p.b == 2)
 
     ############################################################
-    # Testing the dryset function
+    # Testing the checkset function
 
     def testDrySet_01(self):
         p = sample_tree()
         p1 = p.copy(deep = True)
         p2 = p.copy(deep = True)
 
-        p1.dryset(a = 123)
+        p1.checkset(a = 123)
 
         self.assert_(p1 == p2)
 
@@ -354,7 +354,7 @@ class TestSetting(unittest.TestCase):
 
         p2 = deepcopy(p1)
 
-        p1.dryset(v = 123)
+        p1.checkset(v = 123)
 
         self.assert_(p1.v != 123)
         self.assert_(p1.v == 100)
@@ -366,7 +366,7 @@ class TestSetting(unittest.TestCase):
         p1 = p.copy(deep=True)
         p2 = p.copy(deep=True)
 
-        p1.dryset("a.b.c.d", 123)
+        p1.checkset("a.b.c.d", 123)
 
         self.assert_(p1 == p2)
 
@@ -376,7 +376,7 @@ class TestSetting(unittest.TestCase):
 
         p_before = p.copy()
 
-        self.assertRaises(TypeError, lambda: p.dryset("b.a", None, protect_structure = True))
+        self.assertRaises(TypeError, lambda: p.checkset("b.a", None, protect_structure = True))
 
         self.assert_(p_before == p)
 
@@ -387,7 +387,7 @@ class TestSetting(unittest.TestCase):
 
         p_before = p.copy()
 
-        self.assertRaises(TypeError, lambda: p.dryset("b.a", None))
+        self.assertRaises(TypeError, lambda: p.checkset("b.a", None))
 
         self.assert_(p_before == p)
 
