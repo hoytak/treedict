@@ -1,172 +1,290 @@
 .. _API:
 
-TreeDict API
+API
 ==================
 
-The treedict module provides the TreeDict class along with two
-functions, `getTree` and `treeExists`. 
+.. currentmodule:: treedict
 
-.. automodule:: treedict
+Creation
+--------
 
-    .. autofunction:: getTree(name)
+.. method:: TreeDict.__init__(self, name = 'root', **kwargs)
 
-    .. autofunction:: treeExists(name)
+    Create a new TreeDict instance with name `name`.  
 
-    .. autoclass:: treedict.TreeDict
+    Initial values can be supplied as keyword arguments;
+    e.g. ``TreeDict(a = 5)`` will create a TreeDict instance with
+    one value, `a`, equal to 5.  
 
-        .. method:: __init__(self, name = 'root', **kwargs)
+    Example::
+
+	>>> from treedict import TreeDict
+	>>> t = TreeDict('mytree', x = 5, y = 6)
+	>>> print t.makeReport(add_path = True)
+	mytree.x = 5
+	mytree.y = 6
+
+Value/Branch Retrieval
+----------------------
+
+Retrieving values can be done using methods similar to dictionaries or
+other python objects.  
+
+.. method:: TreeDict.__getattr__(self, key)
+
+    Returns the branch/value `key`.  If not present, a branch
+    `key` is implicitly created as a dangling node.
+
+    Example::
+
+	>>> from treedict import TreeDict
+	>>> t = TreeDict(k = 5)
+	>>> t.k
+	5
+	>>> t.b
+	Dangling TreeDict <root.b>
+	>>> 
+
+.. method:: TreeDict.__getitem__(self, key)
+
+    In similar fashion to a dictionary, returns the
+    branch/value `key`.  If not present, a KeyError is raised.
+
+    Example::
+
+	>>> from treedict import TreeDict
+	>>> t = TreeDict(k = 5)
+	>>> t["k"]
+	5
+	>>> 
+
+.. automethod:: TreeDict.get(self, key, default_value = NoDefault)
+
+
+Storing Values
+--------------
+
+Storing values is supported using both dictionary style setting
+(``t["key"] = value``) and attribute style setting (``t.key =
+value``).  In addition, more powerful methods such as :meth:`set`, and
+:meth:`update` support setting groups of keys at once; these methods
+are all "atomic" in the sense that all of the values are set or none
+at all are set (A set operation may fail with a bad key name or,
+e.g. attempting to overwrite/modify a frozen branch).
+
+Setting Single Values
+~~~~~~~~~~~~~~~~~~~~~
+
+.. method:: TreeDict.__setitem__(self, key, value)
+
+    Sets `key` to `value`.  `key` can be the name of a new or
+    existing key in the current node or any sub-node.  Any
+    intermediate nodes are created.
+
+    Equivalent to :meth:`set(key, value)<set>` 
+
+    A TypeError is raised if `key` is not a string, and a ValueError
+    is raised if `key` is not a valid name.
+
+.. method:: TreeDict.__setattr__(self, key, value)
+
+   Like :meth:`__setitem__`, set `key` to `value`.
+
+.. automethod:: TreeDict.makeBranch(self, name, only_new = False)
+
+Setting Groups of Values
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automethod:: TreeDict.set(self, *args, **kwargs)
+
+.. automethod:: TreeDict.update(self, source, overwrite=True, protect_structure=False)
+
+Convenience Setting Methods
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automethod:: TreeDict.dryset(self, *args, **kwargs)
+
+.. automethod:: TreeDict.setdefault(self, key, value = None)
+
+.. automethod:: TreeDict.setFromString(self, key, value, extra_parameters = {})
+
+.. automethod:: TreeDict.fromkeys(key_iterable, value = None)
+
+.. automethod:: TreeDict.fromdict(source)
+
+Existence Querying
+------------------
+
+.. method:: TreeDict.__contains__(self, key)
+
+   Returns True if `key` is a valid value or non-dangling
+   branch. Equivalent to :meth:`has_key`.
+
+.. automethod:: TreeDict.has_key(self, key)
+
+Clearing Items
+--------------
+
+.. method:: TreeDict.__delattr__(self, key):
+
+    Removes `key` from the current node.  `key` can reference either a
+    value or a branch.  If `key` does not exist, an AttributeError is
+    raised.
+
+    Example::
+
+	>>> from treedict import TreeDict
+	>>> t = TreeDict(k = 5)
+	>>> 'k' in t
+	True
+	>>> del t.k
+	>>> 'k' in t
+	False
+	>>> 
     
-            Create a new TreeDict instance with name `name`.  
+.. method:: TreeDict.__delitem__(self, key):
 
-	    Initial values can be supplied as keyword arguments;
-	    e.g. ``TreeDict(a = 5)`` will create a TreeDict instance with
-	    one value, `a`, equal to 5.  
+    Removes `key` from the current node.  This method is analagous to
+    the ``__delitem__`` of a dictionary.  If `key` does not exist, a
+    KeyError is raised.
 
-	    Example::
+    Example::
 
-	        >>> from treedict import TreeDict
-		>>> t = TreeDict('mytree', x = 5, y = 6)
-		>>> print t.makeReport(add_path = True)
-		mytree.x = 5
-		mytree.y = 6
+	>>> from treedict import TreeDict
+	>>> t = TreeDict(k = 5)
+	>>> 'k' in t
+	True
+	>>> del t['k']
+	>>> 'k' in t
+	False
+	>>> 
 
-	.. method:: __getattr__(self, key)
 
-	    Returns the branch/value `key`.  If not present, a branch
-	    `key` is implicitly created as a dangling node.
+.. automethod:: TreeDict.clear(self, branch_mode = 'all')
 
-	.. method:: __setitem__(self, key, value)
-	
-	    Sets `key` to `value`.  `key` can be the name of a new or
-	    existing key in the current node or any sub-node.  Any
-	    intermediate nodes are created.
+.. automethod:: TreeDict.pop(self, key = None, prune_empty = False, silent = False)
 
-	    Equivalent to :meth:`set(key, value)<set>` 
+Structural Operations
+---------------------
 
-	    A TypeError is raised if `key` is not a string, and a
-	    ValueError is raised if `key` is not a valid name.
+The following methods permit manipulations of the tree structure in
+several ways.  :meth:`attach` grafts in a TreeDict node as a branch;
+:meth:`freeze` freezes the tree structure so no further manipulations
+are possible (useful for ensuring that parameters do not change once
+set), and copy
 
-	.. method:: __setattr__(self, key, value)
-	   
-	   Like :meth:`__setitem__`, set `key` to `value`.
+Additional methods that may be
+when include
 
-	.. method:: __delattr__(self, key):
-	
-	    Removes `key` from the current node.
+.. automethod:: TreeDict.attach(self, tree_or_node = None, name = None, copy = True, recursive = False, protect_structure=True)
 
-	.. method:: __delitem__(self, key):
-	
-	    Removes `key` from the current node.
+.. automethod:: TreeDict.freeze(self, branch=None, quiet = True)
 
-	.. method:: __call__(self, *args, **kwargs)
-	
-	    A convenience method that wraps :meth:`set` and returns
-	    `self`.
+.. automethod:: TreeDict.copy(self, deep=False, freeze=False)
 
-	    Example::
 
-	        >>> from treedict import TreeDict
-		>>> t = TreeDict()
-		>>> t('a.b.x', 1, x = 2)
-		TreeDict <root>
-		>>> print t.makeReport()
-		a.b.x = 1
-		x     = 2
-		>>> t(y = 3)(z = 4)
-		TreeDict <root>
-		>>> print t.makeReport()
-		a.b.x = 1
-		x     = 2
-		y     = 3
-		z     = 4
+Iteration / Lists
+-----------------
 
-	.. method:: __contains__(self, key)
+In similar fashion to dictionaries, TreeDict supports retrieving
+elements as lists or through iteration.  In addition to the
+corresponding dictionary methods, the TreeDict methods support
+additional arguments concerning handling of branches and values.  All
+default to returning all the values stored in the local tree and its
+branches.  Furthermore, two convenience methods, :meth:`iterbranches` and
+:meth:`branches`, also provide iteration over the local branches.
 
-	   Returns True if `key` is a valid value or non-dangling
-	   branch. Equivalent to :meth:`has_key`.
+.. automethod:: TreeDict.iterkeys(self, recursive = True, branch_mode = 'none')
 
-	.. method:: __len__(self)
+.. automethod:: TreeDict.keys(self, recursive = True, branch_mode = 'none')
 
-           Returns the number of values in this node and all subnodes.
-           Equivalent to :meth:`size` with default arguments.
+.. automethod:: TreeDict.itervalues(self, recursive = True, branch_mode = 'none')
 
-        .. automethod:: attach(self, tree_or_node = None, name = None, copy = True, recursive = False)
+.. automethod:: TreeDict.values(self, recursive = True, branch_mode = 'none')
 
-        .. automethod:: branchName(self, local_only = True, include_tree_name=False)
+.. automethod:: TreeDict.iteritems(self, recursive = True, branch_mode = 'none')
 
-        .. automethod:: branches(self)
+.. automethod:: TreeDict.items(self, recursive = True, branch_mode = 'none')
 
-        .. automethod:: clear(self, branch_mode = 'all')
+.. automethod:: TreeDict.iterbranches(self)
 
-        .. automethod:: copy(self, deep=False, freeze=False)
+.. automethod:: TreeDict.branches(self)
 
-        .. automethod:: dryset(self, *args, **kwargs)
+Traversing
+----------
 
-        .. automethod:: freeze(self, branch=None, quiet = True)
+Traversing down the tree (using the computer science understanding of
+a tree being upside-down) is simply done through retrieving the
+desired branch.  Traversing back up the tree from a specific node is
+done through the following methods.
 
-        .. automethod:: fromkeys(key_iterable, value = None)
+.. automethod:: TreeDict.rootNode(self)
 
-        .. automethod:: get(self, key, default_value = NoDefault)
+.. automethod:: TreeDict.parentNode(self)
 
-        .. automethod:: getClosestKey(self, key, n = 0, recursive = True, branch_mode = 'none')
 
-        .. automethod:: has_key(self, key)
+Tree Properties
+---------------
 
-        .. automethod:: hash(self, key=None, add_name = False, keys=None)
+Names
+~~~~~
 
-	.. automethod:: importFrom(self, source_tree, copy_deep = False, overwrite_existing = True)
+.. automethod:: TreeDict.branchName(self, add_path = False, add_tree_name = False)
 
-        .. automethod:: interactiveTree(self)
+.. automethod:: TreeDict.treeName(self)
 
-        .. automethod:: isDangling(self)
+Size
+~~~~
 
-        .. automethod:: isEmpty(self)
+.. method:: TreeDict.__len__(self)
 
-        .. automethod:: isFrozen(self)
+   Returns the number of values in this node and all subnodes.
+   Equivalent to :meth:`size` with default arguments.
 
-        .. automethod:: isMutable(self)
+.. automethod:: TreeDict.size(self, recursive = True, branch_mode = 'none')
 
-        .. automethod:: isRegistered(self)
-									    
-        .. automethod:: isRoot(self)
+Branch Properties
+~~~~~~~~~~~~~~~~~
 
-        .. automethod:: items(self, recursive = True, branch_mode = 'none')
+.. automethod:: TreeDict.isDangling(self)
 
-        .. automethod:: iterbranches(self)
+.. automethod:: TreeDict.isEmpty(self)
 
-        .. automethod:: iteritems(self, recursive = True, branch_mode = 'none')
-											    
-        .. automethod:: iterkeys(self, recursive = True, branch_mode = 'none')
+.. automethod:: TreeDict.isFrozen(self)
 
-        .. automethod:: itervalues(self, recursive = True, branch_mode = 'none')
+.. automethod:: TreeDict.isMutable(self)
 
-        .. automethod:: keys(self, recursive = True, branch_mode = 'none')
+.. automethod:: TreeDict.isRegistered(self)
 
-        .. automethod:: makeBranch(self, name, only_new = False)
+.. automethod:: TreeDict.isRoot(self)
 
-        .. automethod:: makeReport(self)
+.. automethod:: TreeDict.nodeInSameTree(self, node)
 
-        .. automethod:: nodeInSameTree(self, node)
+Node Traversal
+~~~~~~~~~~~~~~
 
-        .. automethod:: parentNode(self)
+.. automethod:: TreeDict.rootNode(self)
 
-        .. automethod:: pop(self, key = None, prune_empty = False, silent = False)
+.. automethod:: TreeDict.parentNode(self)
 
-        .. automethod:: popitem(self, key = None, prune_empty = False, silent = False)
+Hash Operations
+---------------
 
-        .. automethod:: rootNode(self)
+.. automethod:: TreeDict.hash(self, key=None, add_name = False, keys=None)
 
-        .. automethod:: set(self, *args, **kwargs)
+Convenience Methods
+-------------------
 
-        .. automethod:: setFromString(self, key, value, extra_parameters = {})
+.. automethod:: TreeDict.getClosestKey(self, key, n = 0, recursive = True, branch_mode = 'none')
 
-        .. automethod:: setdefault(self, key, value = None)
+.. automethod:: TreeDict.makeReport(self)
 
-        .. automethod:: size(self, recursive = True, branch_mode = 'none')
+.. automethod:: TreeDict.interactiveTree(self)
 
-        .. automethod:: treeName(self)
+Global Tree Management
+----------------------
 
-        .. automethod:: update(self, d)
+.. autofunction:: treedict.getTree(name)
 
-        .. automethod:: values(self, recursive = True, branch_mode = 'none')
+.. autofunction:: treedict.treeExists(name)
 

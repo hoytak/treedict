@@ -37,7 +37,6 @@ import re
 import inspect
 import base64
 import heapq
-import time
 from weakref import ref as new_weakref
 
 ################################################################################
@@ -189,12 +188,6 @@ cpdef TreeDict getTree(str name):
 
     A tree is considered 'registered' and can be retrieved in this way
     if and only if it is instantiated through this function.
-
-    *NOTE: This module may be removed in the future do to the 'only
-    one way to do things' aspect of pythonicity.  A similar example is
-    found in the logging module, but the main use cases I can think of
-    -- globally defined parameters -- can be done using the module
-    system.  Feedback on this is welcome; for now, I'll leave it in - HK.*
     """
 
     checkKeyNotNone(name)
@@ -208,16 +201,16 @@ cpdef TreeDict getTree(str name):
         registerTree(t)
         return t
 
+    # *NOTE: This module may be removed in the future do to the 'only
+    # one way to do things' aspect of pythonicity.  A similar example is
+    # found in the logging module, but the main use cases I can think of
+    # -- globally defined parameters -- can be done using the module
+    # system.  Feedback on this is welcome; for now, I'll leave it in - HK.*
+
 cpdef bint treeExists(str name):
     """
     Returns True if a registered tree with name `name` exists, and
     False otherwise.
-
-    *NOTE: This module may be removed in the future do to the 'only
-    one way to do things' aspect of pythonicity.  A similar example is
-    found in the logging module, but the main use cases I can think of
-    -- globally defined parameters -- can be done using the module
-    system.  Feedback on this is welcome; for now, I'll leave it in - HK.*
     """
         
     return name in _tree_lookup_dict
@@ -842,7 +835,7 @@ cdef class TreeDict(object):
 
         Internally, this is done by trying to evaluate `value` as a
         python string, and returning a simple string if an error
-        occurs.  `extra_variables` is passed to ``eval()`` to provide
+        occurs.  `extra_variables` is passed to `eval()` to provide
         additional variables for evaluating the string.  Users wanting
         more sophistication should avoid this method.
 
@@ -902,7 +895,9 @@ cdef class TreeDict(object):
             a = 'abc'
             c = 'abc'
             b = 'abc'
+
         """
+
         try:
             return TreeDict.fromdict(dict.fromkeys(key_iterable, value))
         except Exception, e:
@@ -913,13 +908,22 @@ cdef class TreeDict(object):
         """
         A convenience method that creates a new TreeDict instance from
         a dictionary or other object convertable to a dictionary.
-        This is analagous to the `fromkeys()` method, except that the
+        This is analagous to the :meth:`fromkeys()` method, except that the
         keys and associated values are given by a dictionary.  It is
         equivalent to::
 
            t = TreeDict()
            t.update(d)
            return t
+
+        Example::
+
+            >>> from treedict import TreeDict
+            >>> t = TreeDict.fromdict({'a.x' : 1, 'a.y' : 2, 'z' : 3})
+            >>> print t.makeReport()
+            z   = 3
+            a.x = 1
+            a.y = 2
         
         """
 
@@ -937,7 +941,7 @@ cdef class TreeDict(object):
         defaults to None.  Returns `value` if `key` was changed;
         otherwise returns the original value.
 
-        This behavior is analagous to the setdefault() method of dict.
+        This behavior is analagous to the `setdefault()` method of dict.
 
         Example::
 
@@ -952,7 +956,7 @@ cdef class TreeDict(object):
             >>> print t.makeReport()
             x = 1
             y = 2
-          
+            
         """
 
         if not self._exists(key, False):
@@ -1007,9 +1011,6 @@ cdef class TreeDict(object):
             >>> print t.makeReport()
             x = 1
             >>> t.set("a", 3, "b", 4, "1badvalue", 5)
-            Traceback (most recent call last):
-             File "<stdin>", line 1, in <module>
-             File "treedict.pyx", line 967, in treedict.treedict.TreeDict.set (treedict/treedict.c:8318)
             NameError: '1badvalue' not a valid branch name.
             >>> print t.makeReport()
             x = 1
@@ -1032,7 +1033,7 @@ cdef class TreeDict(object):
 
     def dryset(self, *args, **kwargs):
         """
-        Same as `set()`, and will raise the same exceptions on
+        Same as :meth:`set()`, and will raise the same exceptions on
         failure, but doesn't actually change the tree in any way.
         Useful for ensuring that a set of arguments is valid and won't
         raise an exception.  
@@ -1325,6 +1326,7 @@ cdef class TreeDict(object):
             >>> print t2.makeReport()
             y = 2
             x = 1
+            
         """
 
         cdef int b_mode = self._getBranchMode(branch_mode)
@@ -1427,12 +1429,8 @@ cdef class TreeDict(object):
             >>> t.isEmpty()
             False
             >>> t.pop('nothere')
-            Traceback (most recent call last):
-             File "<stdin>", line 1, in <module>
-             File "treedict.pyx", line 1365, in treedict.treedict.TreeDict.pop (treedict/treedict.c:11193)
             KeyError: 'nothere'
             >>> t.pop('nothere', silent=True)
-            >>> 
         
         """
 
@@ -1556,6 +1554,10 @@ cdef class TreeDict(object):
         part of this tree are copied in; otherwise, only those that
         are not a root node are copied in.
 
+        If `protect_structure` is True, then branches cannot overwrite
+        values and vice-versa.  For example, replacing a value with a
+        branch using this function would raise a TypeError.
+        
         Example 1::
 
             >>> from treedict import TreeDict
@@ -1755,6 +1757,7 @@ cdef class TreeDict(object):
           >>> t.a.v = 1
           >>> t.a.isDangling()
           False
+          
         """
         return _flagOn(&self._flags, f_is_dangling)
 
@@ -1773,7 +1776,7 @@ cdef class TreeDict(object):
         """
         Returns true if the current tree structure is registered in
         the module-level tree index and can be accessed through the
-        `getTree()` function.
+        :meth:`getTree()` function.
         """
         
         return _flagOn(&self._flags, f_is_registered)
@@ -1926,42 +1929,58 @@ cdef class TreeDict(object):
 
         Example::
 
-            In [3]: from treedict import TreeDict
+            In [1]: from treedict import TreeDict
 
-            In [4]: t = TreeDict()
+            In [2]: t = TreeDict(a=1,b=2,c=3,d=4)
 
-            In [5]: t.set('alpha.beta', 1, beta = 1, gamma = 2)
+            In [3]: t.
+            t.__class__                 t.__setattr__               t.isDangling
+            t.__contains__              t.__setitem__               t.isEmpty
+            t.__copy__                  t.__sizeof__                t.isFrozen
+            t.__deepcopy__              t.__str__                   t.isMutable
+            t.__delattr__               t.__subclasshook__          t.isRegistered
+            t.__delitem__               t._branchNameOf             t.isRoot
+            t.__doc__                   t._fullNameOf               t.items
+            t.__eq__                    t._getSettingOrderPosition  t.iterbranches
+            t.__format__                t._isDetachedDangling       t.iteritems
+            t.__ge__                    t._iteratorRefCount         t.iterkeys
+            t.__getattr__               t._numDangling              t.itervalues
+            t.__getattribute__          t._numMutable               t.keys
+            t.__getitem__               t.attach                    t.makeBranch
+            t.__gt__                    t.branchName                t.makeReport
+            t.__hash__                  t.branches                  t.nodeInSameTree
+            t.__init__                  t.clear                     t.parentNode
+            t.__iter__                  t.copy                      t.pop
+            t.__le__                    t.dryset                    t.popitem
+            t.__len__                   t.freeze                    t.rootNode
+            t.__lt__                    t.fromdict                  t.set
+            t.__ne__                    t.fromkeys                  t.setFromString
+            t.__new__                   t.get                       t.setdefault
+            t.__pyx_vtable__            t.getClosestKey             t.size
+            t.__reduce__                t.has_key                   t.treeName
+            t.__reduce_ex__             t.hash                      t.update
+            t.__repr__                  t.interactiveTree           t.values
 
-            In [6]: ti = t.interactiveTree()
+            In [3]: ti = t.interactiveTree()
 
-            In [7]: ti.alpha.
+            In [4]: ti.
+            ti.__class__             ti.__module__            ti.__weakref__
+            ti.__delattr__           ti.__new__               ti._original_param_tree
+            ti.__dict__              ti.__reduce__            ti._setAttrDirect
+            ti.__doc__               ti.__reduce_ex__         ti.a
+            ti.__eq__                ti.__repr__              ti.b
+            ti.__format__            ti.__setattr__           ti.c
+            ti.__getattribute__      ti.__sizeof__            ti.d
+            ti.__hash__              ti.__str__               ti.treeDict
+            ti.__init__              ti.__subclasshook__      
 
-            ti.alpha.__class__             ti.alpha.__eq__                ti.alpha.__init__              ti.alpha.__reduce_ex__         ti.alpha.__str__               ti.alpha._setAttrDirect
-            ti.alpha.__delattr__           ti.alpha.__format__            ti.alpha.__module__            ti.alpha.__repr__              ti.alpha.__subclasshook__      ti.alpha.beta
-            ti.alpha.__dict__              ti.alpha.__getattribute__      ti.alpha.__new__               ti.alpha.__setattr__           ti.alpha.__weakref__           ti.alpha.treeDict
-            ti.alpha.__doc__               ti.alpha.__hash__              ti.alpha.__reduce__            ti.alpha.__sizeof__            ti.alpha._original_param_tree  
+            In [4]: ti.a
+            Out[4]: 1
 
-            In [7]: ti.alpha.treeDict() is t
-            Out[7]: False
+            In [5]: ti.treeDict() is t
+            Out[5]: True
 
-            In [8]: ti.alpha.treeDict() is t.alpha
-            Out[8]: True
-
-            In [9]: t.
-            t.__call__                  t.__getattr__               t.__pyx_vtable__            t._getSettingOrderPosition  t.fromkeys                  t.isRoot                    t.pop
-            t.__class__                 t.__getattribute__          t.__reduce__                t._isDetachedDangling       t.get                       t.items                     t.popitem
-            t.__contains__              t.__getitem__               t.__reduce_ex__             t._iteratorRefCount         t.getClosestKey             t.iterbranches              t.rootNode
-            t.__copy__                  t.__gt__                    t.__repr__                  t._numDangling              t.has_key                   t.iteritems                 t.set
-            t.__deepcopy__              t.__hash__                  t.__setattr__               t.attach                    t.hash                      t.iterkeys                  t.setFromString
-            t.__delattr__               t.__init__                  t.__setitem__               t.branchName                t.interactiveTree           t.itervalues                t.setdefault
-            t.__delitem__               t.__le__                    t.__sizeof__                t.branches                  t.isDangling                t.keys                      t.size
-            t.__doc__                   t.__len__                   t.__str__                   t.clear                     t.isEmpty                   t.makeBranch                t.treeName
-            t.__eq__                    t.__lt__                    t.__subclasshook__          t.copy                      t.isFrozen                  t.makeReport                t.update
-            t.__format__                t.__ne__                    t._branchNameOf             t.dryset                    t.isMutable                 t.nodeInSameTree            t.values
-            t.__ge__                    t.__new__                   t._fullNameOf               t.freeze                    t.isRegistered              t.parentNode                
-
-            In [9]: t.
-            """
+        """
 
         return InteractiveTreeDict(self)
         
@@ -2001,6 +2020,7 @@ cdef class TreeDict(object):
             TreeDict <mytree.a.b.c>
             >>> t.a.b.treeName()
             'mytree'
+
         """
         
         return self.rootNode()._branchName(True, True)
@@ -2026,6 +2046,7 @@ cdef class TreeDict(object):
             'a.b.c'
             >>> t.a.b.c.branchName(add_path = True, add_tree_name = True)
             'root.a.b.c'
+            
         """
 
         return self._branchName(not add_path, add_tree_name)
@@ -2105,6 +2126,7 @@ cdef class TreeDict(object):
             a.z = [1, 2, 3]
             a.y = {1: 2}
             a.x = None
+            
         """
 
         if add_path and add_tree_name:
@@ -2208,10 +2230,6 @@ cdef class TreeDict(object):
             >>> t.get("x")
             1
             >>> t.get("y")
-            Traceback (most recent call last):
-             File "<stdin>", line 1, in <module>
-             File "treedict.pyx", line 1995, in treedict.treedict.TreeDict.get (treedict/treedict.c:17360)
-             File "treedict.pyx", line 2010, in treedict.treedict.TreeDict.get (treedict/treedict.c:17249)
             KeyError: 'root.y'
             >>> t.get("y", [])
             []
@@ -2690,7 +2708,7 @@ cdef class TreeDict(object):
 
 
         Example::
-
+        
             >>> from treedict import TreeDict
             >>> t = TreeDict()
             >>> t.set('br.x', 1, 'br.c.y', 2, x = 1, y = 2)
@@ -2707,11 +2725,8 @@ cdef class TreeDict(object):
             >>> t.hash(keys = ['x', 'y'])
             'wgrU12pd1m'
             >>> t.hash('nothere')
-            Traceback (most recent call last):
-             File "<stdin>", line 1, in <module>
-             File "treedict.pyx", line 2522, in treedict.treedict.TreeDict.hash (treedict/treedict.c:21606)
-             File "treedict.pyx", line 2573, in treedict.treedict.TreeDict.hash (treedict/treedict.c:21484)
             KeyError: 'root.nothere'
+            
         """
         try:
             if add_name:
@@ -3013,9 +3028,60 @@ cdef class TreeDict(object):
         frozen.  If this happens, no changes are made to the tree
         (i.e, this method is atomic).
 
-        Examples::
+        Example 1::
 
-        
+            >>> from treedict import TreeDict
+            >>> t = TreeDict()
+            >>> t.a.x = 1
+            >>> t.update({'a.y': 2, 'z' : 3})
+            >>> print t.makeReport()
+            a.x = 1
+            a.y = 2
+            z   = 3
+            >>> 
+
+        Example 2::
+
+            >>> from treedict import TreeDict
+            >>> t1 = TreeDict(x = 1, y = 2)
+            >>> t2 = TreeDict(y = 3, z = 4)
+            >>> t1.update(t2)
+            >>> print t1.makeReport()
+            y = 3
+            x = 1
+            z = 4
+            >>> 
+
+        Example 3 -- No Overwrite::
+
+            >>> from treedict import TreeDict
+            >>> t1 = TreeDict(x = 1, y = 2)
+            >>> t2 = TreeDict(y = 3, z = 4)
+            >>> t1.update(t2, overwrite=False)
+            >>> print t1.makeReport()
+            y = 2
+            x = 1
+            z = 4
+
+        Example 4 -- Protecting Structure::
+
+            >>> t1, t2 = TreeDict('t1'), TreeDict('t2')
+            >>> t1.a.x = 1
+            >>> t2.a = 2
+            >>> t2.x = 3
+            >>> 
+            >>> print t1.makeReport()
+            a.x = 1
+            >>> 
+            >>> t1.update(t2, protect_structure = True)
+
+            TypeError: Tree/Branch 't1.a' would get implicitly overwritten by value on merge; set protect_structure=False to allow overwriting.
+            
+            >>> 
+            >>> print t1.makeReport()
+            a.x = 1
+            >>> 
+      
         """
         
         cdef flagtype flags = ((0 if overwrite else f_no_overwrite)
@@ -3366,6 +3432,7 @@ cdef class TreeDict(object):
             [('b', TreeDict <root.b>), ('b.c', TreeDict <root.b.c>)]
             >>> list(t.iteritems(recursive=True, branch_mode='all'))
             [('x', 1), ('b', TreeDict <root.b>), ('b.x', 1), ('b.c', TreeDict <root.b.c>), ('b.c.y', 2)]
+
         """
 
         return self._getIter(recursive, self._getBranchMode(branch_mode), i_Items)
@@ -3720,41 +3787,57 @@ class InteractiveTreeDict(object):
 
     Example::
 
-        In [3]: from treedict import TreeDict
+            In [1]: from treedict import TreeDict
 
-        In [4]: t = TreeDict()
+            In [2]: t = TreeDict(a=1,b=2,c=3,d=4)
 
-        In [5]: t.set('alpha.beta', 1, beta = 1, gamma = 2)
+            In [3]: t.
+            t.__class__                 t.__setattr__               t.isDangling
+            t.__contains__              t.__setitem__               t.isEmpty
+            t.__copy__                  t.__sizeof__                t.isFrozen
+            t.__deepcopy__              t.__str__                   t.isMutable
+            t.__delattr__               t.__subclasshook__          t.isRegistered
+            t.__delitem__               t._branchNameOf             t.isRoot
+            t.__doc__                   t._fullNameOf               t.items
+            t.__eq__                    t._getSettingOrderPosition  t.iterbranches
+            t.__format__                t._isDetachedDangling       t.iteritems
+            t.__ge__                    t._iteratorRefCount         t.iterkeys
+            t.__getattr__               t._numDangling              t.itervalues
+            t.__getattribute__          t._numMutable               t.keys
+            t.__getitem__               t.attach                    t.makeBranch
+            t.__gt__                    t.branchName                t.makeReport
+            t.__hash__                  t.branches                  t.nodeInSameTree
+            t.__init__                  t.clear                     t.parentNode
+            t.__iter__                  t.copy                      t.pop
+            t.__le__                    t.dryset                    t.popitem
+            t.__len__                   t.freeze                    t.rootNode
+            t.__lt__                    t.fromdict                  t.set
+            t.__ne__                    t.fromkeys                  t.setFromString
+            t.__new__                   t.get                       t.setdefault
+            t.__pyx_vtable__            t.getClosestKey             t.size
+            t.__reduce__                t.has_key                   t.treeName
+            t.__reduce_ex__             t.hash                      t.update
+            t.__repr__                  t.interactiveTree           t.values
 
-        In [6]: ti = t.interactiveTree()
+            In [3]: ti = t.interactiveTree()
 
-        In [7]: ti.alpha.
+            In [4]: ti.
+            ti.__class__             ti.__module__            ti.__weakref__
+            ti.__delattr__           ti.__new__               ti._original_param_tree
+            ti.__dict__              ti.__reduce__            ti._setAttrDirect
+            ti.__doc__               ti.__reduce_ex__         ti.a
+            ti.__eq__                ti.__repr__              ti.b
+            ti.__format__            ti.__setattr__           ti.c
+            ti.__getattribute__      ti.__sizeof__            ti.d
+            ti.__hash__              ti.__str__               ti.treeDict
+            ti.__init__              ti.__subclasshook__      
 
-        ti.alpha.__class__             ti.alpha.__eq__                ti.alpha.__init__              ti.alpha.__reduce_ex__         ti.alpha.__str__               ti.alpha._setAttrDirect
-        ti.alpha.__delattr__           ti.alpha.__format__            ti.alpha.__module__            ti.alpha.__repr__              ti.alpha.__subclasshook__      ti.alpha.beta
-        ti.alpha.__dict__              ti.alpha.__getattribute__      ti.alpha.__new__               ti.alpha.__setattr__           ti.alpha.__weakref__           ti.alpha.treeDict
-        ti.alpha.__doc__               ti.alpha.__hash__              ti.alpha.__reduce__            ti.alpha.__sizeof__            ti.alpha._original_param_tree  
+            In [4]: ti.a
+            Out[4]: 1
 
-        In [7]: ti.alpha.treeDict() is t
-        Out[7]: False
+            In [5]: ti.treeDict() is t
+            Out[5]: True
 
-        In [8]: ti.alpha.treeDict() is t.alpha
-        Out[8]: True
-
-        In [9]: t.
-        t.__call__                  t.__getattr__               t.__pyx_vtable__            t._getSettingOrderPosition  t.fromkeys                  t.isRoot                    t.pop
-        t.__class__                 t.__getattribute__          t.__reduce__                t._isDetachedDangling       t.get                       t.items                     t.popitem
-        t.__contains__              t.__getitem__               t.__reduce_ex__             t._iteratorRefCount         t.getClosestKey             t.iterbranches              t.rootNode
-        t.__copy__                  t.__gt__                    t.__repr__                  t._numDangling              t.has_key                   t.iteritems                 t.set
-        t.__deepcopy__              t.__hash__                  t.__setattr__               t.attach                    t.hash                      t.iterkeys                  t.setFromString
-        t.__delattr__               t.__init__                  t.__setitem__               t.branchName                t.interactiveTree           t.itervalues                t.setdefault
-        t.__delitem__               t.__le__                    t.__sizeof__                t.branches                  t.isDangling                t.keys                      t.size
-        t.__doc__                   t.__len__                   t.__str__                   t.clear                     t.isEmpty                   t.makeBranch                t.treeName
-        t.__eq__                    t.__lt__                    t.__subclasshook__          t.copy                      t.isFrozen                  t.makeReport                t.update
-        t.__format__                t.__ne__                    t._branchNameOf             t.dryset                    t.isMutable                 t.nodeInSameTree            t.values
-        t.__ge__                    t.__new__                   t._fullNameOf               t.freeze                    t.isRegistered              t.parentNode                
-
-        In [9]: t.
     """
 
     def __init__(self, TreeDict ptree):

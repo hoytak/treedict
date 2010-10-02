@@ -1,6 +1,6 @@
 .. _overview:
 
-TreeDict Overview
+Overview
 ====================
 
 TreeDict can be thought of as a hierarchical dictionary.  It is
@@ -151,7 +151,7 @@ After the above introduction, the features of TreeDict are best
 learned by browsing the TreeDict API or presenting a few examples
 
 Converting to/from a Dictionary
-----------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A dictionary of keys that follow the branch/leaf naming conventions
 (e.g. ``value``, ``branch.value``, ``a12._dlkfjd123.v``) can be
@@ -176,7 +176,7 @@ To convert to a dictionary, use :meth:`~treedict.TreeDict.iteritems()`::
     {'y': 2, 'x': 1, 'a.b.c.y': 4, 'a.b.x': 3}
 
 Using Default Program Options
-----------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Setting the default options in a program can be done as follows.  In
 ``defaults.py``, we could have::
@@ -207,7 +207,7 @@ can do::
 
 
 Function Caching / Memoization
-----------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 TreeDict can be used to build a simple but effective caching system
 for time-consuming functions.  This example reworks the `memoized`

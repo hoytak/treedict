@@ -1,5 +1,5 @@
-TreeDict
-========
+TreeDict Introduction
+=====================
 
 TreeDict is a dictionary-like, hierarcical python container to
 simplify the bookkeeping surrounding parameters, variables and
@@ -73,7 +73,9 @@ Contents
 
 .. toctree::
     :maxdepth: 2
+    :hidden:
     
+    self    
     overview
     api
     download
