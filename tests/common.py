@@ -125,10 +125,9 @@ def random_selflinked_tree(seed = 0, n = 100):
     q = slt(n)
     
     for name in random_node_list(0,n,0):
-        q.attach(slt(10), name)
+        q.attach(name, slt(10))
 
     return q
-
 
 class TestObject:
     def __init__(self, v1, v2, v3):

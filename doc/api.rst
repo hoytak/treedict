@@ -176,7 +176,7 @@ set), and copy
 Additional methods that may be
 when include
 
-.. automethod:: TreeDict.attach(self, tree_or_node = None, name = None, copy = True, recursive = False, protect_structure=True)
+.. automethod:: TreeDict.attach(self, tree_or_key = None, tree = None, copy = True, recursive = False, protect_structure=False)
 
 .. automethod:: TreeDict.freeze(self, branch=None, quiet = True)
 

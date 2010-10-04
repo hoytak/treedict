@@ -973,7 +973,7 @@ cdef class TreeDict(object):
         precedence over all others, and key-value pairs given later in
         the args list take precedence over earlier values.
 
-        If ``protect_structure = True`` is given as a keyword
+        If ``protect_structure == True`` is given as a keyword
         argument, then values cannot be implicitly overwritten by
         branches.  For example, if `b = 1` is in the tree, then
         setting `b.x = 2` would overwrite b with an implicitly created
@@ -1537,22 +1537,30 @@ cdef class TreeDict(object):
 
         return v
 
-    def attach(self, tree_or_node = None, str name = None,
+    def attach(self, tree_or_key = None, TreeDict tree = None,
                bint copy = True, bint recursive = False,
                bint protect_structure = False):
         """
-        Attaches a parameter tree 'p' to node `name`.  If `p` is the
-        root node of a tree, then the exact object is attached in;
-        otherwise, `copy` must be True.  If `name` is None, the tree's
-        name is used; if this is not a valid node name, then an
-        exception is raised.
+        Attaches a TreeDict instance to the current node.
 
-        If `recursive` is true, then `tree_or_node` and `alt_name`
-        must be None (default). Attach then goes through the tree,
-        attaching all the TreeDict nodes that are not part of this
-        tree.  If `force_copy` is True, then all TreeDicts not already
-        part of this tree are copied in; otherwise, only those that
-        are not a root node are copied in.
+        If `tree` is given, then `tree_or_key` must be a string giving
+        the key where the new tree is attached to.  If `tree` is not
+        given, then `tree_or_key` must give the TreeDict instance and
+        the key name is taken from the name of the tree `tree`.  In
+        the case of branches, this name is always the associated key
+        of the branch.
+
+        If `copy` is True (default), the the tree structure (but not
+        the values) is copied from the original.  If `copy` is False,
+        then the given tree must be the root node, in which case it is
+        simply grafted in.
+
+        If `recursive` is true, then all TreeDict instances in the
+        given tree are recursively attached as well.  If a tree is not
+        specified, then the operation is done recursively to the local
+        node.  This operation can be very useful to ensure a
+        consistent tree structure when the tree may have been formed
+        through a mix of branches and TreeDict instances.
 
         If `protect_structure` is True, then branches cannot overwrite
         values and vice-versa.  For example, replacing a value with a
@@ -1606,33 +1614,46 @@ cdef class TreeDict(object):
             
         """
 
-        if recursive:
-            if tree_or_node is not None or name is not None:
-                raise TypeError("Setting recursive option requires 'tree_or_node' and 'alt_name' to be None (default).")
+        cdef str key 
 
-            self._recursiveAttach(f_copy if copy else 0)
+        if tree_or_key is None and tree is None:
+            if recursive:
+                self._recursiveAttach(f_copy if copy else 0)
+                return
+            else:
+                raise TypeError("Either `recursive` must be True or a tree or key must be given.")
+
+        if type(tree_or_key) is str:
+            key = <str>tree_or_key
+        elif type(tree_or_key) is TreeDict:
+            if tree is not None:
+                raise TypeError("Only one TreeDict instance can be given to attach.")
             
-            return
+            tree = <TreeDict>tree_or_key
+            key = None
+        else:
+            raise TypeError("`tree_or_key` must be either a string or TreeDict instance.")
+
+        if key is None:
+            if RUN_ASSERTS:
+                assert tree is not None
+                
+            key = tree._name
             
-        if tree_or_node is None:
-            raise TypeError("String or TreeDict expected for tree_or_node parameter, got NoneType.")
+        if tree is None:
+            if RUN_ASSERTS:
+                assert key is not None
+
+            tree = self._get(key, False)
 
         cdef flagtype flags = ((f_copy if copy else 0)
                                | (f_protect_structure if protect_structure else 0))
 
-        if type(tree_or_node) is TreeDict:
-            self._attach(name, <TreeDict>tree_or_node, flags)
-            
-        elif type(tree_or_node) is str:
-            p = self.get(tree_or_node)
-            if type(p) is not TreeDict:
-                raise TypeError("Attempting to attach non-tree node '%s'." % name)
-            self._attach(name, <TreeDict>p, flags)
-            
-        else:
-            raise TypeError("Argument tree_or_node must be a TreeDict or name of existing treedict.")
+        if recursive:
+            tree._recursiveAttach(f_copy if copy else 0)
 
-    
+        self._attach(key, tree, flags)
+
     cdef _attach(self, str name, TreeDict tree, flagtype flags):
 
         if tree is None:

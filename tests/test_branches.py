@@ -66,7 +66,7 @@ class TestAttachPop(unittest.TestCase):
         p2 = TreeDict('node')
 
         p2.a = 123
-        p1.attach(p2, name='attachnode')
+        p1.attach('attachnode', p2)
 
         self.assert_(p1.attachnode.a == 123)
         self.assert_(p1.attachnode.rootNode() is p1)
@@ -79,7 +79,7 @@ class TestAttachPop(unittest.TestCase):
         p2 = TreeDict('node')
 
         p2.a = 123
-        p1.attach(p2, name='attachnode', copy=False)
+        p1.attach('attachnode', p2, copy=False)
 
         self.assert_(p1.attachnode.a == 123)
         self.assert_(p1.attachnode.rootNode() is p1)
@@ -108,7 +108,7 @@ class TestAttachPop(unittest.TestCase):
         p1.a.n.v = 123
         p1.b.n.v = 421
         
-        p1.a.attach(p1.b.n, name = 'm')
+        p1.a.attach('m', p1.b.n)
 
     def testAttaching_08(self):
         
@@ -150,7 +150,8 @@ class TestAttachPop(unittest.TestCase):
         p = TreeDict()
         p.a.b = 1
 
-        self.assertRaises(TypeError, lambda: p.attach("a.b.c.d", TreeDict(x = 1)))
+        self.assertRaises(TypeError, lambda: p.attach("a.b.c.d", TreeDict(x = 1),
+                                                      protect_structure=True))
 
         self.assert_(p.a.b == 1)
         
@@ -161,12 +162,30 @@ class TestAttachPop(unittest.TestCase):
 
         self.assert_('a' in p.keys(branch_mode = 'only', recursive=False))
 
-        self.assertRaises(TypeError, lambda: p.attach("a.b.c.d", TreeDict(x = 1)))
+        self.assertRaises(TypeError, lambda: p.attach("a.b.c.d", TreeDict(x = 1),
+                                                      protect_structure=True))
 
         self.assert_('a' in p.keys(branch_mode = 'only', recursive=False))
         
         self.assert_(p.a.size() == 0)
         
+    def testAttaching_11_BadParameters_01(self):
+
+        p = TreeDict()
+
+        self.assertRaises(TypeError, lambda: p.attach(TreeDict(), "name"))
+
+    def testAttaching_11_BadParameters_02(self):
+        p = TreeDict()
+        self.assertRaises(TypeError, lambda: p.attach(TreeDict(), TreeDict()))
+
+    def testAttaching_11_BadParameters_03(self):
+        p = TreeDict()
+        self.assertRaises(TypeError, lambda: p.attach(copy = True))
+
+    def testAttaching_11_BadParameters_04(self):
+        p = TreeDict()
+        self.assertRaises(TypeError, lambda: p.attach(copy = False))
 
     def testRecursiveAttach_01(self):
         p1 = TreeDict('root')
