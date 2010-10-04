@@ -6,7 +6,7 @@
 source_directory_list = ['treedict']
 compiler_args = []
 link_args = []
-version = "0.10-beta2"
+version = "0.10-beta3"
 description="A fast and full-featured dict-like tree container to simplify the bookkeeping surrounding parameters, variables and data."
 author = "Hoyt Koepke"
 author_email="hoytak@gmail.com"
@@ -17,7 +17,7 @@ download_url = "http://pypi.python.org/pypi/treedict"
 
 long_description = \
 """
-TreeDict is a dictionary-like, hierarcical python container to
+TreeDict is a dictionary-like, hierarchical python container to
 simplify the bookkeeping surrounding parameters, variables and
 data. It aims to be fast, lightweight, intuitive, feature-rich and
 stable.
