@@ -12,8 +12,8 @@ concise parameter specification.
 
 The syntax used to specify branches and leaves in the tree is the same
 as that used for accessing attributes, i.e. python names seperated by
-periods.  For example, ` b1.b2._x` specifies a branch `b1`, sub-branch
-`b2`, and value `_x`.
+periods.  For example, `b1.b2.x` specifies a branch `b1`, sub-branch
+`b2`, and value `x`.
 
 Basic Operations
 ----------------------------------------
@@ -88,10 +88,11 @@ following code::
 
 the intermediate branches `a`, `b`, and `c` are implicitly created.
 Thus, setting options through attributes minimizes unnecessary syntax,
-e.g. ``["..."]`` if one uses python dictionaries.
+e.g. quotes and brackets (``["..."]``) if one uses python
+dictionaries.
 
 Internally, this is done by allowing "dangling" branches -- branches
-that are invisible (e.g. ``b in t`` is false if `b` is dangling) to
+that are invisible (e.g. ``b in t`` is False if `b` is dangling) to
 the API but are tracked internally until they are attached to the
 tree.  A dangling branch is attached if a leaf value is assigned to it
 or a dangling subbranch is attached.  In the example above, assigning

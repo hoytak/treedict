@@ -68,9 +68,6 @@ A brief example to wet the appetite::
 The rest of this example, and explanations, can be found in the
 :ref:`overview`.
 
-Contents
-========================================
-
 .. toctree::
     :maxdepth: 2
     :hidden:
