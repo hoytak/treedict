@@ -42,7 +42,7 @@ from weakref import ref as new_weakref
 ################################################################################
 # Some preliminary debug stuff
 
-DEF RUN_ASSERTS = True
+DEF RUN_ASSERTS = False
 
 ################################################################################
 # Early bindings to avoid unneeded lookups in the c code
@@ -816,10 +816,16 @@ cdef class TreeDict(object):
     # Parameters for manipulating the values
 
     def __setattr__(self, str k, v):
-        self._setLocal(k, v, 0)
+        try:
+            self._setLocal(k, v, 0)
+        except Exception, e:
+            raise e
 
     def __setitem__(self, str k, v):
-        self._set(k, v, 0)
+        try:
+            self._set(k, v, 0)
+        except Exception, e:
+            raise e
 
     def setFromString(self, str key, str value, dict extra_variables = {}):
         """
@@ -866,7 +872,10 @@ cdef class TreeDict(object):
             v = value
             ret_status = False
 
-        self._set(key, v, 0)
+        try:
+            self._set(key, v, 0)
+        except Exception, e:
+            raise e
 
         return ret_status
 
@@ -959,11 +968,14 @@ cdef class TreeDict(object):
             
         """
 
-        if not self._exists(key, False):
-            self._set(key, value, 0)
-            return value
-        else:
-            return self._get(key, False)
+        try:
+            if not self._exists(key, False):
+                self._set(key, value, 0)
+                return value
+            else:
+                return self._get(key, False)
+        except Exception, e:
+            raise e
 
     def set(self, *args, **kwargs):
         """
@@ -1261,12 +1273,17 @@ cdef class TreeDict(object):
             self._prune(k, False)
         except KeyError, ke:
             raise AttributeError(str(ke))
+        except Exception, e:
+            raise e
 
     def __delitem__(self, k):
         if type(k) is not str:
             raise KeyError(k)
 
-        self._prune(k, False)
+        try:
+            self._prune(k, False)
+        except Exception, e:
+            raise e
     
     cdef _cut(self, str k):
 
@@ -1334,26 +1351,29 @@ cdef class TreeDict(object):
 
         # Check if it's a dangling node; this is bad
 
-        if self.isDangling():
-            self._raiseErrorAtFirstNonDanglingBranch(True)
+        try:
+            if self.isDangling():
+                self._raiseErrorAtFirstNonDanglingBranch(True)
 
-        # First check if it's frozen or can't be written
-        self._ensureWriteable(None)
+            # First check if it's frozen or can't be written
+            self._ensureWriteable(None)
 
-        if b_mode == i_BranchMode_All:
-            self._param_dict.clear()
-            self._branches = []
-            self._n_dangling = 0
-            self._n_mutable = 0
-            self._next_item_order_position = _orderNodeStartingValue
-        else:
-            for k, pn in self._param_dict.items():
-                if b_mode == i_BranchMode_Only:
-                    if pn.isBranch():
-                        self._cut(k)
-                elif b_mode == i_BranchMode_None:
-                    if not pn.isBranch():
-                        self._cut(k)
+            if b_mode == i_BranchMode_All:
+                self._param_dict.clear()
+                self._branches = []
+                self._n_dangling = 0
+                self._n_mutable = 0
+                self._next_item_order_position = _orderNodeStartingValue
+            else:
+                for k, pn in self._param_dict.items():
+                    if b_mode == i_BranchMode_Only:
+                        if pn.isBranch():
+                            self._cut(k)
+                    elif b_mode == i_BranchMode_None:
+                        if not pn.isBranch():
+                            self._cut(k)
+        except Exception, e:
+            raise e
 
     ################################################################################
     # Some methods for raising attribute errors at the proper time
@@ -1441,6 +1461,8 @@ cdef class TreeDict(object):
                 return None
             else:
                 raise ke
+        except Exception, e:
+            raise e
 
     def popitem(self, str key = None, bint prune_empty = False, bint silent = False):
         """
@@ -1474,6 +1496,8 @@ cdef class TreeDict(object):
                 return None
             else:
                 raise ke
+        except Exception, e:
+            raise e
     
     cdef _pop(self, str name, bint return_item_pair, bint prune_empty):
 
@@ -1614,45 +1638,49 @@ cdef class TreeDict(object):
             
         """
 
-        cdef str key 
+        cdef str key
+        cdef flagtype flags
 
-        if tree_or_key is None and tree is None:
-            if recursive:
-                self._recursiveAttach(f_copy if copy else 0)
-                return
+        try:
+            if tree_or_key is None and tree is None:
+                if recursive:
+                    self._recursiveAttach(f_copy if copy else 0)
+                    return
+                else:
+                    raise TypeError("Either `recursive` must be True or a tree or key must be given.")
+
+            if type(tree_or_key) is str:
+                key = <str>tree_or_key
+            elif type(tree_or_key) is TreeDict:
+                if tree is not None:
+                    raise TypeError("Only one TreeDict instance can be given to attach.")
+
+                tree = <TreeDict>tree_or_key
+                key = None
             else:
-                raise TypeError("Either `recursive` must be True or a tree or key must be given.")
+                raise TypeError("`tree_or_key` must be either a string or TreeDict instance.")
 
-        if type(tree_or_key) is str:
-            key = <str>tree_or_key
-        elif type(tree_or_key) is TreeDict:
-            if tree is not None:
-                raise TypeError("Only one TreeDict instance can be given to attach.")
-            
-            tree = <TreeDict>tree_or_key
-            key = None
-        else:
-            raise TypeError("`tree_or_key` must be either a string or TreeDict instance.")
+            if key is None:
+                if RUN_ASSERTS:
+                    assert tree is not None
 
-        if key is None:
-            if RUN_ASSERTS:
-                assert tree is not None
-                
-            key = tree._name
-            
-        if tree is None:
-            if RUN_ASSERTS:
-                assert key is not None
+                key = tree._name
 
-            tree = self._get(key, False)
+            if tree is None:
+                if RUN_ASSERTS:
+                    assert key is not None
 
-        cdef flagtype flags = ((f_copy if copy else 0)
-                               | (f_protect_structure if protect_structure else 0))
+                tree = self._get(key, False)
 
-        if recursive:
-            tree._recursiveAttach(f_copy if copy else 0)
+            flags = ((f_copy if copy else 0)
+                     | (f_protect_structure if protect_structure else 0))
 
-        self._attach(key, tree, flags)
+            if recursive:
+                tree._recursiveAttach(f_copy if copy else 0)
+
+            self._attach(key, tree, flags)
+        except Exception, e:
+            raise e
 
     cdef _attach(self, str name, TreeDict tree, flagtype flags):
 
@@ -2227,7 +2255,10 @@ cdef class TreeDict(object):
                 return self._newLocalBranch(k, f_create_node_if_needed | f_create_dangling)
             else:
                 self._raiseAttributeError(k)
-                
+
+        except Exception, e:
+            raise e
+
         finally:
             _setFlagOff(&self._flags, f_getattr_called)
 
@@ -2235,8 +2266,11 @@ cdef class TreeDict(object):
         if type(key) is not str:
             raise KeyError("'%s' (Indexing keys must be strings, not %s)"
                            % (repr(key), repr(type(key))))
-        
-        return self._get(key,False)
+
+        try:
+            return self._get(key,False)
+        except Exception, e:
+            raise e
     
     cpdef get(self, str key, default_value = _NoDefault):
         """
@@ -2266,12 +2300,17 @@ cdef class TreeDict(object):
                 return default_value
             else:
                 raise KeyError(self._fullNameOf(key))
+        except Exception, e:
+            raise e
 
     ################################################################################
     # existence checks
 
     def __contains__(self, k):
-        return self.exists(k)
+        try:
+            return self.exists(k)
+        except Exception, e:
+            raise e
 
     def has_key(self, key):
         """
@@ -2279,8 +2318,10 @@ cdef class TreeDict(object):
 
         This is analogous to the `has_key` dict method.
         """
-
-        return self.exists(key)
+        try:
+            return self.exists(key)
+        except Exception, e:
+            raise e
 
     cdef bint exists(self, k):
         if type(k) is not str or k is None:
@@ -2999,10 +3040,16 @@ cdef class TreeDict(object):
     ################################################################################
     # Methods for copying the tree
     def __copy__(self):
-        return self._copy(False, False)
+        try:
+            return self._copy(False, False)
+        except Exception, e:
+            raise e
 
     def __deepcopy__(self, m={}):
-        return self._copy(True, False)
+        try:
+            return self._copy(True, False)
+        except Exception, e:
+            raise e
 
     def copy(self, bint deep=False, bint freeze=False):
         """
@@ -3011,8 +3058,11 @@ cdef class TreeDict(object):
         entire tree structure is copied but not the values.  If
         `freeze` is true, then the returned tree is frozen.
         """
-
-        return self._copy(deep, freeze)
+        
+        try:
+            return self._copy(deep, freeze)
+        except Exception, e:
+            raise e
 
     def update(self, source, bint overwrite = True,
                bint protect_structure = False):
@@ -3112,20 +3162,22 @@ cdef class TreeDict(object):
 
         cdef TreeDict p 
 
-        if type(source) is TreeDict:
-            self._update(<TreeDict>source, flags | f_check_only)
-            self._update(<TreeDict>source, flags | f_already_checked)
+        try:
+            if type(source) is TreeDict:
+                self._update(<TreeDict>source, flags | f_check_only)
+                self._update(<TreeDict>source, flags | f_already_checked)
 
-        else:
-            p = newTreeDict(None, False)
-            if type(source) is dict:
-                p._setAll(None, <dict>source, 0)
             else:
-                p._setAll(None, dict(source), 0)
-                
-            self._update(p, flags | f_check_only)
-            self._update(p, flags | f_already_checked)
+                p = newTreeDict(None, False)
+                if type(source) is dict:
+                    p._setAll(None, <dict>source, 0)
+                else:
+                    p._setAll(None, dict(source), 0)
 
+                self._update(p, flags | f_check_only)
+                self._update(p, flags | f_already_checked)
+        except Exception, e:
+            raise e
 
     cdef _update(self, TreeDict t, flagtype flags):
 
