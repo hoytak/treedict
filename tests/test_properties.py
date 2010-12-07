@@ -181,8 +181,6 @@ class TestProperties(unittest.TestCase):
     def testSize_01_empty(self):
         p = TreeDict()
 
-        print p.makeReport()
-        
         self.assert_(len(p) == 0, len(p))
         self.assert_(p.size() == 0, p.size())
         self.assert_(p.size(recursive = False) == 0)

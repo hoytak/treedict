@@ -37,7 +37,7 @@ import re
 import inspect
 import base64
 import heapq
-from weakref import ref as new_weakref
+import weakref
 
 ################################################################################
 # Some preliminary debug stuff
@@ -63,6 +63,7 @@ cdef object strrfind    = str.rfind
 cdef object strlower    = str.lower
 cdef object strsplit    = str.split
 
+cdef object new_weakref = weakref.ref
 
 cdef class TreeDict(object) 
 cdef class TreeDictIterator(object)
@@ -2636,11 +2637,15 @@ cdef class TreeDict(object):
         # The tricky thing is that equality testing needs to ignore
         # any dangling nodes, as they don't really exist...
 
-        # Attempt reject based on other equality measures
+        cdef bint self_dng  = self.isDangling()
+        cdef bint other_dng = p.isDangling()
 
-        if self.isDangling() != p.isDangling():
+        if self_dng != other_dng:
             return False
+        elif self_dng and other_dng:
+            return True
         
+        # Attempt reject based on other equality measures
         if (len(self._param_dict) - self._n_dangling
             != len(p._param_dict) - p._n_dangling):
             return False
@@ -2658,7 +2663,7 @@ cdef class TreeDict(object):
             if pn1.isImmutable():
                 continue
 
-            if pn1.isDanglingBranch(): 
+            if pn1.isDanglingTree(): 
                 continue
 
             try:
@@ -3371,8 +3376,35 @@ cdef class TreeDict(object):
     # Methods relating to pickling / unpickling 
 
     def __reduce__(self):
+
+        # Need to check for weak references in
+        # _param_dict[s_dangling_reference_queue].  This handles a
+        # corner case that shouldn't really be that important.  
+
+        cdef dict d = <dict>(self._aux_dict.copy())
+        cdef flagtype flags = self._flags
+
+        if s_dangling_reference_queue in d:
+            d[s_dangling_reference_queue] = []
+
+        ########################################
+        # Clear other irrelevant flags
+        _setFlagOff(&flags, f_one_iterators_referencing)
+        _setFlagOff(&flags, f_many_iterators_referencing)
+        _setFlagOff(&flags, f_is_registered)
+
+        # Clear iterator referencing 
+        if s_IterReferenceCount in d:
+            del d[s_IterReferenceCount]
+            
+        if s_registration_tree_name in d:
+            del d[s_registration_tree_name]
+            
+        if s_registration_branch_name in d:
+            del d[s_registration_branch_name]
+        
         return (_TreeDict_unpickler,
-                (self._name, self._param_dict, self._flags, self._aux_dict,
+                (self._name, self._param_dict, flags, d,
                  self._n_mutable, self._next_item_order_position, self._n_dangling) )
     
 

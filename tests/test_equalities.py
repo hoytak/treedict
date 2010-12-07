@@ -129,3 +129,21 @@ class TestEqualities(unittest.TestCase):
         p2.a
 
         self.assert_(p1 != p2)
+
+    def testEqualityWithDanglingNode_05(self):
+        p1 = TreeDict()
+        p2 = TreeDict()
+        p1.a = p1.b
+
+        self.assert_(p1 == p2)
+
+    def testEqualityWithDanglingNode_06(self):
+        p1 = TreeDict()
+        p2 = TreeDict()
+        p1.a = p1.b
+        p2.a = p2.b
+
+        self.assert_(p1 == p2)
+
+if __name__ == '__main__':
+    unittest.main()

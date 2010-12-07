@@ -78,7 +78,54 @@ class TestPickling(unittest.TestCase):
         s = cPickle.dumps(p, protocol=2)
         p2 = cPickle.loads(s)
         
+        self.assert_(p2.isFrozen())
         self.assert_(p == p2)
+
+    def testPickling_Dangling_01(self):
+
+        p = TreeDict()
+        p.a
+
+        p2 = cPickle.loads(cPickle.dumps(p, protocol=2))
+
+        self.assert_(p2 == p)
+
+    def testPickling_Dangling_02(self):
+
+        p = TreeDict()
+        p.a = p.b
+
+        p2 = cPickle.loads(cPickle.dumps(p, protocol=2))
+
+        self.assert_(p2 == p)
+
+    def testPickling_Dangling_03(self):
+
+        p = TreeDict()
+        p.a = p.b = p.c
+        
+        p.b = 2
+
+        p2 = cPickle.loads(cPickle.dumps(p, protocol=2))
+
+        self.assert_(p2 == p)
+
+    def testPicklingWithIteratorReferencing(self):
+
+        p = TreeDict()
+
+        p.a = 1
+        p.b = 2
+        p.c = 3
+
+        it = p.iteritems()
+
+        p2 = cPickle.loads(cPickle.dumps(p, protocol=2))
+
+        self.assert_(p == p2)
+
+        self.assertRaises(RuntimeError, lambda: p.set('d', 4))
+        p2.d = 4
 
 
 if __name__ == '__main__':
