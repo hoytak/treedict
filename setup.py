@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python
 
 ################################################################################
@@ -6,7 +7,7 @@
 source_directory_list = ['treedict']
 compiler_args = []
 link_args = []
-version = "0.10-beta3"
+version = "0.10"
 description="A fast and full-featured dict-like tree container to simplify the bookkeeping surrounding parameters, variables and data."
 author = "Hoyt Koepke"
 author_email="hoytak@gmail.com"
