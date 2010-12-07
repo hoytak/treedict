@@ -1,0 +1,1 @@
+Follows standard python setup.py install procedure.  Run with --cython to recompile the .pyx file; but the packaged c file should work fine.
