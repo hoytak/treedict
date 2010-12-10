@@ -14,7 +14,7 @@ author_email="hoytak@gmail.com"
 name = 'treedict'
 scripts = []
 url = "http://www.stat.washington.edu/~hoytak/code/treedict/"
-download_url = "http://pypi.python.org/pypi/treedict"
+download_url = "http://pypi.python.org/packages/source/t/treedict/treedict-0.10.tar.gz"
 
 long_description = \
 """
@@ -40,13 +40,12 @@ classifiers = [
     'Development Status :: 4 - Beta',
     'Intended Audience :: Developers',
     'License :: OSI Approved :: BSD License',
-    'Operating System :: MacOS :: MacOS X',
-    'Operating System :: Microsoft :: Windows',
-    'Operating System :: POSIX',
+    'Operating System :: OS Independent',
     'Programming Language :: Python',
     'Programming Language :: Cython',
     'Topic :: Scientific/Engineering',
-    'Topic :: Software Development'
+    'Topic :: Software Development',
+    "Topic :: Software Development :: Libraries :: Python Modules"
     ]
 
 # Stuff for extension module stuff
