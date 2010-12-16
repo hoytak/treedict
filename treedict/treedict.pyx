@@ -1279,7 +1279,7 @@ cdef class TreeDict(object):
 
     def __delitem__(self, k):
         if type(k) is not str:
-            raise KeyError(k)
+            raise KeyError(repr(k))
 
         try:
             self._prune(k, False)
@@ -1393,7 +1393,7 @@ cdef class TreeDict(object):
                 if raise_attribute_error:
                     p._raiseAttributeError(self._name)
                 else:
-                    raise KeyError(self._name)
+                    raise KeyError(repr(self._name))
         else:
             p._raiseErrorAtFirstNonDanglingBranch(raise_attribute_error)
             
@@ -1538,7 +1538,7 @@ cdef class TreeDict(object):
             b = self._getBranch(k[:rpos], gsp)
 
             if b is None:
-                raise KeyError(k)
+                raise KeyError(repr(k))
 
             kl = k[rpos+1:]
         else:
@@ -1548,7 +1548,7 @@ cdef class TreeDict(object):
         # The False/True here controls whether it's okay to prune a
         # dangling node
         if not b._existsLocal(kl, True):
-            raise KeyError(k)
+            raise KeyError(repr(k))
 
         v = b._cut(kl)
 
@@ -2300,7 +2300,7 @@ cdef class TreeDict(object):
             if default_value is not _NoDefault:
                 return default_value
             else:
-                raise KeyError(self._fullNameOf(key))
+                raise KeyError(repr(self._fullNameOf(key)))
         except Exception, e:
             raise e
 
@@ -2364,7 +2364,7 @@ cdef class TreeDict(object):
         cdef _PTreeNode pn = self._getPTNode(k)
 
         if pn is None or (not dangling_okay and pn.isDanglingBranch()):
-            raise KeyError
+            raise KeyError(repr(self._fullNameOf(k)))
         else:
             return pn.value()
 
@@ -2372,7 +2372,7 @@ cdef class TreeDict(object):
         cdef _PTreeNode pn = self._getLocalPTNode(k)
 
         if pn is None or (not dangling_okay and pn.isDanglingBranch()):
-            raise KeyError
+            raise KeyError(repr(self._fullNameOf(k)))
         else:
             return pn.value()
         
@@ -2836,7 +2836,7 @@ cdef class TreeDict(object):
             
             pn = <_PTreeNode> self._getPTNode(key)
             if pn is None:
-                raise KeyError(self._fullNameOf(key))
+                raise KeyError(repr(self._fullNameOf(key)))
             
             pn.runFullHash(hf)
 
@@ -2848,7 +2848,7 @@ cdef class TreeDict(object):
         cdef _PTreeNode pn = <_PTreeNode> self._getPTNode(key)
 
         if pn is None:
-            raise KeyError(self._fullNameOf(key))
+            raise KeyError(repr(self._fullNameOf(key)))
         
         return self._encode_hash(pn.fullHash())
 
