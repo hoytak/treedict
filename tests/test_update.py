@@ -523,7 +523,7 @@ class TestUpdate(unittest.TestCase):
 
     ########################################
 
-    def checkUpdate_16_DanglingNodesIgnored(self):
+    def testUpdate_16_DanglingNodesIgnored(self):
         p = TreeDict()
         p.a = 1
 
@@ -536,6 +536,103 @@ class TestUpdate(unittest.TestCase):
         self.checkUpdate(p, q, False, check, overwrite=True, protect_structure=True)
 
 
+    ######################################################################
+    # Check whether structure is preserved in the tree on an update
+
+    def testUpdate_WithFreezing_01(self):
+
+        p = TreeDict()
+        
+        p.a.x = 1
+
+        q = TreeDict()
+
+        q.b = 2
+
+        p.update(q)
+
+        self.assert_(p.a.x == 1)
+        self.assert_(p.b == 2)
+
+    def testUpdate_WithFreezing_02(self):
+
+        p = TreeDict()
+        
+        p.a.x = 1
+
+        p.freeze()
+
+        q = TreeDict()
+
+        q.a.y = 2
+
+        self.assertRaises(TypeError, lambda: p.update(q))
+
+        self.assert_(p.a.x == 1)
+        self.assert_('b.y' not in p)
+
+    def testUpdate_WithFreezing_StructureOnly_01(self):
+
+        p = TreeDict()
+        
+        p.a = 1
+        p.freeze(structure_only = True)
+
+        q = TreeDict()
+        q.a = 2
+
+        p.update(q)
+
+        self.assert_(p.a == 2)
+
+    def testUpdate_WithFreezing_StructureOnly_02(self):
+
+        p = TreeDict()
+        
+        p.a = 1
+        p.freeze(structure_only = True)
+
+        q = TreeDict()
+        q.a = 2
+        q.b = 3
+
+        self.assertRaises(TypeError, lambda: p.update(q))
+
+        self.assert_(p.a == 1)
+        self.assert_('b' not in p)
+
+    def testUpdate_WithFreezing_StructureOnly_03(self):
+
+        p = TreeDict()
+        
+        p.a.x = 1
+        p.freeze(structure_only = True)
+
+        q = TreeDict()
+        q.a.x = 2
+        q.b.x = 3
+
+        self.assertRaises(TypeError, lambda: p.update(q))
+
+        self.assert_(p.a.x == 1)
+        self.assert_('b' not in p)
+
+
+    def testUpdate_WithFreezing_StructureOnly_04(self):
+
+        p = TreeDict()
+        
+        p.a.x = 1
+        p.freeze('a', structure_only = True)
+
+        q = TreeDict()
+        q.a.x = 2
+        q.b = 3
+
+        p.update(q)
+
+        self.assert_(p.a.x == 2)
+        self.assert_(p.b == 3)
 
 
 if __name__ == '__main__':

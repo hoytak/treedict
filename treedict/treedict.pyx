@@ -267,7 +267,8 @@ cdef _runValueHash(hf, value):
 ctypedef unsigned long int flagtype
 
 DEF f_is_frozen                    = 1
-DEF f_is_dangling                  = (2*f_is_frozen)
+DEF f_only_structure_is_frozen     = (2*f_is_frozen)
+DEF f_is_dangling                  = (2*f_only_structure_is_frozen)
 DEF f_is_detached_dangling         = (2*f_is_dangling)  # for during an atomic set operation
 DEF f_is_registered                = (2*f_is_detached_dangling)
 DEF f_one_iterators_referencing    = (2*f_is_registered)
@@ -1129,10 +1130,21 @@ cdef class TreeDict(object):
         else:
             self._setLocal(k, value, gsp)
 
-    cdef _ensureWriteable(self, str k):
+    cdef _ensureWriteable(self, str k, v, _PTreeNode replacing_value):
+
         if self.isFrozen():
             if k is not None:
-                raise TypeError("%s frozen; cannot modify '%s'" % (self._branchName(False, True), k))
+
+                # It's possible to replace the current value if it's not a 
+                if (_flagOn(&self._flags, f_only_structure_is_frozen)):
+                    
+                    if (replacing_value is None or replacing_value.isBranch()):
+                        raise TypeError("Structure of '%s' frozen, cannot modify '%s'"
+                                        % (self._branchName(False, True), k))
+                    
+                else:
+                    raise TypeError("%s frozen; cannot modify '%s'"
+                                    % (self._branchName(False, True), k))
             else:
                 raise TypeError("%s frozen; cannot modify." % self._branchName(False, True))
 
@@ -1157,7 +1169,7 @@ cdef class TreeDict(object):
             return
 
         if not (gsp & f_already_checked): # Skip things we've already checked
-            self._ensureWriteable(k)
+            self._ensureWriteable(k, v, lpn)
             self._checkNodeAvailability()
 
         ########################################
@@ -1227,7 +1239,7 @@ cdef class TreeDict(object):
     ################################################################################
     # Methods that freeze the state of the tree
 
-    cpdef freeze(self, str branch=None, bint quiet = True):
+    cpdef freeze(self, str branch=None, bint quiet = True, bint structure_only = False):
         """
         Freezes the tree and all branches so no further manipulations
         can happen.  The tree cannot be unfrozen except by creating an
@@ -1242,12 +1254,17 @@ cdef class TreeDict(object):
         exception is raised. This parameter is ignored if `branch` is
         None.
 
+        If `structure_only` is True (default False), then only the
+        structure of the tree is fixed; i.e. branches or values cannot
+        be added or deleted, but values already present may be
+        replaced.  
+
         Note: TreeDict values stored in the tree as values -- not as
         branches -- are not affected by this freezing operation.
         """
 
         if branch is None:
-            self._freeze_tree()
+            self._freeze_tree(structure_only)
         else:
             b = self.get(branch)
 
@@ -1257,14 +1274,18 @@ cdef class TreeDict(object):
                 else:
                     return
 
-            (<TreeDict>b)._freeze_tree()
+            (<TreeDict>b)._freeze_tree(structure_only)
 
 
-    cdef _freeze_tree(self):
-            self._setFrozen(True)
+    cdef _freeze_tree(self, bint structure_only):
 
-            for b in self._branches:
-                (<TreeDict>b)._freeze_tree()
+        _setFlagOn(&self._flags, f_is_frozen)
+        
+        if structure_only:
+            _setFlagOn(&self._flags, f_only_structure_is_frozen)
+
+        for b in self._branches:
+            (<TreeDict>b)._freeze_tree(structure_only)
 
     ################################################################################
     # Methods for deleting / pruning the tree
@@ -1290,7 +1311,7 @@ cdef class TreeDict(object):
 
         cdef TreeDict p
 
-        self._ensureWriteable(k)
+        self._ensureWriteable(k, None, None)
 
         # Legit if this raises an error
         cdef _PTreeNode pn = self._param_dict.pop(k)
@@ -1357,7 +1378,7 @@ cdef class TreeDict(object):
                 self._raiseErrorAtFirstNonDanglingBranch(True)
 
             # First check if it's frozen or can't be written
-            self._ensureWriteable(None)
+            self._ensureWriteable(None, None, None)
 
             if b_mode == i_BranchMode_All:
                 self._param_dict.clear()
@@ -1741,10 +1762,9 @@ cdef class TreeDict(object):
             tree._resetParentNode(b)
             b._setLocalBranch(tree, flags | f_already_checked)
 
-
     cdef _recursiveAttach(self, flagtype flags):
 
-        self._ensureWriteable(None)
+        self._ensureWriteable(None, None, None)
 
         cdef _PTreeNode pn
 
@@ -1790,9 +1810,6 @@ cdef class TreeDict(object):
         """
         
         return _flagOn(&self._flags, f_is_frozen)
-
-    cdef void _setFrozen(self, bint frozen):
-        _setFlag(&self._flags, f_is_frozen, frozen)
 
     # Dangling
     cpdef bint isDangling(self):
@@ -3289,7 +3306,6 @@ cdef class TreeDict(object):
         
         p._parent = None
         p._param_dict = {}
-        p._setFrozen(False)
         
         p._flags = self._flags & f_copybranch_propegating_flags
 

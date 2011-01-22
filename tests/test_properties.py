@@ -175,6 +175,21 @@ class TestProperties(unittest.TestCase):
 
         self.assert_(p1.c.isFrozen())
 
+    def testFreezingStructure_01(self):
+        p = TreeDict()
+
+        p.a = 1
+
+        p.freeze(structure_only = True)
+
+        p.a = 2
+
+        self.assert_(p.a == 2)
+        self.assertRaises(TypeError, lambda: p.set('b',1))
+
+
+
+
     ################################################################################
     # Sizing
 

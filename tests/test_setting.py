@@ -391,6 +391,43 @@ class TestSetting(unittest.TestCase):
 
         self.assert_(p_before == p)
 
+    def testDrySet_06_makeBranch_Frozen_StructureOnly(self):
+        p = TreeDict()
+        p.makeBranch('b')
+        p.b.freeze(structure_only = True)
+
+        p_before = p.copy()
+
+        self.assertRaises(TypeError, lambda: p.checkset("b.a", None))
+
+        self.assert_(p_before == p)
+
+    def testDrySet_07_makeBranch_Frozen_StructureOnly_Okay(self):
+        p = TreeDict()
+        p.b.a = 1
+        p.b.freeze(structure_only = True)
+
+        p_before = p.copy()
+        p.checkset('b.a', 2)
+
+        self.assertRaises(TypeError, lambda: p.checkset("b.b", None))
+        
+        self.assert_(p.b.a == 1)
+
+        self.assert_(p_before == p)
+
+    def testDrySet_08_makeBranch_Frozen_StructureOnly_Okay(self):
+        p = TreeDict()
+        p.b.a = 1
+        p.b.freeze(structure_only = True)
+
+        p_before = p.copy()
+        p.checkset('b.a', 2)
+
+        self.assert_(p.b.a == 1)
+
+        self.assert_(p_before == p)
+
     ############################################################
     # Setting arguments from string
 

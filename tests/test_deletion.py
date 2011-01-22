@@ -215,6 +215,81 @@ class TestDeletion(unittest.TestCase):
         
         self.assertRaises(KeyError, f)
 
+    ##################################################
+    # Freezing values 
+
+    def testDeletion_06_Frozen(self):
+        p = TreeDict()
+
+        p.a.x = 1
+
+        p.freeze()
+
+        def f():
+            del p.a
+        
+        self.assertRaises(TypeError, f)
+
+    def testDeletion_07_Frozen(self):
+        p = TreeDict()
+
+        p.a.x = 1
+
+        p.freeze('a')
+
+        def f():
+            del p.a.x
+        
+        self.assertRaises(TypeError, f)
+
+    def testDeletion_08_Frozen(self):
+        p = TreeDict()
+
+        p.a.x = 1
+
+        p.freeze('a')
+
+        del p.a
+
+        self.assert_('a' not in p)
+
+
+
+    def testDeletion_09_Frozen_StructureOnly(self):
+        p = TreeDict()
+
+        p.a.x = 1
+
+        p.freeze(structure_only = True)
+
+        def f():
+            del p.a
+        
+        self.assertRaises(TypeError, f)
+
+    def testDeletion_10_Frozen_StructureOnly(self):
+        p = TreeDict()
+
+        p.a.x = 1
+
+        p.freeze('a', structure_only = True)
+
+        def f():
+            del p.a.x
+        
+        self.assertRaises(TypeError, f)
+
+    def testDeletion_11_Frozen_StructureOnly(self):
+        p = TreeDict()
+
+        p.a.x = 1
+
+        p.freeze('a', structure_only = True)
+
+        del p.a
+
+        self.assert_('a' not in p)
+        
 if __name__ == '__main__':
     unittest.main()
 

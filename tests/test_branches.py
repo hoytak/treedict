@@ -253,6 +253,16 @@ class TestAttachPop(unittest.TestCase):
         self.assert_(p.b not in p.branches())
         self.assert_(p.size() == 1)
 
+    # This one would be a lot of work to fix, for what gain?
+
+    # def testRecursiveAttaching_05_no_error_on_okay_frozen(self):
+        
+    #     p = TreeDict()
+    #     p.b.x = 1
+    #     p.freeze()
+
+    #     p.attach(recursive = True)
+                         
 
     def testAttaching_10_EqualityTestingWithRecursiveAttach(self):
         
@@ -541,6 +551,15 @@ class TestBranches(unittest.TestCase):
         self.assert_(p.a.isFrozen())
         self.assert_(p.c.isFrozen())
         self.assert_(not p.c.t.isFrozen())
+
+    def testBranchStructureFrozen_01(self):
+
+        p = TreeDict()
+        p.a = TreeDict(x = 1)
+        p.freeze(structure_only = True)
+
+        self.assertRaises(TypeError, lambda: p.attach(recursive = True))
+        
 
 class TestDangling(unittest.TestCase):
 
