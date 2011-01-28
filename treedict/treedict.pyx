@@ -89,6 +89,7 @@ cdef extern from "Python.h":
 ################################################################################
 # Commonly used dictionary keys, instantiated once here for speed
 
+cdef str s_default_tree_name = "root"
 cdef str s_IterReferenceCount = "IteratorReferenceCount"
 cdef str s_registration_tree_name = "_registration_tree_name"
 cdef str s_registration_branch_name = "_registration_branch_name"
@@ -796,7 +797,7 @@ cdef class TreeDict(object):
         self._n_dangling = 0
         self._next_item_order_position = _orderNodeStartingValue
 
-    def __init__(self, str tree_name = 'root', **kwargs):
+    def __init__(self, str tree_name = s_default_tree_name, **kwargs):
         self._run__init__(tree_name)
         
         if len(kwargs) != 0:
@@ -938,8 +939,8 @@ cdef class TreeDict(object):
         
         """
 
-        cdef TreeDict p = newTreeDict(None, False)
-
+        cdef TreeDict p = newTreeDict(s_default_tree_name, False)
+        
         try:
             p._setAll(None, d, 0)
             return p
@@ -3190,7 +3191,7 @@ cdef class TreeDict(object):
                 self._update(<TreeDict>source, flags | f_already_checked)
 
             else:
-                p = newTreeDict(None, False)
+                p = newTreeDict(s_default_tree_name, False)
                 if type(source) is dict:
                     p._setAll(None, <dict>source, 0)
                 else:
