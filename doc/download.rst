@@ -22,7 +22,7 @@ Note on Binary/Source Distribution Packages
 
 TreeDict currently has only a source distribution in the cheeseshop.
 Thus it requires a C compiler to be present in order to install it,
-which should not be a problem on *nix systems.  However, I don't have
+which should not be a problem on \*nix systems.  However, I don't have
 the capability currently to create binary distribution packages for
 windows.  This should be a painless affair -- the C code is generated
 by cython_, which should compile fine using Microsoft compilers (at
