@@ -7,14 +7,14 @@
 source_directory_list = ['treedict']
 compiler_args = []
 link_args = []
-version = "0.10"
+version = "0.11"
 description="A fast and full-featured dict-like tree container to simplify the bookkeeping surrounding parameters, variables and data."
 author = "Hoyt Koepke"
 author_email="hoytak@gmail.com"
 name = 'treedict'
 scripts = []
 url = "http://www.stat.washington.edu/~hoytak/code/treedict/"
-download_url = "http://pypi.python.org/packages/source/t/treedict/treedict-0.10.tar.gz"
+download_url = "http://pypi.python.org/packages/source/t/treedict/treedict-%s.tar.gz" % version
 
 long_description = \
 """
