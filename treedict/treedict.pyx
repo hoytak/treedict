@@ -2312,13 +2312,20 @@ cdef class TreeDict(object):
 
         checkKeyNotNone(key)
 
+        cdef _PTreeNode pn
+
         try:
-            return self._get(key,False)
-        except KeyError:
-            if default_value is not _NoDefault:
-                return default_value
+            pn = self._getPTNode(key)
+
+            if pn is None or pn.isDanglingBranch():
+                
+                if default_value is not _NoDefault:
+                    return default_value
+                else:
+                    raise KeyError(repr(self._fullNameOf(key)))
             else:
-                raise KeyError(repr(self._fullNameOf(key)))
+                return pn.value()
+            
         except Exception, e:
             raise e
 
