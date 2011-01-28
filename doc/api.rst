@@ -178,7 +178,7 @@ when include
 
 .. automethod:: TreeDict.attach(self, tree_or_key = None, tree = None, copy = True, recursive = False, protect_structure=False)
 
-.. automethod:: TreeDict.freeze(self, branch=None, quiet = True)
+.. automethod:: TreeDict.freeze(self, branch=None, quiet = True, structure_only = False)
 
 .. automethod:: TreeDict.copy(self, deep=False, freeze=False)
 
