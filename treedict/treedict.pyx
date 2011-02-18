@@ -42,7 +42,8 @@ import weakref
 ################################################################################
 # Some preliminary debug stuff
 
-DEF RUN_ASSERTS = False
+cdef extern from "debug_import.h":
+    bint DEBUG_MODE
 
 ################################################################################
 # Early bindings to avoid unneeded lookups in the c code
@@ -380,8 +381,8 @@ cdef class _PTreeNode(object):
         if type(v) is TreeDict:
             if ((<TreeDict>v)._parent is node) and ((<TreeDict>v)._name == key):
 
-                if RUN_ASSERTS:
-                    assert (<TreeDict>v)._name is key
+                if DEBUG_MODE:
+                    assert (<TreeDict?>v)._name is key
                 
                 self._t = t_Branch
             else:
@@ -431,13 +432,13 @@ cdef class _PTreeNode(object):
         return self.isTree() and (<TreeDict>self._v).isDangling()
 
     cdef TreeDict tree(self):
-        if RUN_ASSERTS:
+        if DEBUG_MODE:
             assert self.isTree()
 
         return (<TreeDict>self._v)
 
     cdef bint isChildOf(self, TreeDict parent):
-        if RUN_ASSERTS:
+        if DEBUG_MODE:
             assert self.isTree()
         
         return (<TreeDict>self._v).parentNode() is parent
@@ -569,7 +570,7 @@ cdef class TreeDictIterator(object):
 
             self._decRefToCurTree(0)
 
-            if RUN_ASSERTS:
+            if DEBUG_MODE:
                 assert not self._base_treedict_referenced
 
     cdef void _init(self, TreeDict p, bint _recursive, 
@@ -619,7 +620,7 @@ cdef class TreeDictIterator(object):
     cdef _next(self):
         
         if self._stop_on_next:
-            if RUN_ASSERTS:
+            if DEBUG_MODE:
                 assert not self._base_treedict_referenced
 
             raise StopIteration
@@ -629,7 +630,7 @@ cdef class TreeDictIterator(object):
         if self._loadNext():
             self._next_return_value = self._currentRetValue()
         else:
-            if RUN_ASSERTS:
+            if DEBUG_MODE:
                 assert not self._base_treedict_referenced
 
             self._stop_on_next = True            
@@ -699,13 +700,13 @@ cdef class TreeDictIterator(object):
     cdef bint goDownStack(self):
 
         if self._cur_depth == 0:
-            if RUN_ASSERTS:
+            if DEBUG_MODE:
                 assert len(self._key_stack) == 0
 
             # Asking to go down stack when we're on the only one
             return False
 
-        if RUN_ASSERTS:
+        if DEBUG_MODE:
             assert self._cur_pt is not None
             assert len(self._key_stack) != 0
         
@@ -810,7 +811,7 @@ cdef class TreeDict(object):
     
     cdef _setRegistered(self):
 
-        if RUN_ASSERTS: 
+        if DEBUG_MODE: 
             assert not treeExists(self._name)
 
         self._setRegisteredFlag(True)
@@ -822,13 +823,15 @@ cdef class TreeDict(object):
         try:
             self._setLocal(k, v, 0)
         except Exception, e:
-            raise e
+            if DEBUG_MODE: raise
+            else: raise e
 
     def __setitem__(self, str k, v):
         try:
             self._set(k, v, 0)
         except Exception, e:
-            raise e
+            if DEBUG_MODE: raise
+            else: raise e
 
     def setFromString(self, str key, str value, dict extra_variables = {}):
         """
@@ -878,7 +881,8 @@ cdef class TreeDict(object):
         try:
             self._set(key, v, 0)
         except Exception, e:
-            raise e
+            if DEBUG_MODE: raise
+            else: raise e
 
         return ret_status
 
@@ -913,7 +917,8 @@ cdef class TreeDict(object):
         try:
             return TreeDict.fromdict(dict.fromkeys(key_iterable, value))
         except Exception, e:
-            raise e
+            if DEBUG_MODE: raise
+            else: raise e
 
     @classmethod
     def fromdict(cls, d):
@@ -945,7 +950,9 @@ cdef class TreeDict(object):
             p._setAll(None, d, 0)
             return p
         except Exception, e:
-            raise e
+            if DEBUG_MODE: raise
+            else:          raise e
+
 
     def setdefault(self, str key, value = None):
         """
@@ -978,7 +985,8 @@ cdef class TreeDict(object):
             else:
                 return self._get(key, False)
         except Exception, e:
-            raise e
+            if DEBUG_MODE: raise
+            else: raise e
 
     def set(self, *args, **kwargs):
         """
@@ -1044,7 +1052,8 @@ cdef class TreeDict(object):
                 self._setAll(args, kwargs, 0)
 
         except Exception, e:
-            raise e
+            if DEBUG_MODE: raise
+            else: raise e
 
     def checkset(self, *args, **kwargs):
         """
@@ -1066,7 +1075,8 @@ cdef class TreeDict(object):
             self._setAll(args, kwargs, f_check_only)
 
         except Exception, e:
-            raise e
+            if DEBUG_MODE: raise
+            else: raise e
 
     cdef _setAll(self, tuple args, dict kwargs, flagtype flags):
 
@@ -1156,7 +1166,7 @@ cdef class TreeDict(object):
     cdef _setLocal(self, str k, v, flagtype gsp):
         # All set operations should go through this function.
 
-        if RUN_ASSERTS:
+        if DEBUG_MODE:
             checkKeyNotNone(k)
 
         cdef _PTreeNode lpn, new_pn
@@ -1297,7 +1307,8 @@ cdef class TreeDict(object):
         except KeyError, ke:
             raise AttributeError(str(ke))
         except Exception, e:
-            raise e
+            if DEBUG_MODE: raise
+            else: raise e
 
     def __delitem__(self, k):
         if type(k) is not str:
@@ -1306,7 +1317,8 @@ cdef class TreeDict(object):
         try:
             self._prune(k, False)
         except Exception, e:
-            raise e
+            if DEBUG_MODE: raise
+            else: raise e
     
     cdef _cut(self, str k):
 
@@ -1396,7 +1408,8 @@ cdef class TreeDict(object):
                         if not pn.isBranch():
                             self._cut(k)
         except Exception, e:
-            raise e
+            if DEBUG_MODE: raise
+            else: raise e
 
     ################################################################################
     # Some methods for raising attribute errors at the proper time
@@ -1407,7 +1420,7 @@ cdef class TreeDict(object):
     cdef _raiseErrorAtFirstNonDanglingBranch(self, bint raise_attribute_error):
         cdef TreeDict p = self.parentNode()
 
-        if RUN_ASSERTS:
+        if DEBUG_MODE:
             assert p is not None
 
         if not p.isDangling():
@@ -1485,7 +1498,8 @@ cdef class TreeDict(object):
             else:
                 raise ke
         except Exception, e:
-            raise e
+            if DEBUG_MODE: raise
+            else: raise e
 
     def popitem(self, str key = None, bint prune_empty = False, bint silent = False):
         """
@@ -1520,7 +1534,8 @@ cdef class TreeDict(object):
             else:
                 raise ke
         except Exception, e:
-            raise e
+            if DEBUG_MODE: raise
+            else: raise e
     
     cdef _pop(self, str name, bint return_item_pair, bint prune_empty):
 
@@ -1684,13 +1699,13 @@ cdef class TreeDict(object):
                 raise TypeError("`tree_or_key` must be either a string or TreeDict instance.")
 
             if key is None:
-                if RUN_ASSERTS:
+                if DEBUG_MODE:
                     assert tree is not None
 
                 key = tree._name
 
             if tree is None:
-                if RUN_ASSERTS:
+                if DEBUG_MODE:
                     assert key is not None
 
                 tree = self._get(key, False)
@@ -1703,7 +1718,8 @@ cdef class TreeDict(object):
 
             self._attach(key, tree, flags)
         except Exception, e:
-            raise e
+            if DEBUG_MODE: raise
+            else: raise e
 
     cdef _attach(self, str name, TreeDict tree, flagtype flags):
 
@@ -1878,18 +1894,18 @@ cdef class TreeDict(object):
         if not _flagOn(&self._flags, f_one_iterators_referencing):
             _setFlag(&self._flags, f_one_iterators_referencing, True)
             
-            if RUN_ASSERTS:
+            if DEBUG_MODE:
                 assert not _flagOn(&self._flags, f_many_iterators_referencing)
 
         elif not _flagOn(&self._flags, f_many_iterators_referencing):
 
-            if RUN_ASSERTS:
+            if DEBUG_MODE:
                 assert not s_IterReferenceCount in self._aux_dict
             
             self._aux_dict[s_IterReferenceCount] = 2
             _setFlag(&self._flags, f_many_iterators_referencing, True)
         else:
-            if RUN_ASSERTS:
+            if DEBUG_MODE:
                 assert s_IterReferenceCount in self._aux_dict
                 assert self._aux_dict[s_IterReferenceCount] >= 1
 
@@ -1899,7 +1915,7 @@ cdef class TreeDict(object):
 
         if _flagOn(&self._flags, f_many_iterators_referencing):
 
-            if RUN_ASSERTS:
+            if DEBUG_MODE:
                 assert s_IterReferenceCount in self._aux_dict
 
             n = self._aux_dict[s_IterReferenceCount]
@@ -1908,7 +1924,7 @@ cdef class TreeDict(object):
                 self._aux_dict[s_IterReferenceCount] = n - 1
             else:
                 
-                if RUN_ASSERTS:
+                if DEBUG_MODE:
                     assert self._aux_dict[s_IterReferenceCount] == 2
                     
                 del self._aux_dict[s_IterReferenceCount]
@@ -1916,7 +1932,7 @@ cdef class TreeDict(object):
                 _setFlag(&self._flags, f_many_iterators_referencing, False)
         else:
 
-            if RUN_ASSERTS:
+            if DEBUG_MODE:
                 assert _flagOn(&self._flags, f_one_iterators_referencing)
                 assert s_IterReferenceCount not in self._aux_dict
                 
@@ -2276,7 +2292,8 @@ cdef class TreeDict(object):
                 self._raiseAttributeError(k)
 
         except Exception, e:
-            raise e
+            if DEBUG_MODE: raise
+            else: raise e
 
         finally:
             _setFlagOff(&self._flags, f_getattr_called)
@@ -2289,7 +2306,8 @@ cdef class TreeDict(object):
         try:
             return self._get(key,False)
         except Exception, e:
-            raise e
+            if DEBUG_MODE: raise
+            else: raise e
     
     cpdef get(self, str key, default_value = _NoDefault):
         """
@@ -2327,7 +2345,8 @@ cdef class TreeDict(object):
                 return pn.value()
             
         except Exception, e:
-            raise e
+            if DEBUG_MODE: raise
+            else: raise e
 
     ################################################################################
     # existence checks
@@ -2336,7 +2355,8 @@ cdef class TreeDict(object):
         try:
             return self.exists(k)
         except Exception, e:
-            raise e
+            if DEBUG_MODE: raise
+            else: raise e
 
     def has_key(self, key):
         """
@@ -2347,7 +2367,8 @@ cdef class TreeDict(object):
         try:
             return self.exists(key)
         except Exception, e:
-            raise e
+            if DEBUG_MODE: raise
+            else: raise e
 
     cdef bint exists(self, k):
         if type(k) is not str or k is None:
@@ -2467,6 +2488,10 @@ cdef class TreeDict(object):
 
         if pos != -1:
             p = self._getLocalBranch(k[:pos], gsp)
+
+            if DEBUG_MODE:
+                assert p is not None
+
             return p._getBranch(k[pos+1:], gsp)
         else:
             return self._getLocalBranch(k, gsp)
@@ -2525,7 +2550,7 @@ cdef class TreeDict(object):
         
         b._attachDanglingSelf()
 
-        if RUN_ASSERTS:
+        if DEBUG_MODE:
 
             assert not b.isDangling()
 
@@ -2550,12 +2575,12 @@ cdef class TreeDict(object):
             b._setDangling(True)
             b._setDetachedDangling(True)
 
-            if RUN_ASSERTS:
+            if DEBUG_MODE:
                 n_d = self._n_dangling
 
             self._setLocalBranch(b, f_check_only)
 
-            if RUN_ASSERTS:
+            if DEBUG_MODE:
                 assert n_d == self._n_dangling
 
         elif gsp & f_create_dangling:
@@ -2574,10 +2599,10 @@ cdef class TreeDict(object):
         
         if not (gsp & f_check_only):
 
-            if RUN_ASSERTS:
+            if DEBUG_MODE:
                 assert tree.parentNode() is self
 
-            if RUN_ASSERTS:
+            if DEBUG_MODE:
                 for t in self._branches:
                     assert tree is not t
 
@@ -2590,7 +2615,7 @@ cdef class TreeDict(object):
 
         cdef TreeDict p = self.parentNode()
 
-        if RUN_ASSERTS:
+        if DEBUG_MODE:
             assert p is not None
 
         # See if the base needs to be attached
@@ -2598,7 +2623,7 @@ cdef class TreeDict(object):
 
         self._setDangling(False)
                 
-        if RUN_ASSERTS:
+        if DEBUG_MODE:
             assert not self.isDangling()
         
         if self._isDetachedDangling():
@@ -2606,7 +2631,7 @@ cdef class TreeDict(object):
             p._setLocalBranch(self, f_already_checked)
             
         else:
-            if RUN_ASSERTS:
+            if DEBUG_MODE:
                 assert p._n_dangling != 0
 
             p._n_dangling -= 1
@@ -2622,7 +2647,7 @@ cdef class TreeDict(object):
         cdef bint are_equal 
 
         if type(p1) is not TreeDict:
-            if RUN_ASSERTS:
+            if DEBUG_MODE:
                 assert type(p2) is TreeDict
 
             if isinstance(p1, dict):
@@ -2631,7 +2656,7 @@ cdef class TreeDict(object):
                 are_equal = False
 
         elif type(p2) is not TreeDict:
-            if RUN_ASSERTS:
+            if DEBUG_MODE:
                 assert type(p1) is TreeDict
 
             if isinstance(p2, dict):
@@ -2841,7 +2866,8 @@ cdef class TreeDict(object):
                 else:
                     return self._self_hash()
         except Exception, e:
-            raise e
+            if DEBUG_MODE: raise
+            else: raise e
             
     cdef str _reportable_hash(self, str key, str digest):
         return key + "-" + digest
@@ -2994,7 +3020,7 @@ cdef class TreeDict(object):
         if pn.isMutable():
             self._n_mutable -= 1
 
-            if RUN_ASSERTS:
+            if DEBUG_MODE:
                 assert self._n_mutable >= 0
 
         elif pn.isImmutable():
@@ -3073,13 +3099,15 @@ cdef class TreeDict(object):
         try:
             return self._copy(False, False)
         except Exception, e:
-            raise e
+            if DEBUG_MODE: raise
+            else: raise e
 
     def __deepcopy__(self, m={}):
         try:
             return self._copy(True, False)
         except Exception, e:
-            raise e
+            if DEBUG_MODE: raise
+            else: raise e
 
     def copy(self, bint deep=False, bint freeze=False):
         """
@@ -3092,7 +3120,8 @@ cdef class TreeDict(object):
         try:
             return self._copy(deep, freeze)
         except Exception, e:
-            raise e
+            if DEBUG_MODE: raise
+            else: raise e
 
     def update(self, source, bint overwrite = True,
                bint protect_structure = False):
@@ -3207,7 +3236,8 @@ cdef class TreeDict(object):
                 self._update(p, flags | f_check_only)
                 self._update(p, flags | f_already_checked)
         except Exception, e:
-            raise e
+            if DEBUG_MODE: raise
+            else: raise e
 
     cdef _update(self, TreeDict t, flagtype flags):
 
@@ -3299,7 +3329,7 @@ cdef class TreeDict(object):
         # The recursive version of the above;
 
         if not deep:
-            if RUN_ASSERTS:
+            if DEBUG_MODE:
                 assert not self.hasBeenCopied()
         else:
             if self.hasBeenCopied():
@@ -3341,7 +3371,7 @@ cdef class TreeDict(object):
             # previously reference this one
             for t, k in (<list>self._aux_dict[s_copy_referencing_keys]):
 
-                if RUN_ASSERTS:
+                if DEBUG_MODE:
                     assert type(t) is TreeDict
                     assert type(k) is str
 
@@ -3690,7 +3720,7 @@ cdef class TreeDict(object):
 
             r = pti._loadNext()
 
-            if RUN_ASSERTS:
+            if DEBUG_MODE:
                 assert r
 
             v = pti._currentRetValue()
@@ -3702,7 +3732,7 @@ cdef class TreeDict(object):
             Py_INCREF(<PyObject*>v) 
             PyList_SET_ITEM(l, i, <PyObject*>v)
 
-        if RUN_ASSERTS:
+        if DEBUG_MODE:
             assert not pti._loadNext()
 
         return l

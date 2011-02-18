@@ -157,7 +157,9 @@ if __name__ == '__main__':
         return strip_empty(library_includes + (specific_libraries[m] if m in specific_libraries else []))
     
     def get_extra_compile_args(m):
-        return strip_empty(compiler_args + (['-g', '-O0'] if debug_mode_c_code else []))
+        return strip_empty(compiler_args + (['-g', '-O0', '-UNDEBUG']
+                                            if debug_mode_c_code
+                                            else ['-DNDEBUG']))
     
     def get_extra_link_args(m):
         return strip_empty(link_args + (['-g'] if debug_mode_c_code else []))
