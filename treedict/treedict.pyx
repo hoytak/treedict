@@ -998,7 +998,7 @@ cdef class TreeDict(object):
             else:
                 self._set(k, v, 0)
             
-    def convertTo(self, str format = 'nested_dict', bint prune_empty = False):
+    def convertTo(self, str format = 'nested_dict', **kwargs):
         """
         Converts the local tree and branches to an external format
         given by the `format` parameter.  Currently, the only
@@ -1008,10 +1008,26 @@ cdef class TreeDict(object):
         'nested_dict' format:
 
           Returns the tree contained in nested dictionaries, with each
-          branch being another dict instance.  If `prune_empty` is
-          True (default: False), then empty branches are not included
-          in the output.
-        
+          branch being another dict instance.
+
+          The 'nested_dict' format supports three keyword parameters:
+
+          - ``convert_values = False`` causes only those TreeDict
+            instances present somewhere in the tree as branches to be
+            converted to python dictionaries.  All values that refer
+            to a separate converted branch will still be converted,
+            however.
+
+          - ``prune_empty = True`` causes all empty branches to be
+            ignored.  Without this parameter, they show up as empty
+            dictionaries.
+
+          - ``expand_lists = True``, causes all lists present as
+            values in the tree to be searched for TreeDict instances;
+            within these lists, any TreeDict instances will be
+            converted to dictionaries.  This cannot be combined with
+            ``convert_values = False``.
+
           Example 1::
 
             >>> from treedict import TreeDict
@@ -1059,45 +1075,65 @@ cdef class TreeDict(object):
         """
 
         if format == 'nested_dict':
+            convert_values = kwargs.pop('convert_values', True)
+            prune_empty = kwargs.pop('prune_empty', False)
+            expand_lists = kwargs.pop('expand_lists', False)
+
+            if expand_lists and not convert_values:
+                raise ValueError("`convert_values = False` and `expand_lists = True` "
+                                 "are mutually exclusive.")
+
+            if kwargs:
+                raise TypeError("Unrecognized keyword arguments: " + ', '.join(kwargs.iterkeys()))
+            
             d = {}
-            return self._fillNestedDict(d, {id(self) : d}, {}, prune_empty)
+            return self._fillNestedDict(d, {id(self) : d}, {}, convert_values,
+                                        prune_empty, expand_lists)
         else:
             raise ValueError("`format` parameter must be 'nested_dict' (more coming).")
         
     cdef dict _fillNestedDict(self, dict d, dict prev_treedict_map,
-                              dict future_branches_map, bint prune_empty):
+                              dict future_branches_map,
+                              bint convert_values,
+                              bint prune_empty,
+                              bint expand_lists):
 
         cdef _PTreeNode pn
+        cdef list l, new_list
+        cdef size_t i
 
         for k, pn in self._param_dict.items():
-            if pn.isBranch():
+            if pn.isBranch() or (convert_values and pn.isTree()):
                 
-                if not pn.isDanglingBranch() and not (prune_empty and pn.tree().isEmpty()):
+                if not pn.isDanglingTree() and not (prune_empty and pn.tree().isEmpty()):
 
                     id_val = id(pn.tree())
 
-                    if DEBUG_MODE:
-                        assert id_val not in prev_treedict_map
+                    if id_val in prev_treedict_map:
+                        d[k] = prev_treedict_map[id_val]
 
-                    d[k] = prev_treedict_map[id_val] = dc = {}
+                        if DEBUG_MODE:
+                            assert id_val not in future_branches_map
+                        
+                    else:
 
-                    assert d[k] is not None
+                        d[k] = prev_treedict_map[id_val] = dc = {}
 
-                    pn.tree()._fillNestedDict(dc, prev_treedict_map, future_branches_map, prune_empty)
+                        pn.tree()._fillNestedDict(dc, prev_treedict_map, future_branches_map,
+                                                  convert_values, prune_empty, expand_lists)
 
-                    if id_val in future_branches_map:
-                        l = future_branches_map.pop(id_val)
-                        for t in (<list>l):
-                            dt, kt = (<tuple>t)[0], (<tuple>t)[1]
-                            (<dict>dt)[kt] = dc
+                        if id_val in future_branches_map:
+                            l = future_branches_map.pop(id_val)
+                            for t in (<list>l):
+                                dt, kt = (<tuple>t)[0], (<tuple>t)[1]
+                                (<dict>dt)[kt] = dc
 
             elif pn.isTree():
                 t = pn.tree()
                 id_val = id(t)
+                
                 if id_val in prev_treedict_map:
                     d[k] = prev_treedict_map[id_val]
-
-                    assert d[k] is not None
 
                     if DEBUG_MODE:
                         assert id_val not in future_branches_map
@@ -1110,12 +1146,29 @@ cdef class TreeDict(object):
 
                     d[k] = t
 
-                    assert d[k] is not None
+            elif expand_lists and type(pn.value()) is list:
+                l = <list>pn.value()
+                new_list = [None]*len(l)
+                
+                for 0 <= i < len(l):
+                    if type(l[i]) is TreeDict:
+                        id_val = id(l[i])
 
+                        if id_val not in prev_treedict_map:
+                            new_list[i] = prev_treedict_map[id_val] = dc = {}
+                    
+                            (<TreeDict>(l[i]))._fillNestedDict(
+                                dc, prev_treedict_map, future_branches_map,
+                                convert_values, prune_empty, expand_lists)
+                        else:
+                            new_list[i] = prev_treedict_map[id_val]
+                    else:
+                        new_list[i] = l[i]
+
+                d[k] = new_list
+                    
             else:
                 d[k] = pn.value()
-
-                assert d[k] is not None
 
         return d
 
