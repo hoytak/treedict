@@ -366,7 +366,7 @@ cdef inline int itemType(v):
 
 DEF _orderNodeNotKnown      = 0
 DEF _orderNodeStartingValue = 0
-cdef size_t _orderNodeMaxNum = <size_t?>( (<double?>2)**(8*sizeof(size_t) - 1)) - 2 
+cdef size_t _orderNodeMaxNum = <size_t>( (<double>2)**(8*sizeof(size_t) - 1)) - 2 
 
 cdef class _PTreeNode(object):
     cdef object    _v
@@ -582,7 +582,7 @@ cdef class TreeDictIterator(object):
 
         # Allocate space for the position stack
         self._pos_array_size = 16
-        self._pos_array = <Py_ssize_t*?> PyMem_Malloc(self._pos_array_size*sizeof(Py_ssize_t*))
+        self._pos_array = <Py_ssize_t*> PyMem_Malloc(self._pos_array_size*sizeof(Py_ssize_t*))
 
         if self._pos_array == NULL: 
             raise MemoryError
@@ -608,7 +608,7 @@ cdef class TreeDictIterator(object):
     cdef void _ensurePosArraySized(self, size_t n):
         if self._pos_array_size <= n:
             self._pos_array_size = n + (n >> 1)
-            self._pos_array = <Py_ssize_t*?>PyMem_Realloc(self._pos_array, self._pos_array_size*sizeof(Py_ssize_t*))
+            self._pos_array = <Py_ssize_t*>PyMem_Realloc(self._pos_array, self._pos_array_size*sizeof(Py_ssize_t*))
 
     def __iter__(self):
         return self
@@ -660,7 +660,7 @@ cdef class TreeDictIterator(object):
                     continue
             else:
                 self._last_key = (<str>k_obj)
-                self._last_pn  = (<_PTreeNode?>pn_obj)
+                self._last_pn  = (<_PTreeNode>pn_obj)
 
             if self._last_pn.isBranch():
                 
@@ -2560,7 +2560,7 @@ cdef class TreeDict(object):
     cdef _PTreeNode _getLocalPTNode(self, str k):
     
         try:
-            return (<_PTreeNode?> self._param_dict[k])
+            return (<_PTreeNode> self._param_dict[k])
 
         except KeyError:
             return None
@@ -2724,7 +2724,7 @@ cdef class TreeDict(object):
             assert not b.isDangling()
 
             if '.' not in name:
-                assert not (<_PTreeNode?>self._param_dict[name]).isDanglingBranch()
+                assert not (<_PTreeNode>self._param_dict[name]).isDanglingBranch()
 
             assert self[name] is b
             assert name in self
@@ -3486,7 +3486,7 @@ cdef class TreeDict(object):
             self._setHasBeenCopiedFlag(False)
 
             for pnv in self._param_dict.itervalues():
-                pn = <_PTreeNode?>pnv
+                pn = <_PTreeNode>pnv
 
                 if pn.isTree():
                     pn.tree()._clearHasBeenCopiedFlags()
@@ -3593,8 +3593,8 @@ cdef class TreeDict(object):
           
 
     cdef _reset_branches(self):
-        self._branches = [(<_PTreeNode?> pn).value() for pn in self._param_dict.itervalues()
-                          if (<_PTreeNode?> pn).isBranch()]
+        self._branches = [(<_PTreeNode> pn).value() for pn in self._param_dict.itervalues()
+                          if (<_PTreeNode> pn).isBranch()]
 
     ################################################################################
     # Methods relating to pickling / unpickling 

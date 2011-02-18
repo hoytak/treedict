@@ -3,7 +3,7 @@
 conditionals="<dict?>
 <set?>
 <TreeDict?>
-<_PTNodeTree?>
+<_PTreeNode?>
 <str?>
 <list?>
 <tuple?>"
