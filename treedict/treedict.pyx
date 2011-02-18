@@ -998,7 +998,7 @@ cdef class TreeDict(object):
             else:
                 self._set(k, v, 0)
             
-    def convertTo(self, str format = 'nested_dict'):
+    def convertTo(self, str format = 'nested_dict', bint prune_empty = False):
         """
         Converts the local tree and branches to an external format
         given by the `format` parameter.  Currently, the only
@@ -1007,8 +1007,10 @@ cdef class TreeDict(object):
 
         'nested_dict' format:
 
-          Returns the tree contained in nested dictionaries, with
-          each branch being another dict instance.    
+          Returns the tree contained in nested dictionaries, with each
+          branch being another dict instance.  If `prune_empty` is
+          True (default: False), then empty branches are not included
+          in the output.
         
           Example 1::
 
@@ -1058,18 +1060,19 @@ cdef class TreeDict(object):
 
         if format == 'nested_dict':
             d = {}
-            return self._fillNestedDict(d, {id(self) : d}, {})
+            return self._fillNestedDict(d, {id(self) : d}, {}, prune_empty)
         else:
             raise ValueError("`format` parameter must be 'nested_dict' (more coming).")
         
-    cdef dict _fillNestedDict(self, dict d, dict prev_treedict_map, dict future_branches_map):
+    cdef dict _fillNestedDict(self, dict d, dict prev_treedict_map,
+                              dict future_branches_map, bint prune_empty):
 
         cdef _PTreeNode pn
 
         for k, pn in self._param_dict.items():
             if pn.isBranch():
                 
-                if not pn.isDanglingBranch():
+                if not pn.isDanglingBranch() and not (prune_empty and pn.tree().isEmpty()):
 
                     id_val = id(pn.tree())
 
@@ -1080,7 +1083,7 @@ cdef class TreeDict(object):
 
                     assert d[k] is not None
 
-                    pn.tree()._fillNestedDict(dc, prev_treedict_map, future_branches_map)
+                    pn.tree()._fillNestedDict(dc, prev_treedict_map, future_branches_map, prune_empty)
 
                     if id_val in future_branches_map:
                         l = future_branches_map.pop(id_val)

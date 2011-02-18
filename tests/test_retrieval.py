@@ -328,6 +328,33 @@ class TestRetrieval(unittest.TestCase):
             self.assert_(type(get_value(d, n)) is TreeDict)
             self.assert_(get_value(d, n) is t.x)
 
+
+    def testConvertTo_06_prune_empty_01(self):
+
+        t = TreeDict()
+
+        t.makeBranch('a')
+
+        d = t.convertTo('nested_dict', prune_empty = True)
+
+        self.assert_(d == {})
+
+    def testConvertTo_06_prune_empty_02(self):
+
+        t = TreeDict()
+
+        t.a.x = 1
+        t.a.makeBranch('b')
+
+        d = t.convertTo('nested_dict', prune_empty = False)
+
+        self.assert_(d == {'a' : {'x' : 1, 'b' : {} } } )
+        
+        d2 = t.convertTo('nested_dict', prune_empty = True)
+
+        self.assert_(d2 == {'a' : {'x' : 1 } } )
+        
+
 if __name__ == '__main__':
     unittest.main()
 
