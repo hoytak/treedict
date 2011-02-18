@@ -206,6 +206,128 @@ class TestRetrieval(unittest.TestCase):
         p.freeze()
         self.assertRaises(AttributeError, lambda: p.a)
 
+    ##################################################
+    # Some of the format specifying stuff
+
+    def testConvertTo_01(self):
+        
+        t = TreeDict()
+        t.z = 3
+        t.a.x = 1
+        t.a.y = 2
+
+        # Test default
+        self.assert_(t.convertTo() == t.convertTo('nested_dict'))
+        
+        self.assert_(t.convertTo() == {'a' : {'x' : 1, 'y' : 2}, 'z' : 3})
+
+    def testConvertTo_02(self):
+
+        t = random_tree(200)
+        d = t.convertTo('nested_dict')
+        t2 = TreeDict.fromdict(d, expand_nested = True)
+        self.assert_(t == t2)
+
+    def testConvertTo_03_self_linked_01(self):
+
+        t = TreeDict()
+        t.makeBranch('b')
+        t.a.b = t.b
+        t.b.a = t.a
+
+        d = t.convertTo('nested_dict')
+
+        self.assert_(type(d['a']) is dict)
+        self.assert_(type(d['b']) is dict)
+        
+        self.assert_(d['a']['b'] is d['b'])
+        self.assert_(d['b']['a'] is d['a'])
+
+    def testConvertTo_03_self_linked_02(self):
+
+        t = random_selflinked_tree(0, 1)
+        d = t.convertTo('nested_dict')
+        t2 = TreeDict.fromdict(d, expand_nested = True)
+
+        t.attach(recursive = True)
+        t2.attach(recursive = True)
+
+        self.assert_(t == t2)
+
+    def testConvertTo_04_root_linked_01(self):
+
+        t = TreeDict()
+        t.a = t
+
+        d = t.convertTo('nested_dict')
+
+        self.assert_(d['a'] is d)
+
+    def testConvertTo_04_root_linked_02(self):
+
+        t = TreeDict()
+        t.a.b.c = t
+        t.a.b.x = t.a
+
+        d = t.convertTo('nested_dict')
+
+        self.assert_(d['a']['b']['c'] is d)
+        self.assert_(d['a']['b']['x'] is d['a'])
+
+
+    def testConvertTo_05_only_local_as_values_01(self):
+
+        t = TreeDict()
+
+        t.x.y = 1
+        t.a.b.c = 1
+        t.a.b.d = t.a.b
+        t.a.b.xl = t.x
+        t.a.xl = t.x
+
+        d = t.a.convertTo('nested_dict')
+        
+        self.assert_(type(d['b']['d']) is dict)
+        self.assert_(type(d['b']) is dict)
+        self.assert_(d['b'] is d['b']['d'])
+        self.assert_(d['b']['c'] == 1)
+
+        # TreeDict values are only converted if they are a branch somewhere in the 
+        self.assert_(type(d['b']['xl']) is TreeDict)
+        self.assert_(type(d['xl']) is TreeDict)
+        self.assert_(d['xl'] is d['b']['xl'])
+
+    def testConvertTo_05_only_local_as_values_02(self):
+
+        t = TreeDict()
+
+        t.x.y = 1
+        t.a.b.c = 1
+
+        a_refs = random_node_list(0, 100, 0.5)
+        x_refs = random_node_list(1, 100, 0.5)
+
+        for n in a_refs:
+            t.a[n] = t.a.b
+
+        for n in x_refs:
+            t.a[n] = t.x
+
+        d = t.a.convertTo('nested_dict')
+
+        def get_value(d, n):
+            for n in n.split('.'):
+                d = d[n]
+            return d
+            
+        for n in a_refs:
+            self.assert_(type(get_value(d, n)) is dict)
+            self.assert_(get_value(d, n) is d['b'])
+
+        for n in x_refs:
+            self.assert_(type(get_value(d, n)) is TreeDict)
+            self.assert_(get_value(d, n) is t.x)
+
 if __name__ == '__main__':
     unittest.main()
 

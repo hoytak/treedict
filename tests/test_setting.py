@@ -542,7 +542,35 @@ class TestSetting(unittest.TestCase):
     # Add in fromdict testing here
 
     def testFromDict_01(self):
-        pass
+        t = TreeDict.fromdict({'a.x' : 1, 'a.y' : 2, 'z' : 3})
+
+        t2 = TreeDict()
+        t2.z = 3
+        t2.a.x = 1
+        t2.a.y = 2
+
+        self.assert_(t == t2)
+
+    def testFromDict_02(self):
+        t = TreeDict.fromdict({'a' : {'x' : 1, 'y' : 2}, 'z' : 3},
+                              expand_nested = True)
+
+        t2 = TreeDict()
+        t2.z = 3
+        t2.a.x = 1
+        t2.a.y = 2
+
+        self.assert_(t == t2)
+
+    def testFromDict_03_root_linked(self):
+
+        # A self-referencing dictionary
+        d = {}
+        d['a'] = d
+
+        t = TreeDict.fromdict(d, expand_nested = True)
+        
+        self.assert_(t.a is t)
 
     def testOrdering_01(self):
         t = TreeDict()

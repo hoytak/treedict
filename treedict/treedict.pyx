@@ -366,7 +366,7 @@ cdef inline int itemType(v):
 
 DEF _orderNodeNotKnown      = 0
 DEF _orderNodeStartingValue = 0
-cdef size_t _orderNodeMaxNum = <size_t>( (<double>2)**(8*sizeof(size_t) - 1)) - 2 
+cdef size_t _orderNodeMaxNum = <size_t?>( (<double?>2)**(8*sizeof(size_t) - 1)) - 2 
 
 cdef class _PTreeNode(object):
     cdef object    _v
@@ -382,7 +382,7 @@ cdef class _PTreeNode(object):
             if ((<TreeDict>v)._parent is node) and ((<TreeDict>v)._name == key):
 
                 if DEBUG_MODE:
-                    assert (<TreeDict?>v)._name is key
+                    assert (<TreeDict>v)._name is key
                 
                 self._t = t_Branch
             else:
@@ -582,7 +582,7 @@ cdef class TreeDictIterator(object):
 
         # Allocate space for the position stack
         self._pos_array_size = 16
-        self._pos_array = <Py_ssize_t*> PyMem_Malloc(self._pos_array_size*sizeof(Py_ssize_t*))
+        self._pos_array = <Py_ssize_t*?> PyMem_Malloc(self._pos_array_size*sizeof(Py_ssize_t*))
 
         if self._pos_array == NULL: 
             raise MemoryError
@@ -608,7 +608,7 @@ cdef class TreeDictIterator(object):
     cdef void _ensurePosArraySized(self, size_t n):
         if self._pos_array_size <= n:
             self._pos_array_size = n + (n >> 1)
-            self._pos_array = <Py_ssize_t*>PyMem_Realloc(self._pos_array, self._pos_array_size*sizeof(Py_ssize_t*))
+            self._pos_array = <Py_ssize_t*?>PyMem_Realloc(self._pos_array, self._pos_array_size*sizeof(Py_ssize_t*))
 
     def __iter__(self):
         return self
@@ -660,7 +660,7 @@ cdef class TreeDictIterator(object):
                     continue
             else:
                 self._last_key = (<str>k_obj)
-                self._last_pn  = (<_PTreeNode>pn_obj)
+                self._last_pn  = (<_PTreeNode?>pn_obj)
 
             if self._last_pn.isBranch():
                 
@@ -921,22 +921,46 @@ cdef class TreeDict(object):
             else: raise e
 
     @classmethod
-    def fromdict(cls, d):
+    def fromdict(cls, d, expand_nested = False):
         """
         A convenience method that creates a new TreeDict instance from
         a dictionary or other object convertable to a dictionary.
-        This is analagous to the :meth:`fromkeys()` method, except that the
-        keys and associated values are given by a dictionary.  It is
-        equivalent to::
+        This is analagous to the :meth:`fromkeys()` method, except
+        that the keys and associated values are given by a dictionary.
+        If `expand_nested` is False (default), then it is equivalent
+        to::
 
            t = TreeDict()
            t.update(d)
            return t
+        
+        If `expand_nested` is True, then any dictionaries present as
+        values within a dictionary are recursively expanded as
+        branches of the parent; otherwise they are treated as simple
+        values.
 
-        Example::
+        If `expand_nested` is True and the same dictionary is present
+        in multiple places, then only the first dict encountered is
+        expanded as a branch and all other locations will refer to
+        this tree, referencing it as a TreeDict value.  As this
+        happens in arbitrary order, it is recommended to run
+        ``t.attach(recursive=True)`` on the resulting tree if this
+        could be a problem.
+
+        Example 1::
 
             >>> from treedict import TreeDict
             >>> t = TreeDict.fromdict({'a.x' : 1, 'a.y' : 2, 'z' : 3})
+            >>> print t.makeReport()
+            z   = 3
+            a.x = 1
+            a.y = 2
+
+        Example 2::
+
+            >>> from treedict import TreeDict
+            >>> t = TreeDict.fromdict({'a' : {'x' : 1, 'y' : 2}, 'z' : 3},
+                                      expand_nested = True)
             >>> print t.makeReport()
             z   = 3
             a.x = 1
@@ -945,14 +969,152 @@ cdef class TreeDict(object):
         """
 
         cdef TreeDict p = newTreeDict(s_default_tree_name, False)
-        
+
         try:
-            p._setAll(None, d, 0)
-            return p
+            if expand_nested:
+                if type(d) is not dict:
+                    d = dict(d)
+
+                p._expandDictSet({id(d) : p}, d)
+
+            else:
+                p._setAll(None, d, 0)
+                
         except Exception, e:
             if DEBUG_MODE: raise
             else:          raise e
 
+        return p
+
+    cdef _expandDictSet(self, dict recursion_set, dict d):
+
+        for k, v in d.iteritems():
+            if type(v) is dict:
+                if id(v) in recursion_set:
+                    self._set(k, recursion_set[id(v)], 0)
+                else:
+                    tc = recursion_set[id(v)] = self.makeBranch(k)
+                    (<TreeDict>tc)._expandDictSet(recursion_set, <dict>v)
+            else:
+                self._set(k, v, 0)
+            
+    def convertTo(self, str format = 'nested_dict'):
+        """
+        Converts the local tree and branches to an external format
+        given by the `format` parameter.  Currently, the only
+        supported value for `format` is 'nested_dict', which returns
+        the tree as a nested dictionary of ``key : value`` pairs.
+
+        'nested_dict' format:
+
+          Returns the tree contained in nested dictionaries, with
+          each branch being another dict instance.    
+        
+          Example 1::
+
+            >>> from treedict import TreeDict
+            >>> t = TreeDict.fromdict({'a.x' : 1, 'a.y' : 2, 'z' : 3})
+            >>> print t.makeReport()
+            z   = 3
+            a.x = 1
+            a.y = 2
+            >>> print t.convertTo('nested_dict')
+            {'a': {'y': 2, 'x': 1}, 'z': 3}
+
+          One thing to note is that TreeDict values within the tree
+          are treated as values, unless the corresponding branch is
+          somewhere in the conversion as well, in which case all such
+          values are replaced with the same dictionary.  This allows
+          recursive definitions (e.g. TreeDict values being parents or
+          dictionary values being the dictionary) to translate
+          correctly between :meth:`convertTo` and :meth:`fromdict`.
+
+          Example 2::
+
+            >>> from treedict import TreeDict
+            >>> t = TreeDict()
+            >>> t.a = t
+            >>> print t.makeReport()
+            a = TreeDict <root>
+            >>> d = t.convertTo('nested_dict')
+            >>> print d
+            {'a': {...}}
+            >>> d['a'] is d
+            True
+
+          Example 3::
+
+            >>> t = TreeDict()
+            >>> t.a = TreeDict(x = 1)
+            >>> print t.convertTo('nested_dict')
+            {'a': TreeDict <root>}
+            >>> t2 = TreeDict()
+            >>> t2.b.x = 1
+            >>> t2.a.x = t.b
+            >>> print t2.convertTo('nested_dict')
+            {'b': {'x': 1}}
+            
+        """
+
+        if format == 'nested_dict':
+            d = {}
+            return self._fillNestedDict(d, {id(self) : d}, {})
+        else:
+            raise ValueError("`format` parameter must be 'nested_dict' (more coming).")
+        
+    cdef dict _fillNestedDict(self, dict d, dict prev_treedict_map, dict future_branches_map):
+
+        cdef _PTreeNode pn
+
+        for k, pn in self._param_dict.items():
+            if pn.isBranch():
+                
+                if not pn.isDanglingBranch():
+
+                    id_val = id(pn.tree())
+
+                    if DEBUG_MODE:
+                        assert id_val not in prev_treedict_map
+
+                    d[k] = prev_treedict_map[id_val] = dc = {}
+
+                    assert d[k] is not None
+
+                    pn.tree()._fillNestedDict(dc, prev_treedict_map, future_branches_map)
+
+                    if id_val in future_branches_map:
+                        l = future_branches_map.pop(id_val)
+                        for t in (<list>l):
+                            dt, kt = (<tuple>t)[0], (<tuple>t)[1]
+                            (<dict>dt)[kt] = dc
+
+            elif pn.isTree():
+                t = pn.tree()
+                id_val = id(t)
+                if id_val in prev_treedict_map:
+                    d[k] = prev_treedict_map[id_val]
+
+                    assert d[k] is not None
+
+                    if DEBUG_MODE:
+                        assert id_val not in future_branches_map
+
+                else:
+                    if id_val in future_branches_map:
+                        (<list> (future_branches_map[id_val])).append( (d, k) )
+                    else:
+                        future_branches_map[id_val] = [ (d, k) ]
+
+                    d[k] = t
+
+                    assert d[k] is not None
+
+            else:
+                d[k] = pn.value()
+
+                assert d[k] is not None
+
+        return d
 
     def setdefault(self, str key, value = None):
         """
@@ -1564,19 +1726,19 @@ cdef class TreeDict(object):
 
         checkKeyNotNone(k)
 
-        cdef int rpos = strrfind(k, '.')
+        cdef int rpos = <int>strrfind(k, '.')
         cdef str kl
         cdef TreeDict bottom, b, p
-
-        cdef flagtype gsp = f_retrieve_dangling_okay
+        cdef _PTreeNode pn
 
         if rpos != -1:
 
-            b = self._getBranch(k[:rpos], gsp)
+            pn = self._getPTNode(k[:rpos])
 
-            if b is None:
+            if pn is None or not pn.isTree():
                 raise KeyError(repr(k))
 
+            b = pn.tree()
             kl = k[rpos+1:]
         else:
             b = self
@@ -2398,7 +2560,7 @@ cdef class TreeDict(object):
     cdef _PTreeNode _getLocalPTNode(self, str k):
     
         try:
-            return (<_PTreeNode> self._param_dict[k])
+            return (<_PTreeNode?> self._param_dict[k])
 
         except KeyError:
             return None
@@ -2458,25 +2620,32 @@ cdef class TreeDict(object):
 
             if not pn.isBranch():
                 if (gsp & f_retrieve_treedict_value_okay) and pn.isTree():
+#                    print "HERE-1"
                     return pn.tree()
                 elif (gsp & f_protect_structure) == 0:
                     if (gsp & f_create_node_if_needed):
+#                        print "HERE-2"
                         return self._newLocalBranch(k, gsp)
                     else:
+#                        print "HERE-3"
                         return None
                 else:
                     raise TypeError("Node \"%s\" is not a branch as required."
                                     % self._fullNameOf(k) )
 
             if pn.isDanglingBranch() and not (gsp & f_retrieve_dangling_okay):
+#                print "HERE-4"
                 return None
         
+#            print "HERE-5"
             return pn.tree()
 
         elif (gsp & f_create_node_if_needed):
+#            print "HERE-6"
             return self._newLocalBranch(k, gsp)
 
         else:
+#            print "HERE-7"
             return None
     
 
@@ -2518,7 +2687,7 @@ cdef class TreeDict(object):
     ################################################################################
     # Methods relating to branch creation and manipulation
 
-    def makeBranch(self, str name, bint only_new = False):
+    cpdef TreeDict makeBranch(self, str name, bint only_new = False):
         """
         Explicitly creates a branch named `name` and returns it.
 
@@ -2555,7 +2724,7 @@ cdef class TreeDict(object):
             assert not b.isDangling()
 
             if '.' not in name:
-                assert not (<_PTreeNode>self._param_dict[name]).isDanglingBranch()
+                assert not (<_PTreeNode?>self._param_dict[name]).isDanglingBranch()
 
             assert self[name] is b
             assert name in self
@@ -3317,7 +3486,7 @@ cdef class TreeDict(object):
             self._setHasBeenCopiedFlag(False)
 
             for pnv in self._param_dict.itervalues():
-                pn = <_PTreeNode>pnv
+                pn = <_PTreeNode?>pnv
 
                 if pn.isTree():
                     pn.tree()._clearHasBeenCopiedFlags()
@@ -3424,8 +3593,8 @@ cdef class TreeDict(object):
           
 
     cdef _reset_branches(self):
-        self._branches = [(<_PTreeNode> pn).value() for pn in self._param_dict.itervalues()
-                          if (<_PTreeNode> pn).isBranch()]
+        self._branches = [(<_PTreeNode?> pn).value() for pn in self._param_dict.itervalues()
+                          if (<_PTreeNode?> pn).isBranch()]
 
     ################################################################################
     # Methods relating to pickling / unpickling 
