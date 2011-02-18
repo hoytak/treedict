@@ -2885,7 +2885,8 @@ cdef class TreeDict(object):
         
         for key in sorted(keys):
             
-            pn = <_PTreeNode> self._getPTNode(key)
+            pn = self._getPTNode(key)
+
             if pn is None:
                 raise KeyError(repr(self._fullNameOf(key)))
             
@@ -2896,7 +2897,7 @@ cdef class TreeDict(object):
     # Hash for specific item
     cdef str _item_hash(self, str key):
 
-        cdef _PTreeNode pn = <_PTreeNode> self._getPTNode(key)
+        cdef _PTreeNode pn = self._getPTNode(key)
 
         if pn is None:
             raise KeyError(repr(self._fullNameOf(key)))
