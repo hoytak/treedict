@@ -68,6 +68,12 @@ A brief example to wet the appetite::
 The rest of this example, and explanations, can be found in the
 :ref:`overview`.
 
+Acknowledgments
+----------------
+
+Development of TreeDict was supported in part by NGA grant
+HM1582-06-1-2035.
+
 .. toctree::
     :maxdepth: 2
     :hidden:
