@@ -99,8 +99,8 @@ Setting Groups of Values
 
 .. automethod:: TreeDict.update(self, source, overwrite=True, protect_structure=False)
 
-Convenience Setting Methods
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Convenience Methods
+~~~~~~~~~~~~~~~~~~~
 
 .. automethod:: TreeDict.checkset(self, *args, **kwargs)
 
@@ -110,7 +110,9 @@ Convenience Setting Methods
 
 .. automethod:: TreeDict.fromkeys(key_iterable, value = None)
 
-.. automethod:: TreeDict.fromdict(source)
+.. automethod:: TreeDict.fromdict(d, expand_nested = False)
+
+.. automethod:: TreeDict.convertTo(self, format = 'nested_dict', **kwargs)
 
 Existence Querying
 ------------------

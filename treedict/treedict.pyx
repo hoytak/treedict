@@ -1022,7 +1022,7 @@ cdef class TreeDict(object):
             ignored.  Without this parameter, they show up as empty
             dictionaries.
 
-          - ``expand_lists = True``, causes all lists present as
+          - ``expand_lists = True`` causes all lists present as
             values in the tree to be searched for TreeDict instances;
             within these lists, any TreeDict instances will be
             converted to dictionaries.  This cannot be combined with
