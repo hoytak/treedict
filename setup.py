@@ -7,7 +7,7 @@
 source_directory_list = ['treedict']
 compiler_args = []
 link_args = []
-version = "0.11"
+version = "0.12"
 description="A fast and full-featured dict-like tree container to simplify the bookkeeping surrounding parameters, variables and data."
 author = "Hoyt Koepke"
 author_email="hoytak@gmail.com"
