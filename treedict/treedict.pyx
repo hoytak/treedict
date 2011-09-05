@@ -643,7 +643,7 @@ cdef class TreeDictIterator(object):
 
     cdef bint _loadNext(self):
 
-        cdef PyObject *k_obj, *pn_obj
+        cdef PyObject *k_obj = NULL, *pn_obj = NULL
         cdef bint iter_going
 
         while True:
@@ -798,8 +798,10 @@ cdef class TreeDict(object):
         self._n_dangling = 0
         self._next_item_order_position = _orderNodeStartingValue
 
-    def __init__(self, str tree_name = s_default_tree_name, **kwargs):
-        self._run__init__(tree_name)
+    def __init__(self, tree_name = s_default_tree_name, **kwargs):
+        cdef str _tree_name = str(tree_name)
+        
+        self._run__init__(_tree_name)
         
         if len(kwargs) != 0:
             self._setAll(None, kwargs, 0)
