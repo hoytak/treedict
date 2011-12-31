@@ -74,6 +74,17 @@ if __name__ == '__main__':
         ])
 
     if '--verbose' in sys.argv:
+
+        import gc       
+        start_count = len(gc.get_objects())
+
         unittest.TextTestRunner(verbosity=2).run(ts)
+
+        gc.collect()
+
+        end_count = len(gc.get_objects())
+
+        print ("After running tests, there are %d more objects tracked by the tracker."
+               % (end_count - start_count))
     else:
         unittest.TextTestRunner().run(ts)
