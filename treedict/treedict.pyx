@@ -372,7 +372,7 @@ cdef class _PTreeNode(object):
     cdef object    _v
     cdef int       _t
     cdef size_t    _order_position
-    cdef dict      _aux_dict
+    cdef str       _cached_hash
 
     cdef _set_it(self, TreeDict node, str key, v, size_t _order_position):
         
@@ -390,8 +390,8 @@ cdef class _PTreeNode(object):
         else:
             self._t = itemType(v)
 
-        self._aux_dict = {}
         self._order_position = _order_position
+        self._cached_hash = None
 
     cdef value(self):
         return self._v
@@ -472,12 +472,10 @@ cdef class _PTreeNode(object):
             hf(self._immutableHash())
     
     cdef str _immutableHash(self):
-        if s_cached_hash not in self._aux_dict:
-            ch = md5(dumps(self._v, protocol=2)).digest()
-            self._aux_dict[s_cached_hash] = ch
-            return ch
-        else:
-            return self._aux_dict[s_cached_hash]
+        if self._cached_hash is None:
+            self._cached_hash = md5(dumps(self._v, protocol=2)).digest()
+
+        return self._cached_hash
         
     cdef bint isEqual(self, _PTreeNode pn):
         if self._t != pn._t:
@@ -512,7 +510,7 @@ cdef inline newPTreeNodeExact(value, int t, size_t order_pos):
     pn._v = value
     pn._t = t
     pn._order_position = order_pos
-    pn._aux_dict = {}
+    pn._cached_hash = None
     return pn
 
 ################################################################################
