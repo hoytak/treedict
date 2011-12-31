@@ -79,10 +79,6 @@ cdef extern from "Python.h":
     PyObject* PyIter_Next(PyObject*)
     bint PyDict_Next(dict p, Py_ssize_t *ppos, PyObject **pkey, PyObject **pvalue)
 
-    PyObject* PyList_New(Py_ssize_t)
-    void PyList_SET_ITEM(list l, Py_ssize_t index, PyObject *item)
-    void Py_INCREF(PyObject *item)
-
     void* PyMem_Malloc(size_t n)
     void* PyMem_Realloc(void *p, size_t n)
     void PyMem_Free(void *p)
@@ -3956,13 +3952,12 @@ cdef class TreeDict(object):
         return self._getIter(False, self._getBranchMode('only'), i_Values)
 
     cdef list _getListFromIter(self, TreeDictIterator pti):
-        # Fast as possible
         cdef bint recursive = pti._recursive
         cdef int branch_mode = pti._branch_mode
         
         cdef size_t n = self._size(recursive, branch_mode)
 
-        cdef list l = <list>PyList_New(n)
+        cdef list l = [None]*n
         cdef size_t i
         cdef bint r
 
@@ -3978,9 +3973,7 @@ cdef class TreeDict(object):
             # Because we're using a temporary, and PyList_SetItem
             # steals the reference, i.e. assumes it owns it now,
             # we have to incref
-
-            Py_INCREF(<PyObject*>v) 
-            PyList_SET_ITEM(l, i, <PyObject*>v)
+            l[i] = v
 
         if DEBUG_MODE:
             assert not pti._loadNext()
