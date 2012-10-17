@@ -92,13 +92,13 @@ class TestAttachPop(unittest.TestCase):
     def testAttaching_05(self):
         p1 = TreeDict('root')
         p1.a.b = 123
-        
+
         self.assertRaises(ValueError, lambda: p1.a.attach(p1))
 
     def testAttaching_06(self):
         p1 = TreeDict('root')
         p1.a.b.c = 123
-        
+
         def f(): p1.attach(p1.a.b, copy=False)
 
         self.assertRaises(ValueError, f)
@@ -107,17 +107,17 @@ class TestAttachPop(unittest.TestCase):
         p1 = TreeDict('root')
         p1.a.n.v = 123
         p1.b.n.v = 421
-        
+
         p1.a.attach('m', p1.b.n)
 
     def testAttaching_08(self):
-        
+
         p1 = TreeDict('root')
         p1.a.n.v = 123
         p1.b.n.v = 421
-        
+
         def f(): p1.a.attach(p1.a.n, copy=False)
-        
+
         self.assertRaises(ValueError, f)
 
     def testAttaching_09_frozen_1(self):
@@ -127,7 +127,7 @@ class TestAttachPop(unittest.TestCase):
 
         p2 = TreeDict()
         p2.attach(p, copy=False)
-        
+
         self.assert_(p2.p.b.c == 1)
         self.assert_(p2.p.isFrozen())
         self.assert_(p2.p.b.isFrozen())
@@ -140,7 +140,7 @@ class TestAttachPop(unittest.TestCase):
 
         p2 = TreeDict()
         p2.attach(p, copy=True)
-        
+
         self.assert_(p2.p.b.c == 1)
         self.assert_(not p2.p.isFrozen())
         self.assert_(not p2.p.b.isFrozen())
@@ -154,7 +154,7 @@ class TestAttachPop(unittest.TestCase):
                                                       protect_structure=True))
 
         self.assert_(p.a.b == 1)
-        
+
     def testAttaching_10_Atomic_02_noImplicitOverwrite(self):
         p = TreeDict()
         p.makeBranch('a')
@@ -166,9 +166,9 @@ class TestAttachPop(unittest.TestCase):
                                                       protect_structure=True))
 
         self.assert_('a' in p.keys(branch_mode = 'only', recursive=False))
-        
+
         self.assert_(p.a.size() == 0)
-        
+
     def testAttaching_11_BadParameters_01(self):
 
         p = TreeDict()
@@ -201,7 +201,7 @@ class TestAttachPop(unittest.TestCase):
         self.assert_(p1.b1.b2.b3.branchName(True,True) == 'new_branch')
 
         p1.attach(copy=True, recursive=True)
-        
+
         self.assert_(p1.b1.rootNode() is p1)
         self.assert_(p1.b1.b2.rootNode() is p1)
         self.assert_(p1.b1.b2.b3.rootNode() is p1)
@@ -224,7 +224,7 @@ class TestAttachPop(unittest.TestCase):
         self.assert_(p1.b1.b2.b3.branchName(True,True) == 'new_branch')
 
         p1.attach(copy=False, recursive=True)
-        
+
         self.assert_(p1.b1.rootNode() is p1)
         self.assert_(p1.b1.b2.rootNode() is p1)
         self.assert_(p1.b1.b2.b3.rootNode() is p1)
@@ -242,13 +242,13 @@ class TestAttachPop(unittest.TestCase):
         p.attach(recursive=True)
 
     def testRecursiveAttaching_04_error_on_frozen(self):
-        
+
         p = TreeDict()
         p.b = TreeDict(x = 1)
         p.freeze()
 
         self.assertRaises(TypeError, lambda: p.attach(recursive = True))
-                         
+
         self.assert_(p.b.isRoot())
         self.assert_(p.b not in p.branches())
         self.assert_(p.size() == 1)
@@ -256,16 +256,16 @@ class TestAttachPop(unittest.TestCase):
     # This one would be a lot of work to fix, for what gain?
 
     # def testRecursiveAttaching_05_no_error_on_okay_frozen(self):
-        
+
     #     p = TreeDict()
     #     p.b.x = 1
     #     p.freeze()
 
     #     p.attach(recursive = True)
-                         
+
 
     def testAttaching_10_EqualityTestingWithRecursiveAttach(self):
-        
+
         p1 = TreeDict('root')
         p1.b1 = TreeDict('new_branch')
         p1.b1.b2 = TreeDict('new_branch')
@@ -276,7 +276,7 @@ class TestAttachPop(unittest.TestCase):
         self.assert_(p2 == p1)
 
         p1.attach(copy=False, recursive=True)
-        
+
         self.assert_(p2 != p1)
 
     def testAttaching_11_equalityTesting_01(self):
@@ -291,14 +291,19 @@ class TestAttachPop(unittest.TestCase):
         self.assert_(p2 == p1)
 
         p1.attach(copy=False, recursive=True)
-        
+
         self.assert_(p2 != p1)
 
-    def testAttaching_12_defaultName_RecursiveAttach(self):
+    def testAttaching_12_propegatingFrozenFlags(self):
         p1 = TreeDict()
-        p1.p2 = TreeDict()
-        
-        p1.attach(recursive = True)
+
+        p1.a.b = TreeDict()
+
+        p1.freeze(values_only = True)
+
+        p1.attach('c', TreeDict() )
+
+        self.assert_(p1.c.valuesAreFrozen())
 
 
     def testDetaching_01(self):
@@ -308,11 +313,11 @@ class TestAttachPop(unittest.TestCase):
         p1.node2.a = 13
         p1.node3.a = "123312"
         p1.node4 = 123
-        
+
         p1copy = deepcopy(p1)
 
         p2 = p1.node
-        
+
         p3 = p1.pop("node")
 
         self.assert_(p2 is p3)
@@ -330,7 +335,7 @@ class TestAttachPop(unittest.TestCase):
         p1copy = deepcopy(p1)
 
         p2 = p1.node
-        
+
         p3 = p1.pop("node")
 
         self.assert_(p2 is p3)
@@ -340,7 +345,7 @@ class TestAttachPop(unittest.TestCase):
         self.assert_(p1 != p1copy)
 
     def testDetaching_03_Dangling_AttributeError(self):
-        
+
         p = TreeDict()
 
         def f():
@@ -349,7 +354,7 @@ class TestAttachPop(unittest.TestCase):
         self.assertRaises(AttributeError, f)
 
     def testDetaching_04_dangling_AttributeError_correct_node(self):
-        
+
         p = TreeDict()
         ae_msg = ''
 
@@ -365,7 +370,7 @@ class TestAttachPop(unittest.TestCase):
 
     def testDetach_05_self(self):
         p = TreeDict()
-        
+
         p.a.b.c.d = 1
 
         b = p.a.b
@@ -384,7 +389,7 @@ class TestAttachPop(unittest.TestCase):
         b = p.a.b
 
         bd = p.pop('a.b')
-        
+
         self.assert_(b is bd)
         self.assert_('a' in p)
         self.assert_('a.b' not in p)
@@ -398,7 +403,7 @@ class TestAttachPop(unittest.TestCase):
         p.a = 1
 
         v = p.pop('a')
-        
+
         self.assert_(v == 1)
         self.assert_('a' not in p)
 
@@ -411,7 +416,7 @@ class TestAttachPop(unittest.TestCase):
         p.a.b.c = 1
 
         v = p.pop('a.b.c')
-        
+
         self.assert_(v == 1)
         self.assert_('a' in p)
         self.assert_('a.b' in p)
@@ -457,7 +462,7 @@ class TestAttachPop(unittest.TestCase):
         self.assertRaises(TypeError, lambda: p.clear())
 
     def testClear_05_IsDanglingError(self):
-        
+
         p = sample_tree()
 
         self.assertRaises(AttributeError, lambda: p.a.clear())
@@ -480,7 +485,7 @@ class TestBranches(unittest.TestCase):
     def testBranch_02b_ReturnsCorrectBranch(self):
         p = TreeDict()
         b = p.makeBranch('a').makeBranch('b')
-        
+
         self.assert_(p.a.b is b)
 
     def testBranch_02c_ReturnsCorrectBranch(self):
@@ -489,7 +494,7 @@ class TestBranches(unittest.TestCase):
         p = TreeDict()
         a = p.makeBranch('a')
         p.a.b
-        
+
         self.assert_(p.a is a)
 
     def testBranch_03_KeyedValues(self):
@@ -509,7 +514,7 @@ class TestBranches(unittest.TestCase):
 
         p = TreeDict()
         p.d.a = 1
-        p.d = 1    
+        p.d = 1
 
 
     def testBranch_05_BranchFunction(self):
@@ -559,7 +564,24 @@ class TestBranches(unittest.TestCase):
         p.freeze(structure_only = True)
 
         self.assertRaises(TypeError, lambda: p.attach(recursive = True))
-        
+
+
+    def testBranchAllowedWhenValueFrozen_01(self):
+
+        p = TreeDict()
+        p.freeze(values_only = True)
+
+        p.a.b = 1
+
+    def testBranchHasValuePropegationFlags_01(self):
+
+        p = TreeDict()
+        p.a = 1
+        p.freeze(values_only = True)
+        p.b.c = 2
+
+        self.assert_(p.b.valuesAreFrozen())
+
 
 class TestDangling(unittest.TestCase):
 
@@ -578,19 +600,19 @@ class TestDangling(unittest.TestCase):
     def testDangling_02_NotRetrieved(self):
         self.assertRaises(KeyError, lambda: TreeDict()["a"])
 
-    
+
     def testDangling_03_OutOfOrderSetting(self):
         p = TreeDict()
 
         c = p.a.c
         d = p.a.d
-        
+
         c.v = 1
         d.v = 2
 
         self.assert_('a.c.v' in p)
         self.assert_('a.d.v' in p)
-        
+
         self.assert_(p.a.c.v == 1)
         self.assert_(p.a.d.v == 2)
 
@@ -602,7 +624,7 @@ class TestDangling(unittest.TestCase):
         c2 = p.a.c
 
         self.assert_(c1 is c2)
-        
+
         c1.v = 1
         c2.v = 2
 
@@ -702,7 +724,7 @@ class TestDangling(unittest.TestCase):
         p.a.b
         self.assert_(p._numDangling() == 0)
         self.assert_(p.a._numDangling() == 1)
-        
+
     def testDangling_10_ForwardReferenceSetsDangling(self):
         p = TreeDict()
 
@@ -756,7 +778,7 @@ class TestDangling(unittest.TestCase):
 
         p = TreeDict()
         v = unique_object()
-        
+
         b = p.a = p.c
         p.c = v
 
@@ -783,7 +805,7 @@ class TestDangling(unittest.TestCase):
 
         p.d = 1
         self.assert_(p._numDangling() == 1)
-        
+
     def testDangling_14_CorrectParentingSetAtFixing_01(self):
 
         p = TreeDict()
@@ -796,7 +818,7 @@ class TestDangling(unittest.TestCase):
         p.c = 1
         p.b.x = 1
 
-        # Now b should be 
+        # Now b should be
         self.assert_(p.b.branchName() == 'b')
         self.assert_(p.a is p.b)
 
@@ -812,7 +834,7 @@ class TestDangling(unittest.TestCase):
         p.c = 1
         p.a.x = 1
 
-        # Now b should be 
+        # Now b should be
         self.assert_(p.b.branchName() == 'b')
         self.assert_(p.a is p.b)
 
@@ -829,16 +851,16 @@ class TestDangling(unittest.TestCase):
         p.b = 1
         p.a.x = 1
 
-        # Now b should be 
+        # Now b should be
         self.assert_(p.a.branchName() == 'a')
-        
+
     def testDangling_14_CorrectParentingSetAtFixing_04(self):
 
         p = TreeDict()
         v = unique_object()
 
         p.makeBranch('cc')
-        
+
         p.b = p.cc.c
         p.a = p.b
 
@@ -846,7 +868,7 @@ class TestDangling(unittest.TestCase):
         p.cc.c = 1
         p.b.x = 1
 
-        # Now b should be 
+        # Now b should be
         self.assert_(p.b.branchName() == 'b')
         self.assert_(p.a is p.b)
 
@@ -856,7 +878,7 @@ class TestDangling(unittest.TestCase):
         v = unique_object()
 
         p.makeBranch('cc')
-        
+
         p.b = p.cc.c
         p.aa.a = p.b
 
@@ -864,7 +886,7 @@ class TestDangling(unittest.TestCase):
         p.cc.c = 1
         p.b = 1
 
-        # Now b should be 
+        # Now b should be
         self.assert_(p.aa.a.branchName() == 'a')
 
 if __name__ == '__main__':
