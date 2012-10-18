@@ -373,6 +373,14 @@ class TestSetting(unittest.TestCase):
         p = TreeDict()
         self.assertRaises(ValueError, lambda: p.freeze(structure_only = True, values_only = True))
 
+    def testSet_30_ValueFrozen_07(self):
+        p = TreeDict()
+        p.a.b.c = 1
+        p.freeze(values_only = True)
+
+        self.assertRaises(TypeError, lambda: p.set('a.b', None) )
+
+
     ############################################################
     # Testing the checkset function
 

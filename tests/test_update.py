@@ -91,8 +91,8 @@ class TestUpdate(unittest.TestCase):
             self.assert_(r == TreeDict(x = 1, y = 3, z = 4))
 
         # This should be the same between these options
-        self.checkUpdate(p, q, True, check, overwrite = True, protect_structure = False) 
-        self.checkUpdate(p, q, True, check, overwrite = True, protect_structure = True) 
+        self.checkUpdate(p, q, True, check, overwrite = True, protect_structure = False)
+        self.checkUpdate(p, q, True, check, overwrite = True, protect_structure = True)
 
     def testUpdate_01_basic_02_no_overwrite(self):
         p = TreeDict(x = 1, y = 2)
@@ -110,7 +110,7 @@ class TestUpdate(unittest.TestCase):
         p = TreeDict()
         p.a.x = 1
         p.a.y = 2
-        
+
         q = TreeDict()
         q.a.y = 3
         q.a.z = 4
@@ -119,7 +119,7 @@ class TestUpdate(unittest.TestCase):
             self.assert_(r.a.x == 1)
             self.assert_(r.a.y == 3)
             self.assert_(r.a.z == 4)
-        
+
         self.checkUpdate(p, q, True, check, overwrite = True, protect_structure = False)
         self.checkUpdate(p, q, True, check, overwrite = True, protect_structure = True)
 
@@ -128,7 +128,7 @@ class TestUpdate(unittest.TestCase):
         p = TreeDict()
         p.a.x = 1
         p.a.y = 2
-        
+
         q = TreeDict()
         q.a.y = 3
         q.a.z = 4
@@ -137,16 +137,16 @@ class TestUpdate(unittest.TestCase):
             self.assert_(r.a.x == 1)
             self.assert_(r.a.y == 2)
             self.assert_(r.a.z == 4)
-        
+
         self.checkUpdate(p, q, True, check, overwrite = False, protect_structure = False)
         self.checkUpdate(p, q, True, check, overwrite = False, protect_structure = True)
-        
+
     def testUpdate_03_StructurePreserving_01(self):
-        
+
         p = TreeDict()
         p.a.x = 1
         p.a.y = 2
-        
+
         q = TreeDict()
         q.a = 3
 
@@ -156,13 +156,13 @@ class TestUpdate(unittest.TestCase):
         self.checkUpdate(p, q, True, check, overwrite = True, protect_structure = False)
 
     def testUpdate_03_StructurePreserving_02_noOverwrite(self):
-        
+
         p = TreeDict()
         p.a.x = 1
         p.a.y = 2
 
         ct = p.copy()
-        
+
         q = TreeDict()
         q.a = 3
 
@@ -173,20 +173,20 @@ class TestUpdate(unittest.TestCase):
         self.checkUpdate(p, q, True, check, overwrite = False, protect_structure = True)
 
     def testUpdate_03_StructurePreserving_03_correctError(self):
-        
+
         p = TreeDict()
         p.a.x = 1
         p.a.y = 2
 
         ct = p.copy()
-        
+
         q = TreeDict()
         q.a = 3
 
         self.checkUpdateBadStructure(p, q)
 
     def testUpdate_04_StructurePreserving_01(self):
-        
+
         p = TreeDict()
         p.a = 3
 
@@ -202,7 +202,7 @@ class TestUpdate(unittest.TestCase):
         self.checkUpdate(p, q, True, check, overwrite = True, protect_structure = False)
 
     def testUpdate_04_StructurePreserving_02_noOverwrite(self):
-        
+
         p = TreeDict()
         p.a = 3
 
@@ -220,7 +220,7 @@ class TestUpdate(unittest.TestCase):
 
     ################################################################################
     # Check object preservation when we're not supposed to have copying -- toy case
-    
+
     def checkUpdate_05_SameObjectPreserved_01_simple(self, overwrite, protect_structure):
         u = unique_object()
         p = TreeDict()
@@ -230,7 +230,7 @@ class TestUpdate(unittest.TestCase):
             self.assert_(r.x is u)
 
         self.checkUpdate(p, q, False, check, overwrite, protect_structure)
- 
+
     def testUpdate_05_SameObjectPreserved_01_simple_FF(self):
         self.checkUpdate_05_SameObjectPreserved_01_simple(False, False)
 
@@ -252,13 +252,13 @@ class TestUpdate(unittest.TestCase):
 
         q = random_tree(0, 50)
         cq = q.copy()
-        
+
         def check(r):
             for k, v in chain(cp.iteritems(), cq.iteritems()):
                 self.assert_(r[k] is v)
 
         self.checkUpdate(p, q, False, check, overwrite, protect_structure)
- 
+
     def testUpdate_05_SameObjectPreserved_02_complex_FF(self):
         self.checkUpdate_05_SameObjectPreserved_02_complex(False, False)
 
@@ -298,11 +298,11 @@ class TestUpdate(unittest.TestCase):
 
         q = random_tree(0, 50)
         cq = q.copy()
-        
+
         def check(r):
             for k in chain(cp.iterkeys(recursive = True, branch_mode = 'only'),
                            cq.iterkeys(recursive = True, branch_mode = 'only')):
-                
+
                 self.assert_(r[k].rootNode() is r)
 
         self.checkUpdate(p, q, False, check, overwrite, protect_structure)
@@ -349,7 +349,7 @@ class TestUpdate(unittest.TestCase):
 
     def testUpdate_08_TreeValuesProperlyHandled_FTT(self):
         self.checkUpdate_08_TreeValuesProperlyHandled(False, True, True)
-        
+
     def testUpdate_08_TreeValuesProperlyHandled_TFF(self):
         self.checkUpdate_08_TreeValuesProperlyHandled(True, False, False)
 
@@ -382,10 +382,10 @@ class TestUpdate(unittest.TestCase):
 
         self.assert_(p.a.b == p2.a.b)
         self.assert_(p.a.b is p2.a.b)
-        
+
         self.assert_(p.a.c == p2.a.c)
         self.assert_(p.a.c is p2.a.c)
-            
+
         self.assert_(p == p2)
 
     def testUpdate_10_rewritingLocal(self):
@@ -460,10 +460,10 @@ class TestUpdate(unittest.TestCase):
 
     ################################################################################
     # Making sure branch values are not wrongly attached
- 
+
     def checkUpdate_14_branchValuesNotAttached_01(self, overwrite, protect_structure):
         p = TreeDict()
-        
+
         ax = p.a.x = TreeDict()
         ay = p.a.y = unique_object()
         p.b = 2
@@ -542,7 +542,7 @@ class TestUpdate(unittest.TestCase):
     def testUpdate_WithFreezing_01(self):
 
         p = TreeDict()
-        
+
         p.a.x = 1
 
         q = TreeDict()
@@ -557,7 +557,7 @@ class TestUpdate(unittest.TestCase):
     def testUpdate_WithFreezing_02(self):
 
         p = TreeDict()
-        
+
         p.a.x = 1
 
         p.freeze()
@@ -574,7 +574,7 @@ class TestUpdate(unittest.TestCase):
     def testUpdate_WithFreezing_StructureOnly_01(self):
 
         p = TreeDict()
-        
+
         p.a = 1
         p.freeze(structure_only = True)
 
@@ -588,7 +588,7 @@ class TestUpdate(unittest.TestCase):
     def testUpdate_WithFreezing_StructureOnly_02(self):
 
         p = TreeDict()
-        
+
         p.a = 1
         p.freeze(structure_only = True)
 
@@ -604,7 +604,7 @@ class TestUpdate(unittest.TestCase):
     def testUpdate_WithFreezing_StructureOnly_03(self):
 
         p = TreeDict()
-        
+
         p.a.x = 1
         p.freeze(structure_only = True)
 
@@ -621,7 +621,7 @@ class TestUpdate(unittest.TestCase):
     def testUpdate_WithFreezing_StructureOnly_04(self):
 
         p = TreeDict()
-        
+
         p.a.x = 1
         p.freeze('a', structure_only = True)
 
@@ -633,6 +633,92 @@ class TestUpdate(unittest.TestCase):
 
         self.assert_(p.a.x == 2)
         self.assert_(p.b == 3)
+
+    def testUpdate_WithFreezing_ValuesOnly_01(self):
+
+        p = TreeDict()
+
+        p.a = 1
+        p.freeze(values_only = True)
+
+        q = TreeDict()
+        q.b = 2
+
+        p.update(q)
+
+        self.assert_(p.a == 1)
+        self.assert_(p.b == 2)
+
+    def testUpdate_WithFreezing_ValuesOnly_02(self):
+
+        p = TreeDict()
+
+        p.a.b = 1
+        p.freeze(values_only = True)
+
+        q = TreeDict()
+        q.a.c = 2
+
+        p.update(q)
+
+        self.assert_(p.a.b == 1)
+        self.assert_(p.a.c == 2)
+
+    def testUpdate_WithFreezing_ValuesOnly_03(self):
+
+        p = TreeDict()
+
+        p.b = 1
+        p.freeze(values_only = True)
+
+        q = TreeDict()
+        q.b = 2
+
+        self.assertRaises(TypeError, lambda: p.update(q) )
+
+    def testUpdate_WithFreezing_ValuesOnly_04(self):
+
+        p = TreeDict()
+
+        p.a.b = 1
+        p.freeze(values_only = True)
+
+        q = TreeDict()
+        q.a.b = 2
+
+        self.assertRaises(TypeError, lambda: p.update(q) )
+
+
+    def testUpdate_WithFreezing_ValuesOnly_05(self):
+
+        p = TreeDict()
+
+        p.a.b = 1
+        p.a.c.d = 2
+        p.freeze(values_only = True)
+
+        q = TreeDict()
+        q.a.c.e = 3
+
+        p.update(q)
+
+        self.assert_(p.a.b == 1)
+        self.assert_(p.a.c.d == 2)
+        self.assert_(p.a.c.e == 3)
+
+    def testUpdate_WithFreezing_ValuesOnly_06(self):
+
+        p = TreeDict()
+
+        p.a.b.c = 1
+        p.freeze(values_only = True)
+
+        q = TreeDict()
+        q.a.b = 2
+
+        self.assertRaises(TypeError, lambda: p.update(q) )
+
+
 
 
 if __name__ == '__main__':
