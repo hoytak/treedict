@@ -167,9 +167,12 @@ cdef inline str catNames(str s1, str s2):
 
 
 ################################################################################
-# A unique value that never needs to be stored in a node.
+# Unique values meant for special cases
 
-cdef class _NoDefault(object): pass
+cdef class _UniqueLocalValue(object): pass
+
+cdef object _NoDefault = _UniqueLocalValue
+cdef object _DeletionValue = _UniqueLocalValue
 
 ################################################################################
 # A dictionary that holds instances of certain trees so modules can
@@ -1379,6 +1382,10 @@ cdef class TreeDict(object):
                         raise UnwritableTypeError("Structure of '%s' frozen, cannot modify '%s'"
                                         % (self._branchName(False, True), k))
 
+                    if (v is _DeletionValue):
+                        raise UnwritableTypeError("Structure of '%s' frozen, cannot delete '%s'"
+                                        % (self._branchName(False, True), k))
+
                 elif (_flagOn(&self._flags, f_only_existing_values_frozen)):
                     if replacing_value is not None:
                         raise UnwritableTypeError("Value '%s' in '%s' frozen; cannot modify."
@@ -1548,7 +1555,7 @@ cdef class TreeDict(object):
 
     def __delattr__(self, str k):
         try:
-            self._prune(k, False)
+            self._cut(k, self._param_dict[k])
         except KeyError, ke:
             raise AttributeError(str(ke))
         except Exception, e:
@@ -1565,14 +1572,22 @@ cdef class TreeDict(object):
             if DEBUG_MODE: raise
             else: raise e
 
-    cdef _cut(self, str k):
+    cdef _cut(self, str k, _PTreeNode pn):
 
         cdef TreeDict p
 
-        self._ensureWriteable(k, None, None)
+        if pn is None:
+            pn = self._param_dict[k]
+
+        self._ensureWriteable(k, _DeletionValue, pn)
 
         # Legit if this raises an error
-        cdef _PTreeNode pn = self._param_dict.pop(k)
+        if DEBUG_MODE:
+            pn2 = self._param_dict.pop(k)
+            assert pn2 is pn
+            del pn2
+        else:
+            self._param_dict.pop(k)
 
         self._keyDeleted(k, pn)
 
@@ -1648,10 +1663,10 @@ cdef class TreeDict(object):
                 for k, pn in self._param_dict.items():
                     if b_mode == i_BranchMode_Only:
                         if pn.isBranch():
-                            self._cut(k)
+                            self._cut(k, pn)
                     elif b_mode == i_BranchMode_None:
                         if not pn.isBranch():
-                            self._cut(k)
+                            self._cut(k, pn)
         except Exception, e:
             if DEBUG_MODE: raise
             else: raise e
@@ -1829,17 +1844,21 @@ cdef class TreeDict(object):
 
         # The False/True here controls whether it's okay to prune a
         # dangling node
-        if not b._existsLocal(kl, True):
+
+
+        pn = b._getLocalPTNode(kl)
+
+        if pn is None:
             raise KeyError(repr(k))
 
-        v = b._cut(kl)
+        v = b._cut(kl, pn)
 
         if aggressive:
             bottom = self._getBottomNode(k)
 
             while b is not bottom and not b.isRoot() and b.isEmpty():
                 p = b._parent()
-                p._cut(b._name)
+                p._cut(b._name, b._getLocalPTNode(b._name))
                 b = p
 
         return v

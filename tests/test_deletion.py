@@ -44,7 +44,7 @@ class TestPruning(unittest.TestCase):
         h1 = p.hash()
 
         self.assert_('a.b.c' in p)
-        
+
         p.pop('a.b.c')
 
         self.assert_('a.b.c' not in p)
@@ -63,7 +63,7 @@ class TestPruning(unittest.TestCase):
         h1 = p.hash()
 
         self.assert_('a.b.c' in p)
-        
+
         p.pop('a.b.c', prune_empty=True)
 
         self.assert_('a.b' not in p)
@@ -117,7 +117,7 @@ class TestPruning(unittest.TestCase):
         self.assert_(p1 == p2)
 
         self.assertRaises(KeyError, lambda: p1.pop("testnode_nonexistent"))
-                          
+
         p1.pop("testnode_nonexistent", silent=True)
 
         self.assert_(p1 == p2)
@@ -137,7 +137,7 @@ class TestPruning(unittest.TestCase):
         self.assert_(p1 == p2)
 
         self.assertRaises(KeyError, lambda: p1.popitem("testnode_nonexistent"))
-                          
+
         p1.pop("testnode_nonexistent", silent=True)
 
         self.assert_(p1 == p2)
@@ -151,7 +151,7 @@ class TestPruning(unittest.TestCase):
 class TestDeletion(unittest.TestCase):
 
     def testDeletion_01(self):
-        
+
         p = TreeDict()
         p.a = 1
 
@@ -163,7 +163,7 @@ class TestDeletion(unittest.TestCase):
 
 
     def testDeletion_02(self):
-        
+
         p = TreeDict()
         p.a.b.c = 1
 
@@ -184,13 +184,13 @@ class TestDeletion(unittest.TestCase):
 
         self.assert_(a.rootNode() is not p)
         self.assert_(a.parentNode() is None)
-        
+
     def testDeletion_04_properException_Attribute(self):
         p = TreeDict()
 
         def f():
             del p.a
-        
+
         self.assertRaises(AttributeError, f)
 
     def testDeletion_05_properException_Keys_1(self):
@@ -198,25 +198,25 @@ class TestDeletion(unittest.TestCase):
 
         def f():
             del p["a"]
-        
+
         self.assertRaises(KeyError, f)
 
     def testDeletion_05_properException_Keys_2(self):
         p = TreeDict()
         def f():
             del p[0]
-        
+
         self.assertRaises(KeyError, f)
 
     def testDeletion_05_properException_Keys_3(self):
         p = TreeDict()
         def f():
             del p[None]
-        
+
         self.assertRaises(KeyError, f)
 
     ##################################################
-    # Freezing values 
+    # Freezing values
 
     def testDeletion_06_Frozen(self):
         p = TreeDict()
@@ -227,7 +227,7 @@ class TestDeletion(unittest.TestCase):
 
         def f():
             del p.a
-        
+
         self.assertRaises(TypeError, f)
 
     def testDeletion_07_Frozen(self):
@@ -239,7 +239,7 @@ class TestDeletion(unittest.TestCase):
 
         def f():
             del p.a.x
-        
+
         self.assertRaises(TypeError, f)
 
     def testDeletion_08_Frozen(self):
@@ -264,7 +264,7 @@ class TestDeletion(unittest.TestCase):
 
         def f():
             del p.a
-        
+
         self.assertRaises(TypeError, f)
 
     def testDeletion_10_Frozen_StructureOnly(self):
@@ -276,8 +276,10 @@ class TestDeletion(unittest.TestCase):
 
         def f():
             del p.a.x
-        
+
         self.assertRaises(TypeError, f)
+
+        self.assert_(p.a.x == 1)
 
     def testDeletion_11_Frozen_StructureOnly(self):
         p = TreeDict()
@@ -289,7 +291,161 @@ class TestDeletion(unittest.TestCase):
         del p.a
 
         self.assert_('a' not in p)
-        
+
+    def testDeletion_12_Frozen_ValuesOnly(self):
+        p = TreeDict()
+
+        p.x = 1
+
+        p.freeze(values_only = True)
+
+        def f():
+            del p.x
+
+        self.assertRaises(TypeError, f)
+
+        self.assert_(p.x == 1)
+
+    def testDeletion_13_Frozen_ValuesOnly(self):
+        p = TreeDict()
+
+        p.a.x = 1
+
+        p.freeze('a', values_only = True)
+
+        def f():
+            del p.a.x
+
+        self.assertRaises(TypeError, f)
+
+        self.assert_(p.a.x == 1)
+
+    def testDeletion_14_Frozen_ValuesOnly(self):
+        p = TreeDict()
+
+        p.a.x = 1
+
+        p.freeze('a', values_only = True)
+
+        del p.a
+
+        self.assert_('a' not in p)
+
+
+    def testDeletionPI_06_Frozen(self):
+        p = TreeDict()
+
+        p.a.x = 1
+
+        p.freeze()
+
+        def f():
+            p.popitem('a')
+
+        self.assertRaises(TypeError, f)
+
+    def testDeletionPI_07_Frozen(self):
+        p = TreeDict()
+
+        p.a.x = 1
+
+        p.freeze('a')
+
+        def f():
+            p.popitem('a.x')
+
+        self.assertRaises(TypeError, f)
+
+    def testDeletionPI_08_Frozen(self):
+        p = TreeDict()
+
+        p.a.x = 1
+
+        p.freeze('a')
+
+        p.popitem('a')
+
+        self.assert_('a' not in p)
+
+
+
+    def testDeletionPI_09_Frozen_StructureOnly(self):
+        p = TreeDict()
+
+        p.a.x = 1
+
+        p.freeze(structure_only = True)
+
+        def f():
+            p.popitem('a')
+
+        self.assertRaises(TypeError, f)
+
+    def testDeletionPI_10_Frozen_StructureOnly(self):
+        p = TreeDict()
+
+        p.a.x = 1
+
+        p.freeze('a', structure_only = True)
+
+        def f():
+            p.popitem('a.x')
+
+        self.assertRaises(TypeError, f)
+
+        self.assert_(p.a.x == 1)
+
+    def testDeletionPI_11_Frozen_StructureOnly(self):
+        p = TreeDict()
+
+        p.a.x = 1
+
+        p.freeze('a', structure_only = True)
+
+        p.popitem('a')
+
+        self.assert_('a' not in p)
+
+    def testDeletionPI_12_Frozen_ValuesOnly(self):
+        p = TreeDict()
+
+        p.x = 1
+
+        p.freeze(values_only = True)
+
+        def f():
+            p.popitem('x')
+
+        self.assertRaises(TypeError, f)
+
+        self.assert_(p.x == 1)
+
+    def testDeletionPI_13_Frozen_ValuesOnly(self):
+        p = TreeDict()
+
+        p.a.x = 1
+
+        p.freeze('a', values_only = True)
+
+        def f():
+            p.popitem('a.x')
+
+        self.assertRaises(TypeError, f)
+
+        self.assert_(p.a.x == 1)
+
+    def testDeletionPI_14_Frozen_ValuesOnly(self):
+        p = TreeDict()
+
+        p.a.x = 1
+
+        p.freeze('a', values_only = True)
+
+        del p.a
+
+        self.assert_('a' not in p)
+
+
 if __name__ == '__main__':
     unittest.main()
 

@@ -582,6 +582,15 @@ class TestBranches(unittest.TestCase):
 
         self.assert_(p.b.valuesAreFrozen())
 
+    def testBranchHasValuePropegationFlags_02(self):
+
+        p = TreeDict()
+        p.a = 1
+        p.freeze(values_only = True)
+        p.makeBranch('b')
+
+        self.assert_(p.b.valuesAreFrozen())
+
 
 class TestDangling(unittest.TestCase):
 
