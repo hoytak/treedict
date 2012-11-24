@@ -241,7 +241,7 @@ class TestAttachPop(unittest.TestCase):
 
         p.attach(recursive=True)
 
-    def testRecursiveAttaching_04_error_on_frozen(self):
+    def testRecursiveAttach_04_error_on_frozen(self):
 
         p = TreeDict()
         p.b = TreeDict(x = 1)
@@ -252,6 +252,23 @@ class TestAttachPop(unittest.TestCase):
         self.assert_(p.b.isRoot())
         self.assert_(p.b not in p.branches())
         self.assert_(p.size() == 1)
+
+    def testRecursiveAttach_05_ValueFrozen(self):
+        # Disable; not sure it's best anyway
+        return
+
+        p1 = TreeDict('root')
+        p1.b1 = TreeDict('new_branch')
+
+        p1.freeze(values_only = True)
+
+        self.assert_(p1.b1.isRoot())
+        self.assert_(p1.b1.branchName(True,True) == 'new_branch')
+
+        p1.attach(copy=True, recursive=True)
+
+        self.assert_(p1.b1.rootNode() is p1)
+        self.assert_(p1.b1.branchName(True,True) == 'root.b1')
 
     # This one would be a lot of work to fix, for what gain?
 
@@ -866,7 +883,6 @@ class TestDangling(unittest.TestCase):
     def testDangling_14_CorrectParentingSetAtFixing_04(self):
 
         p = TreeDict()
-        v = unique_object()
 
         p.makeBranch('cc')
 
@@ -884,7 +900,6 @@ class TestDangling(unittest.TestCase):
     def testDangling_14_CorrectParentingSetAtFixing_05(self):
 
         p = TreeDict()
-        v = unique_object()
 
         p.makeBranch('cc')
 
@@ -897,6 +912,17 @@ class TestDangling(unittest.TestCase):
 
         # Now b should be
         self.assert_(p.aa.a.branchName() == 'a')
+
+    def testDangling_15_DanglingWhileValueFrozen_01(self):
+
+        p = TreeDict()
+        p.freeze(values_only = True)
+
+        p.x = 1
+        p.b.x = 2
+        p.a.b.c.d = 3
+        p.a.b.c.e = 4
+
 
 if __name__ == '__main__':
     unittest.main()

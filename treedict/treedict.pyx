@@ -1372,7 +1372,7 @@ cdef class TreeDict(object):
 
     cdef _ensureWriteable(self, str k, v, _PTreeNode replacing_value):
 
-        if self.isFrozen():
+        if _flagOn(&self._flags, f_is_frozen):
             if k is not None:
 
                 # It's possible to replace the current value if only the structure is frozen
@@ -2097,7 +2097,9 @@ cdef class TreeDict(object):
         This also returns True if
         """
 
-        return _flagOn(&self._flags, f_is_frozen)
+        return (_flagOn(&self._flags, f_is_frozen)
+            and not _flagOn(&self._flags, f_only_structure_is_frozen)
+            and not _flagOn(&self._flags, f_only_existing_values_frozen))
 
     cpdef bint structureIsFrozen(self):
         """
@@ -2593,11 +2595,11 @@ cdef class TreeDict(object):
         if _flagOn(&self._flags, f_getattr_called):
             raise Exception("Programming Error: Multiple (recursive?) __getattr__ with '%s'" % k)
 
+        cdef bint allow_dangling_nodes = not (self.isFrozen() or self.structureIsFrozen())
 
         cdef flagtype gsp = (f_retrieve_dangling_okay
-                             | (f_create_node_if_needed if not self.isFrozen() else 0))
-
-        cdef bint allow_dangling_nodes = False if self.isFrozen() else True
+                             | (f_create_node_if_needed
+                                if not allow_dangling_nodes else 0))
 
         try:
             _setFlagOn(&self._flags, f_getattr_called)

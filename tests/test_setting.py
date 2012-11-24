@@ -380,7 +380,6 @@ class TestSetting(unittest.TestCase):
 
         self.assertRaises(TypeError, lambda: p.set('a.b', None) )
 
-
     ############################################################
     # Testing the checkset function
 
