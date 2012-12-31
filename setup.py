@@ -7,7 +7,7 @@
 source_directory_list = ['treedict']
 compiler_args = []
 link_args = []
-version = "0.12"
+version = "0.13"
 description="A fast and full-featured dict-like tree container to simplify the bookkeeping surrounding parameters, variables and data."
 author = "Hoyt Koepke"
 author_email="hoytak@gmail.com"
@@ -19,9 +19,10 @@ download_url = "http://pypi.python.org/packages/source/t/treedict/treedict-%s.ta
 long_description = \
 """
 TreeDict is a dictionary-like, hierarchical python container to
-simplify the bookkeeping surrounding parameters, variables and
-data. It aims to be fast, lightweight, intuitive, feature-rich and
-stable.
+simplify the bookkeeping surrounding configuration options,
+parameters, variables -- in general, any data type naturally organized
+in a tree or hierarchy.  It aims to be fast, lightweight, intuitive,
+feature-rich, stable, and use pythonic syntax.
 
 While intended for general python development, it includes a number of
 features particularly useful for scientific programming.  It is
@@ -31,18 +32,16 @@ TreeDict implements all the methods of regular dictionaries, pickling,
 fast non-intersecting hashing for efficient caching, simple and
 advanced manipulations on the tree structure, and a system for forward
 referencing branches to make lists of parameters more readable.
-
-While still in Beta, TreeDict is well tested and extensively covered
-by unit tests.
 """
 
 classifiers = [
-    'Development Status :: 4 - Beta',
+    'Development Status :: 5 - Production/Stable',
     'Intended Audience :: Developers',
     'License :: OSI Approved :: BSD License',
     'Operating System :: OS Independent',
     'Programming Language :: Python',
     'Programming Language :: Cython',
+    'Programming Language :: C',
     'Topic :: Scientific/Engineering',
     'Topic :: Software Development',
     "Topic :: Software Development :: Libraries :: Python Modules"
