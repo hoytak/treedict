@@ -230,7 +230,19 @@ cpdef bint treeExists(str name):
 # type information along with the node. Most of the hashing
 # functionality happens here.
 
-class HashError(ValueError): pass
+class HashError(ValueError):
+    def __init__(self, *args, **kwargs):
+        ValueError.__init__(self, *args, **kwargs)
+        self.key = None
+
+    def prependKey(self, k):
+
+        if self.key is None:
+            self.key = k
+        else:
+            self.key += ('.' + k)
+
+        self.msg = self.key
 
 ########################################
 # First -- hashing functionality
@@ -3219,7 +3231,11 @@ cdef class TreeDict(object):
             if pn is None:
                 raise KeyError(repr(self._fullNameOf(key)))
 
-            pn.runFullHash(hf)
+            try:
+                pn.runFullHash(hf)
+            except HashError, he:
+                he.prependKey(key)
+                raise
 
         return self._encode_hash(h.digest())
 
@@ -3273,9 +3289,13 @@ cdef class TreeDict(object):
 
             for k, pn in sorted(self._param_dict.iteritems()):
                 if not pn.isImmutable() and not pn.isDanglingTree():
-                    self._update_hash_with_key(hf, k)
-                    self._update_hash_with_context(hf, pn)
-                    pn.runFullHash(hf)
+                    try:
+                        self._update_hash_with_key(hf, k)
+                        self._update_hash_with_context(hf, pn)
+                        pn.runFullHash(hf)
+                    except HashError, he:
+                        he.prependKey(k)
+                        raise 
 
         finally:
             _setFlagOff(&self._flags, f_visited_by_hash_function)
@@ -3299,9 +3319,14 @@ cdef class TreeDict(object):
 
             for k, pn in sorted(self._param_dict.iteritems()):
                 if pn.isBranch() and not pn.isDanglingBranch():
-                    self._update_hash_with_key(hf, k)
-                    self._update_hash_with_context(hf, pn)
-                    pn.runImmutableHash(hf)
+                    try:
+                        self._update_hash_with_key(hf, k)
+                        self._update_hash_with_context(hf, pn)
+                        pn.runImmutableHash(hf)
+                    except HashError, he:
+                        he.prependKey(k)
+                        raise 
+                        
         finally:
             _setFlagOff(&self._flags, f_visited_by_im_hash_function)
 
@@ -3320,9 +3345,13 @@ cdef class TreeDict(object):
 
             for k, pn in sorted(self._param_dict.iteritems()):
                 if pn.isImmutable():
-                    self._update_hash_with_key(hf, k)
-                    self._update_hash_with_context(hf, pn)
-                    pn.runImmutableHash(hf)
+                    try:
+                        self._update_hash_with_key(hf, k)
+                        self._update_hash_with_context(hf, pn)
+                        pn.runImmutableHash(hf)
+                    except HashError, he:
+                        he.prependKey(k)
+                        raise 
 
             hs = h.hexdigest()
             self._aux_dict[s_immutable_items_hash] = hs
