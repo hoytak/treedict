@@ -1,2 +1,2 @@
-from treedict import TreeDict, getTree, treeExists
+from treedict import TreeDict, getTree, treeExists, HashError
 

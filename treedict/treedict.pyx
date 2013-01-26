@@ -240,9 +240,9 @@ class HashError(ValueError):
         if self.key is None:
             self.key = k
         else:
-            self.key += ('.' + k)
+            self.key = k + '.' + self.key
 
-        self.msg = self.key
+        self.msg = "Key '%s' not hashable." % self.key
 
 ########################################
 # First -- hashing functionality
@@ -276,7 +276,7 @@ cdef _runValueHash(hf, value):
         try:
             hf(dumps(value, protocol=2))
         except PicklingError:
-            raise HashError
+            raise HashError()
 
 ################################################################################
 # Flags and such; trying to be as scaleable
@@ -495,7 +495,10 @@ cdef class _PTreeNode(object):
 
     cdef str _immutableHash(self):
         if self._cached_hash is None:
-            self._cached_hash = md5(dumps(self._v, protocol=2)).digest()
+            try:
+                self._cached_hash = md5(dumps(self._v, protocol=2)).digest()
+            except PicklingError:
+                raise HashError()
 
         return self._cached_hash
 

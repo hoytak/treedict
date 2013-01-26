@@ -27,7 +27,7 @@
 
 
 import random, unittest, cPickle, collections
-from treedict import TreeDict, getTree
+from treedict import TreeDict, getTree, HashError
 import treedict
 from copy import deepcopy, copy
 
@@ -276,8 +276,46 @@ class TestHashes(unittest.TestCase):
         p.freeze()
 
         self.assertRaises(RuntimeError, lambda: p.hash())
-        
 
+
+    def testHashError_01(self):
+
+        p = TreeDict()
+
+        p.a.b = lambda: None
+
+        self.assertRaises(HashError, lambda: p.hash())
+
+        try:
+            p.hash()
+        except HashError, he:
+            self.assert_(he.key == 'a.b', he.key)
+        
+    def testHashError_02(self):
+
+        p = TreeDict()
+
+        p.a.b = [lambda: None]
+
+        self.assertRaises(HashError, lambda: p.hash())
+
+        try:
+            p.hash()
+        except HashError, he:
+            self.assert_(he.key == 'a.b', he.key)
+
+    def testHashError_03(self):
+
+        p = TreeDict()
+
+        p.a.b = {'a' : lambda: None}
+
+        self.assertRaises(HashError, lambda: p.hash())
+
+        try:
+            p.hash()
+        except HashError, he:
+            self.assert_(he.key == 'a.b', he.key)
 
 if __name__ == '__main__':
     unittest.main()
