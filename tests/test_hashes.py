@@ -317,6 +317,25 @@ class TestHashes(unittest.TestCase):
         except HashError, he:
             self.assert_(he.key == 'a.b', he.key)
 
+    def testHashError_05_custom(self):
+
+        p = TreeDict()
+
+        class HType:
+            def __init__(self):
+                self.h = 1
+
+            def __treedict_hash__(self):
+                self.h += 1
+                return self.h
+
+        p.a.b.c = HType()
+
+        self.assert_(p.hash() != p.hash())
+
+
+
+
 if __name__ == '__main__':
     unittest.main()
 

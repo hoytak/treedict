@@ -272,6 +272,15 @@ cdef _runValueHash(hf, value):
     elif type(value) is TreeDict:
         hf( (<TreeDict>value)._self_hash() )
 
+    elif hasattr(value, "__treedict_hash__"):
+        try:
+            if callable(value.__treedict_hash__):
+                _runValueHash(hf, value.__treedict_hash__())
+            else:
+                _runValueHash(hf, value.__treedict_hash__)
+        except PicklingError:
+            raise HashError()
+
     else:
         try:
             hf(dumps(value, protocol=2))
@@ -347,6 +356,7 @@ DEF t_Immutable_Complex = 3
 DEF t_Tree              = 4
 DEF t_Branch            = 5
 DEF t_Unknown           = -1
+DEF t_TestHashabilityForImmutability = 6
 
 cdef dict _fast_type_determination = {
 
@@ -363,23 +373,31 @@ cdef dict _fast_type_determination = {
     # Mutable Types
     list      : t_Mutable_Complex,
     dict      : t_Mutable_Complex,
-    set       : t_Mutable_Complex
+    set       : t_Mutable_Complex,
+    tuple     : t_TestHashabilityForImmutability
     }
 
 cdef inline int itemType(v):
     cdef object t = type(v)
 
+    cdef int type_code 
+
     try:
-        return _fast_type_determination[t]
+        type_code = _fast_type_determination[t]
     except KeyError:
-        pass
+        return t_Mutable_Complex
+
+    if type_code != t_TestHashabilityForImmutability:
+        return type_code
 
     try:
         hash(v)
     except TypeError:
         return t_Mutable_Complex
-
+    
     return t_Immutable_Complex
+            
+
 
 ########################################
 
@@ -402,10 +420,6 @@ cdef class _PTreeNode(object):
 
         if type(v) is TreeDict:
             if ((<TreeDict>v)._parent() is node) and ((<TreeDict>v)._name == key):
-
-                if DEBUG_MODE:
-                    assert (<TreeDict>v)._name is key
-
                 self._t = t_Branch
             else:
                 self._t = t_Tree
@@ -495,10 +509,9 @@ cdef class _PTreeNode(object):
 
     cdef str _immutableHash(self):
         if self._cached_hash is None:
-            try:
-                self._cached_hash = md5(dumps(self._v, protocol=2)).digest()
-            except PicklingError:
-                raise HashError()
+            h = md5()
+            _runValueHash(getattr(h, 'update'), self._v)
+            self._cached_hash = h.digest()
 
         return self._cached_hash
 
