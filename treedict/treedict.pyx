@@ -960,7 +960,7 @@ cdef class TreeDict(object):
             else: raise e
 
     @classmethod
-    def fromdict(cls, d, expand_nested = False):
+    def fromdict(cls, d, expand_nested = False, mapping_function = None):
         """
         A convenience method that creates a new TreeDict instance from
         a dictionary or other object convertable to a dictionary.
@@ -985,6 +985,11 @@ cdef class TreeDict(object):
         happens in arbitrary order, it is recommended to run
         ``t.attach(recursive=True)`` on the resulting tree if this
         could be a problem.
+
+        if `mapping_function` is given, then all values are passed
+        through the function before they are examined; i.e.  ``z =
+        mapping_function(z)``.  This allows the user to set up custom
+        rules for pre-processing the input.
 
         Example 1::
 
@@ -1014,7 +1019,7 @@ cdef class TreeDict(object):
                 if type(d) is not dict:
                     d = dict(d)
 
-                p._expandDictSet({id(d) : p}, d)
+                p._expandDictSet({id(d) : p}, d, mapping_function)
 
             else:
                 p._setAll(None, d, 0)
@@ -1025,15 +1030,18 @@ cdef class TreeDict(object):
 
         return p
 
-    cdef _expandDictSet(self, dict recursion_set, dict d):
+    cdef _expandDictSet(self, dict recursion_set, dict d, mapping_function):
 
         for k, v in d.iteritems():
+            if mapping_function is not None:
+                v = mapping_function(v)
+            
             if type(v) is dict:
                 if id(v) in recursion_set:
                     self._set(k, recursion_set[id(v)], 0)
                 else:
                     tc = recursion_set[id(v)] = self.makeBranch(k)
-                    (<TreeDict>tc)._expandDictSet(recursion_set, <dict>v)
+                    (<TreeDict>tc)._expandDictSet(recursion_set, <dict>v, mapping_function)
             else:
                 self._set(k, v, 0)
 
