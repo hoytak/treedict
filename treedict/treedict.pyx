@@ -1021,16 +1021,15 @@ cdef class TreeDict(object):
 
         cdef TreeDict p = newTreeDict(s_default_tree_name, False)
 
+        if type(d) is not dict:
+            d = dict(d)
+
         if mapping_function is not None:
             d = mapping_function(d)
 
         try:
             if expand_nested:
-                if type(d) is not dict:
-                    d = dict(d)
-
                 p._expandDictSet({id(d) : p}, d, mapping_function)
-
             else:
                 p._setAll(None, d, 0)
 
