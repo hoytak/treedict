@@ -1014,6 +1014,9 @@ cdef class TreeDict(object):
 
         cdef TreeDict p = newTreeDict(s_default_tree_name, False)
 
+        if mapping_function is not None:
+            d = mapping_function(d)
+
         try:
             if expand_nested:
                 if type(d) is not dict:
@@ -1025,8 +1028,10 @@ cdef class TreeDict(object):
                 p._setAll(None, d, 0)
 
         except Exception, e:
-            if DEBUG_MODE: raise
-            else:          raise e
+            if DEBUG_MODE or hasattr(e, "__is_mapping_function_exception__"):
+                raise
+            else:
+                raise e
 
         return p
 
@@ -1034,7 +1039,11 @@ cdef class TreeDict(object):
 
         for k, v in d.iteritems():
             if mapping_function is not None:
-                v = mapping_function(v)
+                try:
+                    v = mapping_function(v)
+                except Exception, e:
+                    setattr(e, "__is_mapping_function_exception__", True)
+                    raise
             
             if type(v) is dict:
                 if id(v) in recursion_set:
