@@ -165,6 +165,13 @@ cdef inline str catNames(str s1, str s2):
     else:
         return s1 + '.' + s2
 
+cdef inline str validateKey(s):
+    if type(s) is str:
+        return s
+    elif type(s) is unicode:
+        return str(s)
+    else:
+        raise TypeError("Key name must be string or unicode.")
 
 ################################################################################
 # Unique values meant for special cases
@@ -858,21 +865,21 @@ cdef class TreeDict(object):
     ################################################################################
     # Parameters for manipulating the values
 
-    def __setattr__(self, str k, v):
+    def __setattr__(self, k, v):
         try:
-            self._setLocal(k, v, 0)
+            self._setLocal(validateKey(k), v, 0)
         except Exception, e:
             if DEBUG_MODE: raise
             else: raise e
 
-    def __setitem__(self, str k, v):
+    def __setitem__(self, k, v):
         try:
-            self._set(k, v, 0)
+            self._set(validateKey(k), v, 0)
         except Exception, e:
             if DEBUG_MODE: raise
             else: raise e
 
-    def setFromString(self, str key, str value, dict extra_variables = {}):
+    def setFromString(self, key, str value, dict extra_variables = {}):
         """
         A convenience function for setting arguments from sources in
         which a python type or expression is embedded inside a string
@@ -918,7 +925,7 @@ cdef class TreeDict(object):
             ret_status = False
 
         try:
-            self._set(key, v, 0)
+            self._set(validateKey(key), v, 0)
         except Exception, e:
             if DEBUG_MODE: raise
             else: raise e
@@ -1038,12 +1045,12 @@ cdef class TreeDict(object):
             
             if type(v) is dict:
                 if id(v) in recursion_set:
-                    self._set(k, recursion_set[id(v)], 0)
+                    self._set(validateKey(k), recursion_set[id(v)], 0)
                 else:
                     tc = recursion_set[id(v)] = self.makeBranch(k)
                     (<TreeDict>tc)._expandDictSet(recursion_set, <dict>v, mapping_function)
             else:
-                self._set(k, v, 0)
+                self._set(validateKey(k), v, 0)
 
     def convertTo(self, str format = 'nested_dict', **kwargs):
         """
@@ -1219,7 +1226,7 @@ cdef class TreeDict(object):
 
         return d
 
-    def setdefault(self, str key, value = None):
+    def setdefault(self, key, value = None):
         """
         If `key` does not exist, sets `key` eqaul to `value`, which
         defaults to None.  Returns `value` if `key` was changed;
@@ -1242,13 +1249,14 @@ cdef class TreeDict(object):
             y = 2
 
         """
+        cdef str key_ = validateKey(key)
 
         try:
-            if not self._exists(key, False):
-                self._set(key, value, 0)
+            if not self._exists(key_, False):
+                self._set(key_, value, 0)
                 return value
             else:
-                return self._get(key, False)
+                return self._get(key_, False)
         except Exception, e:
             if DEBUG_MODE: raise
             else: raise e
@@ -1363,7 +1371,9 @@ cdef class TreeDict(object):
         for i from 0 <= i < n_argsets:
             k = args[2*i]
 
-            if not type(k) is str:
+            if type(k) is unicode:
+                k = str(k)
+            elif not type(k) is str:
                 raise TypeError("Name argument (%d, '%s') not string." % (i, repr(k)))
 
             if len(<str>k) == 0:
