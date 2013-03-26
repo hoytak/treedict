@@ -1055,7 +1055,7 @@ cdef class TreeDict(object):
                 if id(v) in recursion_set:
                     self._set(validateKey(k), recursion_set[id(v)], 0)
                 else:
-                    tc = recursion_set[id(v)] = self.makeBranch(k)
+                    tc = recursion_set[id(v)] = self.makeBranch(validateKey(k))
                     (<TreeDict>tc)._expandDictSet(recursion_set, <dict>v, mapping_function)
             else:
                 self._set(validateKey(k), v, 0)
