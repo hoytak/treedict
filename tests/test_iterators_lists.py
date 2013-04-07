@@ -27,7 +27,7 @@
 
 from __future__ import division
 
-import random, unittest, cPickle, collections
+import random, unittest, collections
 from treedict import TreeDict, getTree
 import treedict
 from copy import deepcopy, copy
@@ -36,6 +36,9 @@ from hashlib import md5
 import random
 
 from common import *
+
+
+import sys
 
 class TestIteratorsLists(unittest.TestCase):
 
@@ -122,7 +125,7 @@ class TestIteratorsLists(unittest.TestCase):
         for i, k in enumerate(kl):
             p.set(k, i)
 
-        self.assert_(set(p.iterkeys()) == set(kl))
+        self.assertEqual(set(p.iterkeys()), set(kl))
         self.assert_(set(p.itervalues()) == set(range(n)))
 
     def _checkAllIterators(self, p, test, rid):
@@ -785,7 +788,7 @@ class TestIteratorsLists(unittest.TestCase):
         it = p.iterkeys()
         
         self.assertRaises(RuntimeError, lambda: p.pop('a'))
-        it.next()
+        it.__next__()
         self.assertRaises(RuntimeError, lambda: p.pop('a'))
         
         del it
@@ -825,7 +828,7 @@ class TestIteratorsLists(unittest.TestCase):
             else:
                 return p.iteritems(recursive, branch_mode)
 
-        iter_list = [newIter() for i in xrange(n_iter)]
+        iter_list = [newIter() for i in range(n_iter)]
 
         while len(iter_list) > 0:
 
@@ -833,7 +836,7 @@ class TestIteratorsLists(unittest.TestCase):
 
             for i, it in enumerate(iter_list):
                 try:
-                    it.next()
+                    it.__next__()
                 except StopIteration:
                     self.assert_(p._iteratorRefCount() <= len(iter_list))
                     del_queue.append(i)

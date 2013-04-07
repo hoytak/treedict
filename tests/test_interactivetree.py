@@ -26,7 +26,11 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-import random, unittest, cPickle, collections
+import random, unittest, collections
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 from treedict import TreeDict, getTree
 import treedict
 from copy import deepcopy, copy
@@ -57,8 +61,8 @@ class TestInteractiveTreeDict(unittest.TestCase):
     def testInteractiveTree_04_pickling(self):
         p = sample_tree()
 
-        s = cPickle.dumps(p.interactiveTree(), protocol=0)
-        ipt = cPickle.loads(s)
+        s = pickle.dumps(p.interactiveTree(), protocol=0)
+        ipt = pickle.loads(s)
 
         self.assert_(ipt.treeDict() == p)
         self.assert_(p.interactiveTree() == ipt)

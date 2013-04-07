@@ -33,12 +33,14 @@
 # want to weight the results so that starting overlaps are weighted
 # closer.
 
+import sys
+
+#cdef bint IS_PYTHON2 = sys.version_info[0] <= 2
 
 from minsmaxes cimport min3
 from membuffers cimport size_t_v, resize_size_t_v
 import warnings
 from minsmaxes cimport min2_long
-
 
 cdef inline long _combine_scores(long n_beginning, long n_groups, long n_end_groups, long n1, long n2, long ldist):
     # make sure that beginning matching is most important
@@ -57,8 +59,10 @@ cdef inline long name_match_distance(size_t_v *calc_buffer,
     if n1 == 0: return n2
     if n2 == 0: return n1
 
-    cdef char* s = <bytes>s1
-    cdef char* t = <bytes>s2
+    s_s1 = s1.encode('utf-8')
+    t_s2 = s2.encode('utf-8')
+    cdef char* s = s_s1
+    cdef char* t = t_s2
     
     cdef size_t n_beginning = 0, n_groups = 0, n_end_groups = 0
 
@@ -103,8 +107,11 @@ cdef inline long editDistance(size_t_v *calc_buffer, str s1, str s2):
     if s1 == s2: 
         return 0
 
-    cdef char* s = <bytes>s1
-    cdef char* t = <bytes>s2
+    s_s1 = s1.encode('utf-8')
+    t_s2 = s2.encode('utf-8')
+    cdef char* s = s_s1
+    cdef char* t = t_s2
+
     
     # Get the overlap at the beginning; this is important
     while s[0] == t[0]:

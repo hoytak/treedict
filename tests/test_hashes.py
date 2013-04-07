@@ -26,7 +26,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-import random, unittest, cPickle, collections
+import random, unittest, collections
 from treedict import TreeDict, getTree, HashError
 import treedict
 from copy import deepcopy, copy
@@ -288,7 +288,7 @@ class TestHashes(unittest.TestCase):
 
         try:
             p.hash()
-        except HashError, he:
+        except HashError as he:
             self.assert_(he.key == 'a.b', he.key)
         
     def testHashError_02(self):
@@ -301,7 +301,7 @@ class TestHashes(unittest.TestCase):
 
         try:
             p.hash()
-        except HashError, he:
+        except HashError as he:
             self.assert_(he.key == 'a.b', he.key)
 
     def testHashError_03(self):
@@ -314,7 +314,7 @@ class TestHashes(unittest.TestCase):
 
         try:
             p.hash()
-        except HashError, he:
+        except HashError as he:
             self.assert_(he.key == 'a.b', he.key)
 
     def testHashError_05_custom(self):
