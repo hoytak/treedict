@@ -29,8 +29,12 @@ from minsmaxes     cimport min2, max2, max2_long, min2_long
 from membuffers    cimport size_t_v, new_size_t_v, free_size_t_v
 
 # python imports.
+import sys
 import copy as copy_module
-import cPickle
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 import hashlib
 import warnings
 import re
@@ -38,6 +42,8 @@ import inspect
 import base64
 import heapq
 import weakref
+
+cdef bint IS_PYTHON2 = sys.version_info[0] <= 2
 
 ################################################################################
 # Some preliminary debug stuff
@@ -49,8 +55,8 @@ cdef extern from "debug_import.h":
 # Early bindings to avoid unneeded lookups in the c code
 
 cdef object md5 = hashlib.md5
-cdef object dumps = cPickle.dumps
-cdef object PicklingError = cPickle.PicklingError
+cdef object dumps = pickle.dumps
+cdef object PicklingError = pickle.PicklingError
 cdef object copy_f = copy_module.copy
 cdef object deepcopy_f = copy_module.deepcopy
 cdef object b64encode = base64.b64encode
@@ -255,24 +261,25 @@ class HashError(ValueError):
 # First -- hashing functionality
 cdef _runValueHash(hf, value):
     if type(value) is dict:
-        hf("$$$DICT")
-        for k, v in sorted((<dict>value).iteritems()):
+        hf("$$$DICT".encode('utf-8'))
+        value_items = (<dict>value).iteritems() if IS_PYTHON2 else (<dict>value).items()
+        for k, v in sorted(value_items):
             _runValueHash(hf, k)
-            hf(":")
+            hf(":".encode('utf-8'))
             _runValueHash(hf, v)
 
     elif type(value) is set:
-        hf("$$$SET")
+        hf("$$$SET".encode('utf-8'))
         for v in sorted(value):
             _runValueHash(hf, v)
 
     elif type(value) is list:
-        hf("$$$LIST")
+        hf("$$$LIST".encode('utf-8'))
         for v in (<list>value):
             _runValueHash(hf, v)
 
     elif type(value) is tuple:
-        hf("$$$TUPLE")
+        hf("$$$TUPLE".encode('utf-8'))
         for v in (<tuple>value):
             _runValueHash(hf, v)
 
@@ -375,7 +382,7 @@ cdef dict _fast_type_determination = {
     unicode : t_Immutable_Simple,
     complex : t_Immutable_Simple,
     float   : t_Immutable_Simple,
-    str     : t_Immutable_Simple,
+    bytes   : t_Immutable_Simple,
 
     # Mutable Types
     list      : t_Mutable_Complex,
@@ -419,7 +426,7 @@ cdef class _PTreeNode(object):
     cdef object    _v
     cdef int       _t
     cdef size_t    _order_position
-    cdef str       _cached_hash
+    cdef bytes     _cached_hash
 
     cdef _set_it(self, TreeDict node, str key, v, size_t _order_position):
 
@@ -486,7 +493,7 @@ cdef class _PTreeNode(object):
 
         return (<TreeDict>self._v)._parent() is parent
 
-    cdef str fullHash(self):
+    cdef bytes fullHash(self):
         h = md5()
         hf = getattr(h, 'update')
         self.runFullHash(hf)
@@ -510,11 +517,11 @@ cdef class _PTreeNode(object):
         # Only update it if the item is in the immutable
 
         if self._t == t_Immutable_Simple:
-            hf(repr(self._v))
+            hf(repr(self._v).encode('utf-8'))
         elif self._t == t_Immutable_Complex:
             hf(self._immutableHash())
 
-    cdef str _immutableHash(self):
+    cdef bytes _immutableHash(self):
         if self._cached_hash is None:
             h = md5()
             _runValueHash(getattr(h, 'update'), self._v)
@@ -1043,7 +1050,8 @@ cdef class TreeDict(object):
 
     cdef _expandDictSet(self, dict recursion_set, dict d, mapping_function):
 
-        for k, v in d.iteritems():
+        d_items = d.iteritems() if IS_PYTHON2 else d.items()
+        for k, v in d_items:
             if mapping_function is not None:
                 try:
                     v = mapping_function(v)
@@ -1146,7 +1154,7 @@ cdef class TreeDict(object):
                                  "are mutually exclusive.")
 
             if kwargs:
-                raise TypeError("Unrecognized keyword arguments: " + ', '.join(kwargs.iterkeys()))
+                raise TypeError("Unrecognized keyword arguments: " + ', '.join(kwargs.keys()))
 
             d = {}
             return self._fillNestedDict(d, {id(self) : d}, {}, convert_values,
@@ -1164,7 +1172,8 @@ cdef class TreeDict(object):
         cdef list l, new_list
         cdef size_t i
 
-        for k, pn in self._param_dict.items():
+        _param_dict_listitems = self._param_dict.items() if IS_PYTHON2 else list(self._param_dict.items())
+        for k, pn in _param_dict_listitems:
             if pn.isBranch() or (convert_values and pn.isTree()):
 
                 if not pn.isDanglingTree() and not (prune_empty and pn.tree().isEmpty()):
@@ -1395,7 +1404,8 @@ cdef class TreeDict(object):
             # test it
             self._set(<str>k, v, flags | f_check_only)
 
-        for k, v in kwargs.iteritems():
+        kwargs_items = kwargs.iteritems() if IS_PYTHON2 else kwargs.items()
+        for k, v in kwargs_items:
             if not type(k) is str:
                 raise TypeError("Name argument '%s' not string." % repr(k))
 
@@ -1406,7 +1416,8 @@ cdef class TreeDict(object):
             for i from 0 <= i < n_argsets:
                 self._set(<str>key_list[i], val_list[i], flags | f_already_checked)
 
-            for k, v in kwargs.iteritems():
+            kwargs_items = kwargs.iteritems() if IS_PYTHON2 else kwargs.items()
+            for k, v in kwargs_items:
                 self._set(<str>k, v, flags | f_already_checked)
 
     cdef _set(self, str k, value, flagtype base_flags):
@@ -1433,11 +1444,11 @@ cdef class TreeDict(object):
                 if (_flagOn(&self._flags, f_only_structure_is_frozen)):
 
                     if (replacing_value is None or replacing_value.isBranch()):
-                        raise UnwritableTypeError("Structure of '%s' frozen, cannot modify '%s'"
+                        raise UnwritableTypeError("structure of '%s' frozen, cannot modify '%s'"
                                         % (self._branchName(False, True), k))
 
                     if (v is _DeletionValue):
-                        raise UnwritableTypeError("Structure of '%s' frozen, cannot delete '%s'"
+                        raise UnwritableTypeError("structure of '%s' frozen, cannot delete '%s'"
                                         % (self._branchName(False, True), k))
 
                 elif (_flagOn(&self._flags, f_only_existing_values_frozen)):
@@ -1524,8 +1535,9 @@ cdef class TreeDict(object):
     cdef _reworkOrderValues(self):
         cdef _PTreeNode pn
 
+        _param_dict_values = self._param_dict.itervalues() if IS_PYTHON2 else self._param_dict.values()
         cdef list vl = sorted([pn.orderPosition()
-                               for pn in self._param_dict.itervalues()])
+                               for pn in _param_dict_values])
 
         if len(vl) > _orderNodeMaxNum:
             raise OverflowError("Maximum number of branches/leaves (%d) exceeded."
@@ -1714,7 +1726,8 @@ cdef class TreeDict(object):
                 self._n_mutable = 0
                 self._next_item_order_position = _orderNodeStartingValue
             else:
-                for k, pn in self._param_dict.items():
+                _param_dict_listitems = self._param_dict.items() if IS_PYTHON2 else list(self._param_dict.items())
+                for k, pn in _param_dict_listitems:
                     if b_mode == i_BranchMode_Only:
                         if pn.isBranch():
                             self._cut(k, pn)
@@ -2111,7 +2124,8 @@ cdef class TreeDict(object):
 
         cdef _PTreeNode pn
 
-        for k, pn in self._param_dict.iteritems():
+        _param_dict_listitems = self._param_dict.items() if IS_PYTHON2 else list(self._param_dict.items())
+        for k, pn in _param_dict_listitems:
             if pn.isTree():
                 pn.tree()._recursiveAttach(flags)
             if pn.isNonBranchTree():
@@ -3091,7 +3105,8 @@ cdef class TreeDict(object):
 
         cdef _PTreeNode pn1, pn2
 
-        for k, pn1 in self._param_dict.iteritems():
+        _param_dict_items = self._param_dict.iteritems() if IS_PYTHON2 else self._param_dict.items()
+        for k, pn1 in _param_dict_items:
 
             if pn1.isImmutable():
                 continue
@@ -3130,7 +3145,8 @@ cdef class TreeDict(object):
 
         # Mutable tests; if there are no mutable items, then go with
 
-        for k, pn in self._param_dict.iteritems():
+        _param_dict_items = self._param_dict.iteritems() if IS_PYTHON2 else self._param_dict.items()
+        for k, pn in _param_dict_items:
             if pn.isMutable() or (pn.isTree() and pn.tree().isMutable()):
                 return k
 
@@ -3158,7 +3174,8 @@ cdef class TreeDict(object):
 
         cdef _PTreeNode pn
 
-        for k, pn in self._param_dict.iteritems():
+        _param_dict_items = self._param_dict.iteritems() if IS_PYTHON2 else self._param_dict.items()
+        for k, pn in _param_dict_items:
             if pn.isTree() and pn.tree().isMutable():
                 return True
 
@@ -3252,14 +3269,17 @@ cdef class TreeDict(object):
             if DEBUG_MODE: raise
             else: raise e
 
-    cdef str _reportable_hash(self, str key, str digest):
+    cdef bytes _reportable_hash(self, str key, bytes digest):
         return key + "-" + digest
 
-    cdef str _encode_hash(self, str s):
+    cdef bytes _encode_hash(self, bytes s):
+        if IS_PYTHON2:
         return (b64encode(s).replace('=', '').replace('+', '').replace('/',''))[:10]
+        else:
+            return b64encode(s)
 
     # Hash for a list of keys
-    cdef str _item_set_hash(self, set keys):
+    cdef bytes _item_set_hash(self, set keys):
         cdef str key
         cdef _PTreeNode pn
 
@@ -3282,7 +3302,7 @@ cdef class TreeDict(object):
         return self._encode_hash(h.digest())
 
     # Hash for specific item
-    cdef str _item_hash(self, str key):
+    cdef bytes _item_hash(self, str key):
 
         cdef _PTreeNode pn = self._getPTNode(key)
 
@@ -3292,13 +3312,13 @@ cdef class TreeDict(object):
         return self._encode_hash(pn.fullHash())
 
     # Hash for a whole tree
-    cdef str _self_hash(self):
+    cdef bytes _self_hash(self):
         h = md5()
         self._runFullHash(getattr(h, 'update'))
         return self._encode_hash(h.digest())
 
     # Hash for a whole tree
-    cdef str _self_immutable_hash(self):
+    cdef bytes _self_immutable_hash(self):
         h = md5()
         self._runImmutableHash(getattr(h, 'update'))
         return self._encode_hash(h.digest())
@@ -3329,7 +3349,8 @@ cdef class TreeDict(object):
 
             hf(self._getImmutableItemsHash())
 
-            for k, pn in sorted(self._param_dict.iteritems()):
+            _param_dict_items = self._param_dict.iteritems() if IS_PYTHON2 else self._param_dict.items()
+            for k, pn in sorted(_param_dict_items):
                 if not pn.isImmutable() and not pn.isDanglingTree():
                     try:
                         self._update_hash_with_key(hf, k)
@@ -3359,7 +3380,8 @@ cdef class TreeDict(object):
             # This takes care of all the immutable local values
             hf(self._getImmutableItemsHash())
 
-            for k, pn in sorted(self._param_dict.iteritems()):
+            _param_dict_items = self._param_dict.iteritems() if IS_PYTHON2 else self._param_dict.items()
+            for k, pn in sorted(_param_dict_items):
                 if pn.isBranch() and not pn.isDanglingBranch():
                     try:
                         self._update_hash_with_key(hf, k)
@@ -3374,9 +3396,9 @@ cdef class TreeDict(object):
 
 
     # Now going back on the immutable hash cases
-    cdef str _getImmutableItemsHash(self):
+    cdef bytes _getImmutableItemsHash(self):
         cdef _PTreeNode pn
-        cdef str hs
+        cdef bytes hs
 
         if self.isDangling():
             raise TypeError("Dangling nodes not hashable.")
@@ -3385,7 +3407,8 @@ cdef class TreeDict(object):
             h = md5()
             hf = getattr(h, 'update')
 
-            for k, pn in sorted(self._param_dict.iteritems()):
+            _param_dict_items = self._param_dict.iteritems() if IS_PYTHON2 else self._param_dict.items()
+            for k, pn in sorted(_param_dict_items):
                 if pn.isImmutable():
                     try:
                         self._update_hash_with_key(hf, k)
@@ -3395,21 +3418,21 @@ cdef class TreeDict(object):
                         he.prependKey(k)
                         raise 
 
-            hs = h.hexdigest()
+            hs = h.hexdigest().encode('utf-8')
             self._aux_dict[s_immutable_items_hash] = hs
             return hs
 
-        return <str>self._aux_dict[s_immutable_items_hash]
+        return <bytes>self._aux_dict[s_immutable_items_hash]
 
     cdef _update_hash_with_key(self, hf, str key):
-        hf("$S$")
-        hf(key)
-        hf("$E$")
+        hf("$S$".encode('utf-8'))
+        hf(key.encode('utf-8'))
+        hf("$E$".encode('utf-8'))
 
     cdef _update_hash_with_context(self, hf, _PTreeNode pn):
         # Any context-based information
         if pn.isBranch():
-            hf("$BRANCH$")
+            hf("$BRANCH$".encode('utf-8'))
 
 
     ################################################################################
@@ -3594,7 +3617,7 @@ cdef class TreeDict(object):
             x = 1
             z = 4
 
-        Example 4 -- Protecting Structure::
+        Example 4 -- Protecting structure::
 
             >>> t1, t2 = TreeDict('t1'), TreeDict('t2')
             >>> t1.a.x = 1
@@ -3646,7 +3669,8 @@ cdef class TreeDict(object):
         cdef str k
         cdef _PTreeNode pn, lpn
 
-        for k, pn in t._param_dict.iteritems():
+        _param_dict_items = t._param_dict.iteritems() if IS_PYTHON2 else t._param_dict.items()
+        for k, pn in _param_dict_items:
 
             if pn.isTree():
 
@@ -3716,7 +3740,8 @@ cdef class TreeDict(object):
 
             self._setHasBeenCopiedFlag(False)
 
-            for pnv in self._param_dict.itervalues():
+            _param_dict_values = self._param_dict.itervalues() if IS_PYTHON2 else self._param_dict.values()
+            for pnv in _param_dict_values:
                 pn = <_PTreeNode>pnv
 
                 if pn.isTree():
@@ -3752,7 +3777,8 @@ cdef class TreeDict(object):
         p._n_mutable = 0
         p._next_item_order_position = self._next_item_order_position
 
-        for k, pn in self._param_dict.iteritems():
+        _param_dict_items = self._param_dict.iteritems() if IS_PYTHON2 else self._param_dict.items()
+        for k, pn in _param_dict_items:
 
             if pn.isDanglingBranch():
                 continue
@@ -3824,7 +3850,8 @@ cdef class TreeDict(object):
 
 
     cdef _reset_branches(self):
-        self._branches = [(<_PTreeNode> pn).value() for pn in self._param_dict.itervalues()
+        _param_dict_values = self._param_dict.itervalues() if IS_PYTHON2 else self._param_dict.values()
+        self._branches = [(<_PTreeNode> pn).value() for pn in _param_dict_values
                           if (<_PTreeNode> pn).isBranch()]
 
     ################################################################################
@@ -4405,7 +4432,8 @@ class InteractiveTreeDict(object):
         cdef str k
         cdef _PTreeNode pn
 
-        for k, pn in ptree._param_dict.iteritems():
+        ptree_param_dict_items = ptree._param_dict.iteritems() if IS_PYTHON2 else ptree._param_dict.items()
+        for k, pn in ptree_param_dict_items:
 
             if pn.isBranch():
                 if not pn.tree().isDangling():

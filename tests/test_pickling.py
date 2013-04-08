@@ -26,7 +26,11 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-import random, unittest, cPickle, collections
+import random, unittest, collections
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 from treedict import TreeDict, getTree
 import treedict
 from copy import deepcopy, copy
@@ -40,43 +44,43 @@ class TestPickling(unittest.TestCase):
        
     def testPickling_P0(self):
         p = sample_tree()
-        s = cPickle.dumps(p, protocol=0)
-        p2 = cPickle.loads(s)
+        s = pickle.dumps(p, protocol=0)
+        p2 = pickle.loads(s)
 
         self.assert_(p == p2)
 
     def testPickling_P1(self):
         p = sample_tree()
-        s = cPickle.dumps(p, protocol=1)
-        p2 = cPickle.loads(s)
+        s = pickle.dumps(p, protocol=1)
+        p2 = pickle.loads(s)
         
         self.assert_(p == p2)
 
     def testPickling_P2(self):
         p = sample_tree()
-        s = cPickle.dumps(p, protocol=2)
-        p2 = cPickle.loads(s)
+        s = pickle.dumps(p, protocol=2)
+        p2 = pickle.loads(s)
         
         self.assert_(p == p2)
 
     def testPickling_P0f(self):
         p = frozen_tree()
-        s = cPickle.dumps(p, protocol=0)
-        p2 = cPickle.loads(s)
+        s = pickle.dumps(p, protocol=0)
+        p2 = pickle.loads(s)
 
         self.assert_(p == p2)
 
     def testPickling_P1f(self):
         p = frozen_tree()
-        s = cPickle.dumps(p, protocol=1)
-        p2 = cPickle.loads(s)
+        s = pickle.dumps(p, protocol=1)
+        p2 = pickle.loads(s)
         
         self.assert_(p == p2)
 
     def testPickling_P2f(self):
         p = frozen_tree()
-        s = cPickle.dumps(p, protocol=2)
-        p2 = cPickle.loads(s)
+        s = pickle.dumps(p, protocol=2)
+        p2 = pickle.loads(s)
         
         self.assert_(p2.isFrozen())
         self.assert_(p == p2)
@@ -86,7 +90,7 @@ class TestPickling(unittest.TestCase):
         p = TreeDict()
         p.a
 
-        p2 = cPickle.loads(cPickle.dumps(p, protocol=2))
+        p2 = pickle.loads(pickle.dumps(p, protocol=2))
 
         self.assert_(p2 == p)
 
@@ -95,7 +99,7 @@ class TestPickling(unittest.TestCase):
         p = TreeDict()
         p.a = p.b
 
-        p2 = cPickle.loads(cPickle.dumps(p, protocol=2))
+        p2 = pickle.loads(pickle.dumps(p, protocol=2))
 
         self.assert_(p2 == p)
 
@@ -106,7 +110,7 @@ class TestPickling(unittest.TestCase):
         
         p.b = 2
 
-        p2 = cPickle.loads(cPickle.dumps(p, protocol=2))
+        p2 = pickle.loads(pickle.dumps(p, protocol=2))
 
         self.assert_(p2 == p)
 
@@ -120,7 +124,7 @@ class TestPickling(unittest.TestCase):
 
         it = p.iteritems()
 
-        p2 = cPickle.loads(cPickle.dumps(p, protocol=2))
+        p2 = pickle.loads(pickle.dumps(p, protocol=2))
 
         self.assert_(p == p2)
 

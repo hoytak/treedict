@@ -25,7 +25,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import random, unittest, cPickle, collections
+import random, unittest, collections
 from treedict import TreeDict, getTree
 import treedict
 from copy import deepcopy, copy

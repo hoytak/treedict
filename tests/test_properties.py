@@ -26,7 +26,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-import random, unittest, cPickle, collections
+import random, unittest, collections
 from treedict import TreeDict, getTree
 import treedict
 from copy import deepcopy, copy
@@ -278,7 +278,7 @@ class TestProperties(unittest.TestCase):
 
         n_root_leaves = len([k for k in kl if '.' not in k])
 
-        self.assert_(len(p) == n)
+        self.assertEqual(len(p), n)
         self.assert_(p.size() == n)
         self.assert_(p.size(recursive = False) == n_root_leaves)
         self.assert_(p.size(recursive = False, branch_mode = "all") == n)

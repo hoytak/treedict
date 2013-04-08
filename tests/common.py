@@ -1,7 +1,7 @@
 """
 Just a bunch of functions common to the entire test suite
 """
-import random, unittest, cPickle, collections
+import random, unittest, collections
 from treedict import TreeDict, getTree
 import treedict
 from copy import deepcopy, copy
@@ -10,13 +10,13 @@ from hashlib import md5
 import base64, time
 
 
-md5keyhash = md5(str(time.clock()))
+md5keyhash = md5(str(time.clock()).encode('ascii'))
 
 def unique_name():
-    md5keyhash.update(str(time.clock()))
+    md5keyhash.update(str(time.clock()).encode('ascii'))
 
-    return 'u' + (''.join(c for c in base64.b64encode(md5keyhash.digest())
-                          if c.isalnum()))[:6]
+    return 'u' + (''.join(str(c) for c in base64.b64encode(md5keyhash.digest()).decode('ascii')
+                          if str(c).isalnum()))[:6]
 
 def empty_tree():
     return TreeDict(unique_name())
@@ -78,7 +78,7 @@ def frozen_tree():
 def random_node_list(seed, n, dp):
     random.seed(seed)
 
-    idxlist = range(n)
+    idxlist = list(range(n))
     l = [unique_name() for i in idxlist]
     
     while idxlist:
