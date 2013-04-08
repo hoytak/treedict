@@ -91,16 +91,16 @@ if cython_mode:
 else:
     cython_files = {}
 
-all_cython_files = set(chain(*cython_files.values()))
+all_cython_files = set(chain(*list(cython_files.values())))
 
-print "+++++++++++++++++++"
+print("+++++++++++++++++++")
 
 if cython_mode:
-    print "Cython Files Found: \n%s\n+++++++++++++++++++++" % ", ".join(sorted(all_cython_files))
+    print("Cython Files Found: \n%s\n+++++++++++++++++++++" % ", ".join(sorted(all_cython_files)))
 else:
-    print "Cython support disabled; compiling extensions from pregenerated C sources."
-    print "To enable cython, run setup.py with the option --cython."
-    print "+++++++++++++++++++"
+    print("Cython support disabled; compiling extensions from pregenerated C sources.")
+    print("To enable cython, run setup.py with the option --cython.")
+    print("+++++++++++++++++++")
 
 # Set the compiler arguments -- Add in the environment path stuff
 ld_library_path = os.getenv("LD_LIBRARY_PATH")
@@ -127,7 +127,7 @@ for d, l in chain(((d, glob(join(d, "*.cxx"))) for d in source_directory_list + 
     c_files[d] += l
 
 
-print "C Extension Files Found: \n%s\n+++++++++++++++++++++" % ", ".join(sorted(chain(*c_files.values())))
+print("C Extension Files Found: \n%s\n+++++++++++++++++++++" % ", ".join(sorted(chain(*list(c_files.values())))))
 
 # Collect all the python modules
 def get_python_modules(f):
@@ -140,7 +140,7 @@ python_files -= exclude_files
 
 python_modules = [get_python_modules(f) for f in python_files]
 
-print "Relevant Python Files Found: \n%s\n+++++++++++++++++++++" % ", ".join(sorted(python_files))
+print("Relevant Python Files Found: \n%s\n+++++++++++++++++++++" % ", ".join(sorted(python_files)))
 
 if __name__ == '__main__':
     # The rest is also shared with the setup.py file, in addition to
@@ -199,14 +199,14 @@ if __name__ == '__main__':
         from Cython.Distutils import build_ext
 
         ext_modules += list(chain(*list(makeExtensionList(d, l) 
-                                        for d, l in cython_files.iteritems())))
+                                        for d, l in cython_files.items())))
         
         cmdclass = {'build_ext' : build_ext}
     else:
         cmdclass = {}
 
     ext_modules += list(chain(*list(makeExtensionList(d, l)
-                                    for d, l in c_files.iteritems())))
+                                    for d, l in c_files.items())))
     setup(
         version = version,
         description = description,

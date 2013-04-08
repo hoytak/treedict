@@ -26,7 +26,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-import random, unittest, cPickle, collections
+import random, unittest, collections
 from treedict import TreeDict, getTree
 import treedict
 from copy import deepcopy, copy
@@ -377,7 +377,7 @@ class TestAttachPop(unittest.TestCase):
 
         try:
             q = p.aduvulksjucmfiddkjdo.b.pop()
-        except AttributeError, ae:
+        except AttributeError as ae:
             ae_msg = str(ae)
 
         # Make sure it propegates up so the error message is sent from
