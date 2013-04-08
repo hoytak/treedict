@@ -259,27 +259,33 @@ class HashError(ValueError):
 
 ########################################
 # First -- hashing functionality
+cdef object shash_dict = "$$$DICT".encode('utf-8')
+cdef object shash_divide = ":".encode('utf-8')
+cdef object shash_set = "$$$SET".encode('utf-8')
+cdef object shash_list = "$$$LIST".encode('utf-8')
+cdef object shash_tuple = "$$$TUPLE".encode('utf-8')
+
 cdef _runValueHash(hf, value):
     if type(value) is dict:
-        hf("$$$DICT".encode('utf-8'))
+        hf(shash_dict)
         value_items = (<dict>value).iteritems() if IS_PYTHON2 else (<dict>value).items()
         for k, v in sorted(value_items):
             _runValueHash(hf, k)
-            hf(":".encode('utf-8'))
+            hf(shash_divide)
             _runValueHash(hf, v)
 
     elif type(value) is set:
-        hf("$$$SET".encode('utf-8'))
+        hf(shash_set)
         for v in sorted(value):
             _runValueHash(hf, v)
 
     elif type(value) is list:
-        hf("$$$LIST".encode('utf-8'))
+        hf(shash_list)
         for v in (<list>value):
             _runValueHash(hf, v)
 
     elif type(value) is tuple:
-        hf("$$$TUPLE".encode('utf-8'))
+        hf(shash_tuple)
         for v in (<tuple>value):
             _runValueHash(hf, v)
 
