@@ -3274,7 +3274,7 @@ cdef class TreeDict(object):
 
     cdef bytes _encode_hash(self, bytes s):
         if IS_PYTHON2:
-        return (b64encode(s).replace('=', '').replace('+', '').replace('/',''))[:10]
+            return (b64encode(s).replace('=', '').replace('+', '').replace('/',''))[:10]
         else:
             return b64encode(s)
 
