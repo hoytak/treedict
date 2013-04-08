@@ -258,33 +258,31 @@ class HashError(ValueError):
 
 ########################################
 # First -- hashing functionality
-cdef object shash_dict = "$$$DICT".encode('utf-8')
-cdef object shash_divide = ":".encode('utf-8')
-cdef object shash_set = "$$$SET".encode('utf-8')
-cdef object shash_list = "$$$LIST".encode('utf-8')
-cdef object shash_tuple = "$$$TUPLE".encode('utf-8')
 
 cdef _runValueHash(hf, value):
     if type(value) is dict:
-        hf(shash_dict)
-        value_items = (<dict>value).iteritems() if IS_PYTHON2 else (<dict>value).items()
-        for k, v in sorted(value_items):
+        hf("$$$DICT".encode('utf-8'))
+        value_items = (sorted(<dict>value.iteritems())
+                       if IS_PYTHON2
+                       else list(sorted(<dict>value).items()))
+        
+        for k, v in <list>(value_items):
             _runValueHash(hf, k)
-            hf(shash_divide)
+            hf(":".encode('utf-8'))
             _runValueHash(hf, v)
 
     elif type(value) is set:
-        hf(shash_set)
+        hf("$$$SET".encode('utf-8'))
         for v in sorted(value):
             _runValueHash(hf, v)
 
     elif type(value) is list:
-        hf(shash_list)
+        hf("$$$LIST".encode('utf-8'))
         for v in (<list>value):
             _runValueHash(hf, v)
 
     elif type(value) is tuple:
-        hf(shash_tuple)
+        hf("$$$TUPLE".encode('utf-8'))
         for v in (<tuple>value):
             _runValueHash(hf, v)
 
@@ -1055,23 +1053,31 @@ cdef class TreeDict(object):
 
     cdef _expandDictSet(self, dict recursion_set, dict d, mapping_function):
 
-        d_items = d.iteritems() if IS_PYTHON2 else d.items()
-        for k, v in d_items:
-            if mapping_function is not None:
-                try:
-                    v = mapping_function(v)
-                except Exception, e:
-                    setattr(e, "__is_mapping_function_exception__", True)
-                    raise
+        if IS_PYTHON2:
+            for k, v in d.iteritems():
+                self._expandDictSetItem(k, v, recursion_set, d, mapping_function)
+        else:
+            for k, v in d.items():
+                self._expandDictSetItem(k, v, recursion_set, d, mapping_function)
             
-            if type(v) is dict:
-                if id(v) in recursion_set:
-                    self._set(validateKey(k), recursion_set[id(v)], 0)
-                else:
-                    tc = recursion_set[id(v)] = self.makeBranch(validateKey(k))
-                    (<TreeDict>tc)._expandDictSet(recursion_set, <dict>v, mapping_function)
+    cdef _expandDictSetItem(self, k, v, dict recursion_set, dict d, mapping_function):
+
+        if mapping_function is not None:
+            try:
+                v = mapping_function(v)
+            except Exception, e:
+                setattr(e, "__is_mapping_function_exception__", True)
+                raise
+
+        if type(v) is dict:
+            if id(v) in recursion_set:
+                self._set(validateKey(k), recursion_set[id(v)], 0)
             else:
-                self._set(validateKey(k), v, 0)
+                tc = recursion_set[id(v)] = self.makeBranch(validateKey(k))
+                (<TreeDict>tc)._expandDictSet(recursion_set, <dict>v, mapping_function)
+                
+        else:
+            self._set(validateKey(k), v, 0)
 
     def convertTo(self, str format = 'nested_dict', **kwargs):
         """
@@ -1177,7 +1183,8 @@ cdef class TreeDict(object):
         cdef list l, new_list
         cdef size_t i
 
-        _param_dict_listitems = self._param_dict.items() if IS_PYTHON2 else list(self._param_dict.items())
+        cdef list _param_dict_listitems = self._param_dict.items() if IS_PYTHON2 else list(self._param_dict.items())
+        
         for k, pn in _param_dict_listitems:
             if pn.isBranch() or (convert_values and pn.isTree()):
 
@@ -1409,8 +1416,8 @@ cdef class TreeDict(object):
             # test it
             self._set(<str>k, v, flags | f_check_only)
 
-        kwargs_items = kwargs.iteritems() if IS_PYTHON2 else kwargs.items()
-        for k, v in kwargs_items:
+        #TEST
+        for k, v in kwargs.iteritems():
             if not type(k) is str:
                 raise TypeError("Name argument '%s' not string." % repr(k))
 
@@ -1421,9 +1428,12 @@ cdef class TreeDict(object):
             for i from 0 <= i < n_argsets:
                 self._set(<str>key_list[i], val_list[i], flags | f_already_checked)
 
-            kwargs_items = kwargs.iteritems() if IS_PYTHON2 else kwargs.items()
-            for k, v in kwargs_items:
-                self._set(<str>k, v, flags | f_already_checked)
+            if IS_PYTHON2:
+                for k, v in kwargs.iteritems():
+                    self._set(<str>k, v, flags | f_already_checked)
+            else:
+                for k, v in kwargs.items():
+                    self._set(<str>k, v, flags | f_already_checked)
 
     cdef _set(self, str k, value, flagtype base_flags):
 
@@ -1540,9 +1550,8 @@ cdef class TreeDict(object):
     cdef _reworkOrderValues(self):
         cdef _PTreeNode pn
 
-        _param_dict_values = self._param_dict.itervalues() if IS_PYTHON2 else self._param_dict.values()
         cdef list vl = sorted([pn.orderPosition()
-                               for pn in _param_dict_values])
+                               for pn in self._param_dict.values()])
 
         if len(vl) > _orderNodeMaxNum:
             raise OverflowError("Maximum number of branches/leaves (%d) exceeded."
@@ -1731,8 +1740,7 @@ cdef class TreeDict(object):
                 self._n_mutable = 0
                 self._next_item_order_position = _orderNodeStartingValue
             else:
-                _param_dict_listitems = self._param_dict.items() if IS_PYTHON2 else list(self._param_dict.items())
-                for k, pn in _param_dict_listitems:
+                for k, pn in self._param_dict.items():
                     if b_mode == i_BranchMode_Only:
                         if pn.isBranch():
                             self._cut(k, pn)
@@ -2129,7 +2137,8 @@ cdef class TreeDict(object):
 
         cdef _PTreeNode pn
 
-        _param_dict_listitems = self._param_dict.items() if IS_PYTHON2 else list(self._param_dict.items())
+        cdef list _param_dict_listitems = self._param_dict.items() if IS_PYTHON2 else list(self._param_dict.items())
+        
         for k, pn in _param_dict_listitems:
             if pn.isTree():
                 pn.tree()._recursiveAttach(flags)
@@ -3110,8 +3119,7 @@ cdef class TreeDict(object):
 
         cdef _PTreeNode pn1, pn2
 
-        _param_dict_items = self._param_dict.iteritems() if IS_PYTHON2 else self._param_dict.items()
-        for k, pn1 in _param_dict_items:
+        for k, pn1 in self._param_dict.items():
 
             if pn1.isImmutable():
                 continue
@@ -3348,14 +3356,18 @@ cdef class TreeDict(object):
 
         # This takes care of all the mutable items
         cdef _PTreeNode pn
+        cdef list _param_dict_items
 
         try:
             _setFlagOn(&self._flags, f_visited_by_hash_function)
 
             hf(self._getImmutableItemsHash())
 
-            _param_dict_items = self._param_dict.iteritems() if IS_PYTHON2 else self._param_dict.items()
-            for k, pn in sorted(_param_dict_items):
+            _param_dict_items = (sorted(self._param_dict.iteritems())
+                                 if IS_PYTHON2
+                                 else sorted(self._param_dict.items()))
+            
+            for k, pn in _param_dict_items:
                 if not pn.isImmutable() and not pn.isDanglingTree():
                     try:
                         self._update_hash_with_key(hf, k)
@@ -3378,15 +3390,19 @@ cdef class TreeDict(object):
 
         cdef TreeDict b
         cdef _PTreeNode pn
+        cdef list _param_dict_items
 
         try:
             _setFlagOn(&self._flags, f_visited_by_im_hash_function)
 
             # This takes care of all the immutable local values
             hf(self._getImmutableItemsHash())
-
-            _param_dict_items = self._param_dict.iteritems() if IS_PYTHON2 else self._param_dict.items()
-            for k, pn in sorted(_param_dict_items):
+        
+            _param_dict_items = (sorted(self._param_dict.iteritems())
+                                 if IS_PYTHON2 else
+                                 sorted(self._param_dict.items()))
+            
+            for k, pn in _param_dict_items:
                 if pn.isBranch() and not pn.isDanglingBranch():
                     try:
                         self._update_hash_with_key(hf, k)
@@ -3404,6 +3420,7 @@ cdef class TreeDict(object):
     cdef bytes _getImmutableItemsHash(self):
         cdef _PTreeNode pn
         cdef bytes hs
+        cdef list _param_dict_items
 
         if self.isDangling():
             raise TypeError("Dangling nodes not hashable.")
@@ -3412,8 +3429,11 @@ cdef class TreeDict(object):
             h = md5()
             hf = getattr(h, 'update')
 
-            _param_dict_items = self._param_dict.iteritems() if IS_PYTHON2 else self._param_dict.items()
-            for k, pn in sorted(_param_dict_items):
+            _param_dict_items = (sorted(self._param_dict.iteritems())
+                                 if IS_PYTHON2 else
+                                 sorted(self._param_dict.items()))
+
+            for k, pn in _param_dict_items:
                 if pn.isImmutable():
                     try:
                         self._update_hash_with_key(hf, k)
@@ -3671,52 +3691,59 @@ cdef class TreeDict(object):
     cdef _update(self, TreeDict t, flagtype flags):
 
         # Relevant Flags: f_check_only, f_already_checked,
-        cdef str k
-        cdef _PTreeNode pn, lpn
+        if IS_PYTHON2:
+            for k, pn in t._param_dict.iteritems():
+                self._updateItem(<str>k, <_PTreeNode>pn, t, flags)
+        else:
+            for k, pn in t._param_dict.items():
+                self._updateItem(<str>k, <_PTreeNode>pn, t, flags)
 
-        _param_dict_items = t._param_dict.iteritems() if IS_PYTHON2 else t._param_dict.items()
-        for k, pn in _param_dict_items:
+    cdef _updateItem(self, str k, _PTreeNode pn, TreeDict t, flagtype flags):
 
-            if pn.isTree():
+        cdef _PTreeNode lpn
 
-                if pn.isDanglingBranch():
-                    continue
+        if pn.isTree():
+
+            if pn.isDanglingBranch():
+                return
+
+            lpn = self._getLocalPTNode(k)
+
+            if lpn is None:
+                if pn.isBranch():
+                    self._attach(k, pn.tree(), f_copy | flags)
+                else:
+                    self._setLocal(k, pn.tree(), flags)
+
+            elif lpn.isTree():
+                lpn.tree()._update(pn.tree(), flags)
+
+            elif (flags & f_no_overwrite):
+                return
+
+            elif not (flags & f_protect_structure):
+                self._attach(k, pn.tree(), f_copy | flags)
+
+            else:
+                raise TypeError(
+                    ("Value '%s' would get implicitly overwritten by branch on merge; "
+                     % self._fullNameOf(k))
+                    + "set protect_structure=False to allow overwriting.")
+        else:
+
+            if (flags & f_protect_structure) and not (flags & f_already_checked):
 
                 lpn = self._getLocalPTNode(k)
 
-                if lpn is None:
-                    if pn.isBranch():
-                        self._attach(k, pn.tree(), f_copy | flags)
-                    else:
-                        self._setLocal(k, pn.tree(), flags)
-
-                elif lpn.isTree():
-                    lpn.tree()._update(pn.tree(), flags)
-
-                elif (flags & f_no_overwrite):
-                    continue
-
-                elif not (flags & f_protect_structure):
-                    self._attach(k, pn.tree(), f_copy | flags)
-
-                else:
+                if lpn is not None and lpn.isTree():
                     raise TypeError(
-                        ("Value '%s' would get implicitly overwritten by branch on merge; "
+                        ("Tree/Branch '%s' would get implicitly overwritten by value on merge; "
                          % self._fullNameOf(k))
                         + "set protect_structure=False to allow overwriting.")
-            else:
 
-                if (flags & f_protect_structure) and not (flags & f_already_checked):
+            self._setLocal(k, pn.value(), flags)
 
-                    lpn = self._getLocalPTNode(k)
 
-                    if lpn is not None and lpn.isTree():
-                            raise TypeError(
-                                ("Tree/Branch '%s' would get implicitly overwritten by value on merge; "
-                                 % self._fullNameOf(k))
-                                + "set protect_structure=False to allow overwriting.")
-
-                self._setLocal(k, pn.value(), flags)
 
     cdef TreeDict _copy(self, bint deep, bint frozen):
         # Wraps the recursive function _recursiveCopy() that
@@ -3745,8 +3772,7 @@ cdef class TreeDict(object):
 
             self._setHasBeenCopiedFlag(False)
 
-            _param_dict_values = self._param_dict.itervalues() if IS_PYTHON2 else self._param_dict.values()
-            for pnv in _param_dict_values:
+            for pnv in self._param_dict.values():
                 pn = <_PTreeNode>pnv
 
                 if pn.isTree():
@@ -3782,8 +3808,7 @@ cdef class TreeDict(object):
         p._n_mutable = 0
         p._next_item_order_position = self._next_item_order_position
 
-        _param_dict_items = self._param_dict.iteritems() if IS_PYTHON2 else self._param_dict.items()
-        for k, pn in _param_dict_items:
+        for k, pn in self._param_dict.items():
 
             if pn.isDanglingBranch():
                 continue
@@ -3855,8 +3880,7 @@ cdef class TreeDict(object):
 
 
     cdef _reset_branches(self):
-        _param_dict_values = self._param_dict.itervalues() if IS_PYTHON2 else self._param_dict.values()
-        self._branches = [(<_PTreeNode> pn).value() for pn in _param_dict_values
+        self._branches = [(<_PTreeNode> pn).value() for pn in self._param_dict.values()
                           if (<_PTreeNode> pn).isBranch()]
 
     ################################################################################
