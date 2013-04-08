@@ -7,7 +7,7 @@
 source_directory_list = ['treedict']
 compiler_args = []
 link_args = []
-version = "0.14"
+version = "0.2"
 description="A fast and full-featured dict-like tree container to simplify the bookkeeping surrounding parameters, variables and data."
 author = "Hoyt Koepke"
 author_email="hoytak@gmail.com"
@@ -33,8 +33,7 @@ fast non-intersecting hashing for efficient caching, simple and
 advanced manipulations on the tree structure, and a system for forward
 referencing branches to make lists of parameters more readable.
 
-Version 0.14 fixes a mismatch between the generated cython sources and
-the pyx file.
+Version 0.2 adds support for Python 3.
 """
 
 classifiers = [
@@ -90,6 +89,10 @@ if cython_mode:
     cython_files = dict( (d, glob(join(d, "*.pyx"))) for d in source_directory_list + ['.'])
 else:
     cython_files = {}
+
+# see if we have python 3 support
+if sys.version_info[0] > 2:
+    compiler_args.append("-DPYTHON3")
 
 all_cython_files = set(chain(*list(cython_files.values())))
 

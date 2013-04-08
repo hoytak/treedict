@@ -43,13 +43,12 @@ import base64
 import heapq
 import weakref
 
-cdef bint IS_PYTHON2 = sys.version_info[0] <= 2
-
 ################################################################################
 # Some preliminary debug stuff
 
-cdef extern from "debug_import.h":
+cdef extern from "compile_import.h":
     bint DEBUG_MODE
+    bint IS_PYTHON2
 
 ################################################################################
 # Early bindings to avoid unneeded lookups in the c code
