@@ -7,7 +7,7 @@
 source_directory_list = ['treedict']
 compiler_args = []
 link_args = []
-version = "0.13"
+version = "0.14"
 description="A fast and full-featured dict-like tree container to simplify the bookkeeping surrounding parameters, variables and data."
 author = "Hoyt Koepke"
 author_email="hoytak@gmail.com"
@@ -32,6 +32,9 @@ TreeDict implements all the methods of regular dictionaries, pickling,
 fast non-intersecting hashing for efficient caching, simple and
 advanced manipulations on the tree structure, and a system for forward
 referencing branches to make lists of parameters more readable.
+
+Version 0.14 fixes a mismatch between the generated cython sources and
+the pyx file.
 """
 
 classifiers = [
