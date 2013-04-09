@@ -264,7 +264,7 @@ cdef _runValueHash(hf, value):
         hf("$$$DICT".encode('utf-8'))
         value_items = (sorted(<dict>value.iteritems())
                        if IS_PYTHON2
-                       else list(sorted(<dict>value).items()))
+                       else sorted(<dict>value.items()))
         
         for k, v in <list>(value_items):
             _runValueHash(hf, k)
@@ -1740,7 +1740,8 @@ cdef class TreeDict(object):
                 self._n_mutable = 0
                 self._next_item_order_position = _orderNodeStartingValue
             else:
-                for k, pn in self._param_dict.items():
+                _param_dict_listitems = self._param_dict.items() if IS_PYTHON2 else list(self._param_dict.items())
+                for k, pn in _param_dict_listitems:
                     if b_mode == i_BranchMode_Only:
                         if pn.isBranch():
                             self._cut(k, pn)
@@ -3772,7 +3773,7 @@ cdef class TreeDict(object):
 
             self._setHasBeenCopiedFlag(False)
 
-            for pnv in self._param_dict.values():
+            for pnv in self._param_dict.values() if IS_PYTHON2 else list(self._param_dict.values()):
                 pn = <_PTreeNode>pnv
 
                 if pn.isTree():
