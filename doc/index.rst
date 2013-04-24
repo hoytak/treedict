@@ -68,6 +68,12 @@ A brief example to wet the appetite::
 The rest of this example, and explanations, can be found in the
 :ref:`overview`.
 
+Contributors
+------------
+
+Thanks to `Fabien Benureau <http://flowers.inria.fr/>`_ for adding
+Python 3 support.
+
 Acknowledgments
 ----------------
 
