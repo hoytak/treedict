@@ -47,7 +47,7 @@ class TestIteratorsLists(unittest.TestCase):
     # Now iterators
 
     def testIterators_01_flat(self):
-        p = TreeDict()
+        p = makeTDInstance()
         items = [('a', 1), ('b', 2), ('c', 3)]
 
         p.set(**dict(items))
@@ -58,7 +58,7 @@ class TestIteratorsLists(unittest.TestCase):
         
         
     def testIterators_02_recursive(self):
-        p = TreeDict()
+        p = makeTDInstance()
         items = [('a.v', 1), ('b', 2), ('c', 3), ('aa.b.c.d.e', 4)]
 
         p.set(**dict(items))
@@ -69,7 +69,7 @@ class TestIteratorsLists(unittest.TestCase):
         
 
     def testIterators_03_nonrecursive_skipbranches(self):
-        p = TreeDict()
+        p = makeTDInstance()
         items = [('a.v', 1), ('b', 2), ('c', 3), ('aa.b.c.d.e', 4)]
 
         p.set(**dict(items))
@@ -85,7 +85,7 @@ class TestIteratorsLists(unittest.TestCase):
                          == set(non_recursive))
 
     def testIterators_04_nonrecursive_withbranches(self):
-        p = TreeDict()
+        p = makeTDInstance()
         items = [('a.v', 1), ('b', 2), ('c', 3), ('aa.b.c.d.e', 4)]
 
         p.set(**dict(items))
@@ -102,7 +102,7 @@ class TestIteratorsLists(unittest.TestCase):
                      == set(nrwb))
  
     def testIterators_05_branches(self):
-        p = TreeDict()
+        p = makeTDInstance()
         items = [('a.v', 1), ('b', 2), ('c', 3), ('aa.b.c.d.e', 4)]
 
         p.set(**dict(items))
@@ -119,7 +119,7 @@ class TestIteratorsLists(unittest.TestCase):
     def testIterators_06_large_recursive(self):
         n = 500
 
-        p = TreeDict()
+        p = makeTDInstance()
         kl = random_node_list(0, n, 0.75)
 
         for i, k in enumerate(kl):
@@ -141,42 +141,42 @@ class TestIteratorsLists(unittest.TestCase):
 
     def testIterators_07_empty_rn(self):
         
-        p = TreeDict()
+        p = makeTDInstance()
         self.assert_([l for l in p.iterkeys(True, "none")] == [])
         self.assert_([l for l in p.iteritems(True, "none")] == [])
         self.assert_([l for l in p.itervalues(True, "none")] == [])
 
     def testIterators_07_empty_ra(self):
         
-        p = TreeDict()
+        p = makeTDInstance()
         self.assert_([l for l in p.iterkeys(True, "all")] == [])
         self.assert_([l for l in p.iteritems(True, "all")] == [])
         self.assert_([l for l in p.itervalues(True, "all")] == [])
 
     def testIterators_07_empty_ro(self):
         
-        p = TreeDict()
+        p = makeTDInstance()
         self.assert_([l for l in p.iterkeys(True, "only")] == [])
         self.assert_([l for l in p.iteritems(True, "only")] == [])
         self.assert_([l for l in p.itervalues(True, "only")] == [])
 
     def testIterators_07_empty_fn(self):
         
-        p = TreeDict()
+        p = makeTDInstance()
         self.assert_([l for l in p.iterkeys(False, "none")] == [])
         self.assert_([l for l in p.iteritems(False, "none")] == [])
         self.assert_([l for l in p.itervalues(False, "none")] == [])
 
     def testIterators_07_empty_fa(self):
         
-        p = TreeDict()
+        p = makeTDInstance()
         self.assert_([l for l in p.iterkeys(False, "all")] == [])
         self.assert_([l for l in p.iteritems(False, "all")] == [])
         self.assert_([l for l in p.itervalues(False, "all")] == [])
 
     def testIterators_07_empty_fo(self):
         
-        p = TreeDict()
+        p = makeTDInstance()
         self.assert_([l for l in p.iterkeys(False, "only")] == [])
         self.assert_([l for l in p.iteritems(False, "only")] == [])
         self.assert_([l for l in p.itervalues(False, "only")] == [])
@@ -223,19 +223,19 @@ class TestIteratorsLists(unittest.TestCase):
 
 
     def testIterators_09_BadParameters_01(self):
-        self.assertRaises(TypeError, lambda: TreeDict().iterkeys(branch_mode = "bork"))
-        self.assertRaises(TypeError, lambda: TreeDict().iteritems(branch_mode = "bork"))
-        self.assertRaises(TypeError, lambda: TreeDict().itervalues(branch_mode = "bork"))
+        self.assertRaises(TypeError, lambda: makeTDInstance().iterkeys(branch_mode = "bork"))
+        self.assertRaises(TypeError, lambda: makeTDInstance().iteritems(branch_mode = "bork"))
+        self.assertRaises(TypeError, lambda: makeTDInstance().itervalues(branch_mode = "bork"))
 
     def testIterators_09_BadParameters_02(self):
-        self.assertRaises(TypeError, lambda: TreeDict().itervalues(branch_mode = 1))
-        self.assertRaises(TypeError, lambda: TreeDict().iteritems(branch_mode = 1))
-        self.assertRaises(TypeError, lambda: TreeDict().itervalues(branch_mode = 1))
+        self.assertRaises(TypeError, lambda: makeTDInstance().itervalues(branch_mode = 1))
+        self.assertRaises(TypeError, lambda: makeTDInstance().iteritems(branch_mode = 1))
+        self.assertRaises(TypeError, lambda: makeTDInstance().itervalues(branch_mode = 1))
 
 
     def _check_RTE(self, keys, recursive, branch_mode, mode):
 
-        p = TreeDict()
+        p = makeTDInstance()
 
         for k in keys:
             p[k] = 1
@@ -302,7 +302,7 @@ class TestIteratorsLists(unittest.TestCase):
             test_it(action)
 
         if mode == "attach_branch":
-            np = TreeDict(unique_name())
+            np = makeTDInstance(unique_name())
             np.a.b.c = 1
         
             def action(i,n,t):
@@ -312,7 +312,7 @@ class TestIteratorsLists(unittest.TestCase):
             test_it(action)
 
         if mode == "attach_recursive":
-            np = TreeDict(unique_name())
+            np = makeTDInstance(unique_name())
             np.a.b.c = 1
             p.attach(np)
 
@@ -777,7 +777,7 @@ class TestIteratorsLists(unittest.TestCase):
 
 
     def testIterators_12_Deletion(self):
-        p = TreeDict()
+        p = makeTDInstance()
 
         p.a = 1
         p.b = 2
@@ -805,7 +805,7 @@ class TestIteratorsLists(unittest.TestCase):
 
         random.seed(0)
 
-        p = TreeDict()
+        p = makeTDInstance()
         
         p.update(dict((t, 1) for t in tml))
 
@@ -853,7 +853,7 @@ class TestIteratorsLists(unittest.TestCase):
 
     def testIterators_14_Links_are_not_branches_01(self):
 
-        p = TreeDict()
+        p = makeTDInstance()
         p.a.x = 1
         p.b.c = p.a
 
@@ -861,7 +861,7 @@ class TestIteratorsLists(unittest.TestCase):
 
     def testIterators_14_Links_are_not_branches_02(self):
 
-        p = TreeDict()
+        p = makeTDInstance()
         p.a.x = 1
         p.b = p.a
 
@@ -871,7 +871,7 @@ class TestIteratorsLists(unittest.TestCase):
     # The corresponding tests for values
 
     def testItemlists_01_flat(self):
-        p = TreeDict()
+        p = makeTDInstance()
         items = [('a', 1), ('b', 2), ('c', 3)]
 
         p.set(**dict(items))
@@ -883,7 +883,7 @@ class TestIteratorsLists(unittest.TestCase):
         
     def testItemlists_02_recursive(self):
 
-        p = TreeDict()
+        p = makeTDInstance()
         items = [('a.v', 1), ('b', 2), ('c', 3), ('aa.b.c.d.e', 4)]
 
         p.set(**dict(items))
@@ -895,7 +895,7 @@ class TestIteratorsLists(unittest.TestCase):
 
     def testItemlists_03_nonrecursive_skipbranches(self):
 
-        p = TreeDict()
+        p = makeTDInstance()
         items = [('a.v', 1), ('b', 2), ('c', 3), ('aa.b.c.d.e', 4)]
 
         p.set(**dict(items))
@@ -912,7 +912,7 @@ class TestIteratorsLists(unittest.TestCase):
 
     def testItemlists_04_nonrecursive_withbranches(self):
 
-        p = TreeDict()
+        p = makeTDInstance()
         items = [('a.v', 1), ('b', 2), ('c', 3), ('aa.b.c.d.e', 4)]
 
         p.set(**dict(items))
@@ -930,7 +930,7 @@ class TestIteratorsLists(unittest.TestCase):
  
     def testItemlists_05_branches(self):
 
-        p = TreeDict()
+        p = makeTDInstance()
         items = [('a.v', 1), ('b', 2), ('c', 3), ('aa.b.c.d.e', 4)]
 
         p.set(**dict(items))
@@ -945,7 +945,7 @@ class TestIteratorsLists(unittest.TestCase):
 
     def testItemLists_06_single_deep(self):
         depth = 500
-        p = TreeDict()
+        p = makeTDInstance()
 
         pt = p
         for i in range(depth-1):
@@ -958,42 +958,42 @@ class TestIteratorsLists(unittest.TestCase):
 
     def testItemLists_07_empty_rn(self):
         
-        p = TreeDict()
+        p = makeTDInstance()
         self.assert_(p.keys(True, "none") == [])
         self.assert_(p.items(True, "none") == [])
         self.assert_(p.values(True, "none") == [])
 
     def testItemLists_07_empty_ra(self):
         
-        p = TreeDict()
+        p = makeTDInstance()
         self.assert_(p.keys(True, "all") == [])
         self.assert_(p.items(True, "all") == [])
         self.assert_(p.values(True, "all") == [])
 
     def testItemLists_07_empty_ro(self):
         
-        p = TreeDict()
+        p = makeTDInstance()
         self.assert_(p.keys(True, "only") == [])
         self.assert_(p.items(True, "only") == [])
         self.assert_(p.values(True, "only") == [])
 
     def testItemLists_07_empty_fn(self):
         
-        p = TreeDict()
+        p = makeTDInstance()
         self.assert_(p.keys(False, "none") == [])
         self.assert_(p.items(False, "none") == [])
         self.assert_(p.values(False, "none") == [])
 
     def testItemLists_07_empty_fa(self):
         
-        p = TreeDict()
+        p = makeTDInstance()
         self.assert_(p.keys(False, "all") == [])
         self.assert_(p.items(False, "all") == [])
         self.assert_(p.values(False, "all") == [])
 
     def testItemLists_07_empty_fo(self):
         
-        p = TreeDict()
+        p = makeTDInstance()
         self.assert_(p.keys(False, "only") == [])
         self.assert_(p.items(False, "only") == [])
         self.assert_(p.values(False, "only") == [])
@@ -1048,14 +1048,14 @@ class TestIteratorsLists(unittest.TestCase):
         self._checkAllItemLists(p, test, rid)
 
     def testItemLists_09_BadParameters_01(self):
-        self.assertRaises(TypeError, lambda: TreeDict().keys(branch_mode = "bork"))
-        self.assertRaises(TypeError, lambda: TreeDict().items(branch_mode = "bork"))
-        self.assertRaises(TypeError, lambda: TreeDict().values(branch_mode = "bork"))
+        self.assertRaises(TypeError, lambda: makeTDInstance().keys(branch_mode = "bork"))
+        self.assertRaises(TypeError, lambda: makeTDInstance().items(branch_mode = "bork"))
+        self.assertRaises(TypeError, lambda: makeTDInstance().values(branch_mode = "bork"))
 
     def testItemLists_09_BadParameters_02(self):
-        self.assertRaises(TypeError, lambda: TreeDict().values(branch_mode = 1))
-        self.assertRaises(TypeError, lambda: TreeDict().items(branch_mode = 1))
-        self.assertRaises(TypeError, lambda: TreeDict().values(branch_mode = 1))
+        self.assertRaises(TypeError, lambda: makeTDInstance().values(branch_mode = 1))
+        self.assertRaises(TypeError, lambda: makeTDInstance().items(branch_mode = 1))
+        self.assertRaises(TypeError, lambda: makeTDInstance().values(branch_mode = 1))
 
 
 

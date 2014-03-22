@@ -39,7 +39,7 @@ from common import *
 class TestPruning(unittest.TestCase):
 
     def testpruning_01(self):
-        p = TreeDict('prunetest')
+        p = makeTDInstance('prunetest')
         p.a.b.c = 123
         h1 = p.hash()
 
@@ -58,7 +58,7 @@ class TestPruning(unittest.TestCase):
         self.assert_(h1 == h3)
 
     def testpruning_02(self):
-        p = TreeDict('prunetest')
+        p = makeTDInstance('prunetest')
         p.a.b.c = 123
         h1 = p.hash()
 
@@ -77,7 +77,7 @@ class TestPruning(unittest.TestCase):
         self.assert_(h1 == h3)
 
     def testpruning_03(self):
-        p = TreeDict('prunetest')
+        p = makeTDInstance('prunetest')
         p.a.b.c = 123
         h1 = p.hash()
 
@@ -152,7 +152,7 @@ class TestDeletion(unittest.TestCase):
 
     def testDeletion_01(self):
 
-        p = TreeDict()
+        p = makeTDInstance()
         p.a = 1
 
         self.assert_('a' in p)
@@ -164,7 +164,7 @@ class TestDeletion(unittest.TestCase):
 
     def testDeletion_02(self):
 
-        p = TreeDict()
+        p = makeTDInstance()
         p.a.b.c = 1
 
         self.assert_('a.b.c' in p)
@@ -176,7 +176,7 @@ class TestDeletion(unittest.TestCase):
         self.assert_('a.b.c' not in p)
 
     def testDeletion_03_is_detached(self):
-        p = TreeDict()
+        p = makeTDInstance()
         p.makeBranch("a")
         a = p.a
 
@@ -186,7 +186,7 @@ class TestDeletion(unittest.TestCase):
         self.assert_(a.parentNode() is None)
 
     def testDeletion_04_properException_Attribute(self):
-        p = TreeDict()
+        p = makeTDInstance()
 
         def f():
             del p.a
@@ -194,7 +194,7 @@ class TestDeletion(unittest.TestCase):
         self.assertRaises(AttributeError, f)
 
     def testDeletion_05_properException_Keys_1(self):
-        p = TreeDict()
+        p = makeTDInstance()
 
         def f():
             del p["a"]
@@ -202,14 +202,14 @@ class TestDeletion(unittest.TestCase):
         self.assertRaises(KeyError, f)
 
     def testDeletion_05_properException_Keys_2(self):
-        p = TreeDict()
+        p = makeTDInstance()
         def f():
             del p[0]
 
         self.assertRaises(KeyError, f)
 
     def testDeletion_05_properException_Keys_3(self):
-        p = TreeDict()
+        p = makeTDInstance()
         def f():
             del p[None]
 
@@ -219,7 +219,7 @@ class TestDeletion(unittest.TestCase):
     # Freezing values
 
     def testDeletion_06_Frozen(self):
-        p = TreeDict()
+        p = makeTDInstance()
 
         p.a.x = 1
 
@@ -231,7 +231,7 @@ class TestDeletion(unittest.TestCase):
         self.assertRaises(TypeError, f)
 
     def testDeletion_07_Frozen(self):
-        p = TreeDict()
+        p = makeTDInstance()
 
         p.a.x = 1
 
@@ -243,7 +243,7 @@ class TestDeletion(unittest.TestCase):
         self.assertRaises(TypeError, f)
 
     def testDeletion_08_Frozen(self):
-        p = TreeDict()
+        p = makeTDInstance()
 
         p.a.x = 1
 
@@ -256,7 +256,7 @@ class TestDeletion(unittest.TestCase):
 
 
     def testDeletion_09_Frozen_StructureOnly(self):
-        p = TreeDict()
+        p = makeTDInstance()
 
         p.a.x = 1
 
@@ -268,7 +268,7 @@ class TestDeletion(unittest.TestCase):
         self.assertRaises(TypeError, f)
 
     def testDeletion_10_Frozen_StructureOnly(self):
-        p = TreeDict()
+        p = makeTDInstance()
 
         p.a.x = 1
 
@@ -282,7 +282,7 @@ class TestDeletion(unittest.TestCase):
         self.assert_(p.a.x == 1)
 
     def testDeletion_11_Frozen_StructureOnly(self):
-        p = TreeDict()
+        p = makeTDInstance()
 
         p.a.x = 1
 
@@ -293,7 +293,7 @@ class TestDeletion(unittest.TestCase):
         self.assert_('a' not in p)
 
     def testDeletion_12_Frozen_ValuesOnly(self):
-        p = TreeDict()
+        p = makeTDInstance()
 
         p.x = 1
 
@@ -307,7 +307,7 @@ class TestDeletion(unittest.TestCase):
         self.assert_(p.x == 1)
 
     def testDeletion_13_Frozen_ValuesOnly(self):
-        p = TreeDict()
+        p = makeTDInstance()
 
         p.a.x = 1
 
@@ -321,7 +321,7 @@ class TestDeletion(unittest.TestCase):
         self.assert_(p.a.x == 1)
 
     def testDeletion_14_Frozen_ValuesOnly(self):
-        p = TreeDict()
+        p = makeTDInstance()
 
         p.a.x = 1
 
@@ -333,7 +333,7 @@ class TestDeletion(unittest.TestCase):
 
 
     def testDeletionPI_06_Frozen(self):
-        p = TreeDict()
+        p = makeTDInstance()
 
         p.a.x = 1
 
@@ -345,7 +345,7 @@ class TestDeletion(unittest.TestCase):
         self.assertRaises(TypeError, f)
 
     def testDeletionPI_07_Frozen(self):
-        p = TreeDict()
+        p = makeTDInstance()
 
         p.a.x = 1
 
@@ -357,7 +357,7 @@ class TestDeletion(unittest.TestCase):
         self.assertRaises(TypeError, f)
 
     def testDeletionPI_08_Frozen(self):
-        p = TreeDict()
+        p = makeTDInstance()
 
         p.a.x = 1
 
@@ -370,7 +370,7 @@ class TestDeletion(unittest.TestCase):
 
 
     def testDeletionPI_09_Frozen_StructureOnly(self):
-        p = TreeDict()
+        p = makeTDInstance()
 
         p.a.x = 1
 
@@ -382,7 +382,7 @@ class TestDeletion(unittest.TestCase):
         self.assertRaises(TypeError, f)
 
     def testDeletionPI_10_Frozen_StructureOnly(self):
-        p = TreeDict()
+        p = makeTDInstance()
 
         p.a.x = 1
 
@@ -396,7 +396,7 @@ class TestDeletion(unittest.TestCase):
         self.assert_(p.a.x == 1)
 
     def testDeletionPI_11_Frozen_StructureOnly(self):
-        p = TreeDict()
+        p = makeTDInstance()
 
         p.a.x = 1
 
@@ -407,7 +407,7 @@ class TestDeletion(unittest.TestCase):
         self.assert_('a' not in p)
 
     def testDeletionPI_12_Frozen_ValuesOnly(self):
-        p = TreeDict()
+        p = makeTDInstance()
 
         p.x = 1
 
@@ -421,7 +421,7 @@ class TestDeletion(unittest.TestCase):
         self.assert_(p.x == 1)
 
     def testDeletionPI_13_Frozen_ValuesOnly(self):
-        p = TreeDict()
+        p = makeTDInstance()
 
         p.a.x = 1
 
@@ -435,7 +435,7 @@ class TestDeletion(unittest.TestCase):
         self.assert_(p.a.x == 1)
 
     def testDeletionPI_14_Frozen_ValuesOnly(self):
-        p = TreeDict()
+        p = makeTDInstance()
 
         p.a.x = 1
 

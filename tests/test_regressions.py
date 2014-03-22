@@ -42,7 +42,7 @@ class TestRegressions(unittest.TestCase):
         self.assert_(t.get("c", []) == [])
 
     def testFromdict_with_get_01_control(self):
-        t = TreeDict()
+        t = makeTDInstance()
         t.update({'a':1,'b':2})
 
         self.assert_(t.get("c", []) == [])
@@ -50,7 +50,7 @@ class TestRegressions(unittest.TestCase):
     def testFromdict_with_get_02(self):
         t1 = TreeDict.fromdict({'a':1,'b':2})
         
-        t2 = TreeDict()
+        t2 = makeTDInstance()
         t2.update({'a':1,'b':2})
 
         self.assert_(t1 == t2)

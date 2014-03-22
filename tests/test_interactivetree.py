@@ -40,7 +40,7 @@ import random
 
 from common import *
 
-class TestInteractiveTreeDict(unittest.TestCase):
+class TestInteractivemakeTDInstance(unittest.TestCase):
 
     
     ############################################################

@@ -35,17 +35,20 @@ from hashlib import md5
 import random
 
 from common import *
+import common
 
 class TestCentralSystem(unittest.TestCase):
 
     def testRecall_01(self):
-        self.assert_(not treedict.treeExists('testtree'))
+        name = 'testtree-%d' % common._inheritance_level
 
-        p = treedict.getTree('testtree')
+        self.assert_(not treedict.treeExists(name))
 
-        self.assert_(treedict.treeExists('testtree'))
+        p = treedict.getTree(name)
 
-        p2 = treedict.getTree('testtree')
+        self.assert_(treedict.treeExists(name))
+
+        p2 = treedict.getTree(name)
         
         self.assert_(p is p2)
 

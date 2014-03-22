@@ -39,19 +39,19 @@ from common import *
 class TestProperties(unittest.TestCase):
 
     def testIsDangling_01(self):
-        p1 = TreeDict()
+        p1 = makeTDInstance()
         p1.a
 
         self.assert_(p1.a.isDangling())
 
     def testIsDangling_02(self):
-        p1 = TreeDict()
+        p1 = makeTDInstance()
         p1.a.b
 
         self.assert_(p1.a.isDangling())
         
     def testIsDangling_03(self):
-        p1 = TreeDict()
+        p1 = makeTDInstance()
         p1.a.b = 1
 
         self.assert_(not p1.a.isDangling())
@@ -82,29 +82,29 @@ class TestProperties(unittest.TestCase):
         self.assert_(not p1.a.isDangling())
 
     def testisEmpty_01(self):
-        p = TreeDict('emptytest')
+        p = makeTDInstance('emptytest')
         self.assert_(p.isEmpty())
 
     def testisEmpty_02(self):
-        p = TreeDict('emptytest')
+        p = makeTDInstance('emptytest')
         p.a.b = 2
         self.assert_(not p.isEmpty())
         self.assert_(not p.a.isEmpty())
         
     def testisEmpty_03_key_deletion(self):
-        p = TreeDict('emptytest')
+        p = makeTDInstance('emptytest')
         p.a = 2
         del p.a
         self.assert_(p.isEmpty())
 
     def testisEmpty_04_dangling_nodes(self):
-        p = TreeDict()
+        p = makeTDInstance()
         p.a
         self.assert_(p.isEmpty())
 
 
     def testMutability_01(self):
-        p1 = TreeDict('root')
+        p1 = makeTDInstance('root')
 
         p1.a = (13, (123, 32))
         p1.b = 123
@@ -119,7 +119,7 @@ class TestProperties(unittest.TestCase):
 
         
     def testMutability_02(self):
-        p1 = TreeDict('root')
+        p1 = makeTDInstance('root')
 
         p1.a = (13, (123, 32))
         p1.b = 123
@@ -136,14 +136,14 @@ class TestProperties(unittest.TestCase):
     def testMutability_03(self):
         # Makes sure that stored branches are handled correctly
         
-        p1 = TreeDict('root')
+        p1 = makeTDInstance('root')
         
         p1.a = (13, (123, 32))
         p1.b = 123
         p1.c.a = 145
         p1.c.b = "1231321321231321"
         
-        p2 = TreeDict('node')
+        p2 = makeTDInstance('node')
 
         p2.a = 432
 
@@ -160,7 +160,7 @@ class TestProperties(unittest.TestCase):
         self.assert_(not p1.isMutable())
         
     def testFreezingValues_01(self):
-        p1 = TreeDict('root')
+        p1 = makeTDInstance('root')
         
         p1.a = (13, (123, 32))
         p1.b = 123
@@ -176,7 +176,7 @@ class TestProperties(unittest.TestCase):
         self.assert_(p1.c.isFrozen())
 
     def testFreezingStructure_01(self):
-        p = TreeDict()
+        p = makeTDInstance()
 
         p.a = 1
 
@@ -194,7 +194,7 @@ class TestProperties(unittest.TestCase):
     # Sizing
 
     def testSize_01_empty(self):
-        p = TreeDict()
+        p = makeTDInstance()
 
         self.assert_(len(p) == 0, len(p))
         self.assert_(p.size() == 0, p.size())
@@ -203,7 +203,7 @@ class TestProperties(unittest.TestCase):
         self.assert_(p.size(recursive = False, branch_mode = "only") == 0)
         
     def testSize_02_dangling(self):
-        p = TreeDict()
+        p = makeTDInstance()
         p.a
         self.assert_(len(p) == 0)
         self.assert_(p.size() == 0)
@@ -213,7 +213,7 @@ class TestProperties(unittest.TestCase):
         
 
     def testSize_03_dangling(self):
-        p = TreeDict()
+        p = makeTDInstance()
 
         p.makeBranch("a")
         p.a.b
@@ -225,7 +225,7 @@ class TestProperties(unittest.TestCase):
         self.assert_(p.size(recursive = False, branch_mode = "all") == 1)
 
     def testSize_03b_dangling(self):
-        p = TreeDict()
+        p = makeTDInstance()
         p.a.b
         self.assert_(len(p) == 0)
         self.assert_(p.size() == 0)
@@ -234,7 +234,7 @@ class TestProperties(unittest.TestCase):
         self.assert_(p.size(recursive = False, branch_mode = "only") == 0)
     
     def testSize_04_dangling(self):
-        p = TreeDict()
+        p = makeTDInstance()
         p.a.v = 1
         p.a.b
         self.assert_(len(p) == 1)
@@ -244,7 +244,7 @@ class TestProperties(unittest.TestCase):
         self.assert_(p.size(recursive = False, branch_mode = "only") == 1)
 
     def testSize_05_dangling(self):
-        p = TreeDict()
+        p = makeTDInstance()
         p.a.b.c.d.e
         p.a.b.c = 1
 
@@ -255,7 +255,7 @@ class TestProperties(unittest.TestCase):
         self.assert_(p.size(recursive = False, branch_mode = "only") == 1)
 
     def testSize_06(self):
-        p = TreeDict()
+        p = makeTDInstance()
 
         p.a = 1
         p.b.c = 2
@@ -270,7 +270,7 @@ class TestProperties(unittest.TestCase):
     def testSize_07_large_recursive(self):
         n = 500
 
-        p = TreeDict()
+        p = makeTDInstance()
         kl = random_node_list(0, n, 0.75)
 
         for i, k in enumerate(kl):

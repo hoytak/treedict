@@ -9,6 +9,25 @@ from copy import deepcopy, copy
 from hashlib import md5
 import base64, time
 
+# a global switch to determine whether the inheritance method is used or not.
+
+_inheritance_level = 0
+
+class TDLvl1(TreeDict):
+    pass
+
+class TDLvl2(TDLvl1):
+    pass
+
+def makeTDInstance(*args, **kwargs):
+    if _inheritance_level == 0:
+        return TreeDict(*args, **kwargs)
+    elif _inheritance_level == 1:
+        return TDLvl1(*args, **kwargs)
+    elif _inheritance_level == 2:
+        return TDLvl2(*args, **kwargs)
+    else:
+        assert False
 
 md5keyhash = md5(str(time.clock()).encode('ascii'))
 
@@ -19,10 +38,10 @@ def unique_name():
                           if str(c).isalnum()))[:6]
 
 def empty_tree():
-    return TreeDict(unique_name())
+    return makeTDInstance(unique_name())
 
 def sample_tree():
-    p = TreeDict(unique_name())
+    p = makeTDInstance(unique_name())
     p.adsfff = 34
     p.bddkeed = 45
     p.cwqod.ada = "ads"
@@ -34,7 +53,7 @@ def sample_tree():
     return p
 
 def basic_walking_test():
-    p = TreeDict()
+    p = makeTDInstance()
 
     p.a.b.v = 1
     p.a.v = 1
@@ -98,7 +117,7 @@ def random_node_list(seed, n, dp):
 
 def random_tree(seed = 0, n = 100):
 
-    t = TreeDict()
+    t = makeTDInstance()
 
     for k in random_node_list(seed, n, 0.75):
         t[k] = unique_object()
