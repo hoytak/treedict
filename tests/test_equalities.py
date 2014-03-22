@@ -77,8 +77,8 @@ class TestEqualities(unittest.TestCase):
         self.assert_(t1 != t2)
 
     def test_EqualitySubtree(self):
-        t1 = TreeDict()
-        t2 = TreeDict()
+        t1 = makeTDInstance()
+        t2 = makeTDInstance()
         
         t1.a = 1
         t2.a = 2
@@ -89,57 +89,57 @@ class TestEqualities(unittest.TestCase):
         self.assert_(t1 != t2)
 
     def testEqualityEmpty(self):
-        self.assert_(TreeDict() == TreeDict())
+        self.assert_(makeTDInstance() == makeTDInstance())
         
     def testEqualityOneEmpty(self):
-        p1 = TreeDict()
-        p2 = TreeDict()
+        p1 = makeTDInstance()
+        p2 = makeTDInstance()
         p1.a = 1
 
         self.assert_(p1 != p2)
 
     def testEqualityWithDanglingNode_01(self):
-        p1 = TreeDict()
-        p2 = TreeDict()
+        p1 = makeTDInstance()
+        p2 = makeTDInstance()
         p1.a
 
         self.assert_(p1 == p2)
 
 
     def testEqualityWithDanglingNode_02(self):
-        p1 = TreeDict()
-        p2 = TreeDict()
+        p1 = makeTDInstance()
+        p2 = makeTDInstance()
         p1.a
         p2.a
 
         self.assert_(p1 == p2)
 
     def testEqualityWithDanglingNode_03(self):
-        p1 = TreeDict()
-        p2 = TreeDict()
+        p1 = makeTDInstance()
+        p2 = makeTDInstance()
         p1.a
         p2.b
 
         self.assert_(p1 == p2)
 
     def testEqualityWithDanglingNode_04(self):
-        p1 = TreeDict()
-        p2 = TreeDict()
+        p1 = makeTDInstance()
+        p2 = makeTDInstance()
         p1.a = 1
         p2.a
 
         self.assert_(p1 != p2)
 
     def testEqualityWithDanglingNode_05(self):
-        p1 = TreeDict()
-        p2 = TreeDict()
+        p1 = makeTDInstance()
+        p2 = makeTDInstance()
         p1.a = p1.b
 
         self.assert_(p1 == p2)
 
     def testEqualityWithDanglingNode_06(self):
-        p1 = TreeDict()
-        p2 = TreeDict()
+        p1 = makeTDInstance()
+        p2 = makeTDInstance()
         p1.a = p1.b
         p2.a = p2.b
 

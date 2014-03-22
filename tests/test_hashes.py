@@ -42,30 +42,30 @@ class TestHashes(unittest.TestCase):
     # Hashes
 
     def testhashes_01(self):
-        p1 = TreeDict('hashes_test_tree')
+        p1 = makeTDInstance('hashes_test_tree')
         p1.asdf = "1234"
         
-        p2 = TreeDict('hashes_test_tree')
+        p2 = makeTDInstance('hashes_test_tree')
         p2.asdf = "1234"
 
         self.assert_(len(p1.hash()) != 0)
         self.assert_(p1.hash() == p2.hash())
 
     def testhashes_02(self):
-        p1 = TreeDict('hashes_test_tree')
+        p1 = makeTDInstance('hashes_test_tree')
         p1.asdf = "1234"
         
-        p2 = TreeDict('hashes_test_tree')
+        p2 = makeTDInstance('hashes_test_tree')
         p2.asdf = "1235"
 
         self.assert_(len(p1.hash()) != 0)
         self.assert_(p1.hash() != p2.hash())
         
     def testhashes_03(self):
-        p1 = TreeDict('hashes_test_tree')
+        p1 = makeTDInstance('hashes_test_tree')
         p1.asdf = "1234"
         
-        p2 = TreeDict('hashes_test_tree')
+        p2 = makeTDInstance('hashes_test_tree')
         p2.asdf = "1234"
 
         self.assert_(len(p1.hash("asdf")) != 0)
@@ -73,30 +73,30 @@ class TestHashes(unittest.TestCase):
 
 
     def testhashes_04(self):
-        p1 = TreeDict('hashes_test_tree')
+        p1 = makeTDInstance('hashes_test_tree')
         p1.asdf = 221.12345139
         
-        p2 = TreeDict('hashes_test_tree')
+        p2 = makeTDInstance('hashes_test_tree')
         p2.asdf = 221.12345139
 
         self.assert_(len(p1.hash("asdf")) != 0)
         self.assert_(p1.hash("asdf") == p2.hash("asdf"))
 
     def testhashes_05(self):
-        p1 = TreeDict('hashes_test_tree')
+        p1 = makeTDInstance('hashes_test_tree')
         p1.asdf = 1234498484884499393939999324322432
          
-        p2 = TreeDict('hashes_test_tree')
+        p2 = makeTDInstance('hashes_test_tree')
         p2.asdf = 1234498484884499393939999324322432
 
         self.assert_(len(p1.hash("asdf")) != 0)
         self.assert_(p1.hash("asdf") == p2.hash("asdf"))
 
     def testhashes_06(self):
-        p1 = TreeDict('hashes_test_tree')
+        p1 = makeTDInstance('hashes_test_tree')
         p1.asdf  = 1234498484884499393939999324322432
         
-        p2 = TreeDict('hashes_test_tree')
+        p2 = makeTDInstance('hashes_test_tree')
         p2.a.b.c = 1234498484884499393939999324322432
 
         self.assert_(len(p1.hash("asdf")) != 0)
@@ -104,20 +104,20 @@ class TestHashes(unittest.TestCase):
         self.assert_(p1.hash("asdf") != p2.hash("a.b"))
 
     def testhashes_07(self):
-        p1 = TreeDict('hashes_test_tree')
+        p1 = makeTDInstance('hashes_test_tree')
         p1.asdf = 1234498484884499393939999324322432
         
-        p2 = TreeDict('hashes_test_tree')
+        p2 = makeTDInstance('hashes_test_tree')
         p2.a.b.asdf = 1234498484884499393939999324322432
 
         self.assert_(len(p1.hash("asdf")) != 0)
         self.assert_(p1.hash("asdf") == p2.hash("a.b.asdf"))
 
     def testhashes_08(self):
-        p1 = TreeDict('hashes_test_tree')
+        p1 = makeTDInstance('hashes_test_tree')
         p1.asdf = 1234498484884499393939999324322432
         
-        p2 = TreeDict('hashes_test_tree')
+        p2 = makeTDInstance('hashes_test_tree')
         p2.a.b.notasdf = 1234498484884499393939999324322432
 
         self.assert_(len(p1.hash("asdf")) != 0)
@@ -126,10 +126,10 @@ class TestHashes(unittest.TestCase):
         self.assert_(p2.a.b.hash() == p2.hash("a.b"))
 
     def testhashes_09(self):
-        p1 = TreeDict('hashes_test_tree')
+        p1 = makeTDInstance('hashes_test_tree')
         p1.a.b.c.asdf = 123
         
-        p2 = TreeDict('hashes_test_tree')
+        p2 = makeTDInstance('hashes_test_tree')
         p2.a.b.asdf = 123
 
         self.assert_(len(p1.hash("a.b.c.asdf")) != 0)
@@ -139,28 +139,28 @@ class TestHashes(unittest.TestCase):
         self.assert_(p2.a.b.hash() == p2.hash("a.b"))
 
     def testhashes_10(self):
-        p1 = TreeDict('hashes_test_tree')
+        p1 = makeTDInstance('hashes_test_tree')
         p1.a.b.c.asdf = deepcopy(test_object)
         
-        p2 = TreeDict('hashes_test_tree')
+        p2 = makeTDInstance('hashes_test_tree')
         p2.a.b.c.asdf = deepcopy(test_object)
 
         self.assert_(p1.hash() == p2.hash())
 
     def testhashes_11(self):
-        p1 = TreeDict('hashes_test_tree')
+        p1 = makeTDInstance('hashes_test_tree')
         p1.a.b.c.asdf = deepcopy(test_tuple)
         
-        p2 = TreeDict('hashes_test_tree')
+        p2 = makeTDInstance('hashes_test_tree')
         p2.a.b.c.asdf = deepcopy(test_tuple)
 
         self.assert_(p1.hash() == p2.hash())
 
     def testhashes_12(self):
-        p1 = TreeDict('hashes_test_tree')
+        p1 = makeTDInstance('hashes_test_tree')
         p1.a.b.c.asdf = deepcopy(test_list)
         
-        p2 = TreeDict('hashes_test_tree')
+        p2 = makeTDInstance('hashes_test_tree')
         p2.a.b.c.asdf = deepcopy(test_list)
         
         self.assert_(p1.hash() == p2.hash())
@@ -184,8 +184,8 @@ class TestHashes(unittest.TestCase):
         self.assert_(p1.hash() == h)
 
     def testhashes_15_attaching(self):
-        p1 = TreeDict('root')
-        p1.b1 = TreeDict('b1')
+        p1 = makeTDInstance('root')
+        p1.b1 = makeTDInstance('b1')
 
         h = p1.hash()
 
@@ -194,9 +194,9 @@ class TestHashes(unittest.TestCase):
         self.assert_(p1.hash() != h)
 
     def testhashes_15_attaching(self):
-        p1 = TreeDict('root')
-        p1.b1 = TreeDict('b1')
-        p1.b1.b2 = TreeDict('b2')
+        p1 = makeTDInstance('root')
+        p1.b1 = makeTDInstance('b1')
+        p1.b1.b2 = makeTDInstance('b2')
 
         h = p1.hash()
 
@@ -205,7 +205,7 @@ class TestHashes(unittest.TestCase):
         self.assert_(p1.hash() != h)
         
     def testhashes_16_pythonkeys(self):
-        p1 = TreeDict()
+        p1 = makeTDInstance()
         p1.a.b = 123
 
         def f(): return {p1 : 0}
@@ -219,7 +219,7 @@ class TestHashes(unittest.TestCase):
 
 
     def testhashes_17_pythonkeys(self):
-        p1 = TreeDict()
+        p1 = makeTDInstance()
         p1.a.b = [123, 43]
         p1.freeze()
 
@@ -242,23 +242,23 @@ class TestHashes(unittest.TestCase):
         self.assert_(p1.hash() != p2.hash())
 
     def testhashes_19_Keys_01_reversing(self):
-        p = TreeDict(a = 1, b = 2, c = 3)
+        p = makeTDInstance(a = 1, b = 2, c = 3)
         self.assert_(p.hash(keys=['a', 'b']) == p.hash(keys=['b', 'a']))
 
     def testhashes_19_Keys_02_full(self):
-        p = TreeDict(a = 1, b = 2, c = 3)
+        p = makeTDInstance(a = 1, b = 2, c = 3)
         self.assert_(p.hash(keys=['a', 'b', 'c']) == p.hash())
 
     def testhashes_19_Keys_03_single(self):
-        p = TreeDict(a = 1, b = 2, c = 3)
+        p = makeTDInstance(a = 1, b = 2, c = 3)
         self.assert_(p.hash(keys=['a']) == p.hash('a'))
 
     def testhashes_19_Keys_04_nonintersection(self):
-        p = TreeDict(a = 1, b = 2, c = 3)
+        p = makeTDInstance(a = 1, b = 2, c = 3)
         self.assert_(p.hash(keys=['a', 'b']) != p.hash(keys=['a','c']))
 
     def testhashes_20a_infinite_recursion_raises_error(self):
-        p = TreeDict()
+        p = makeTDInstance()
 
         p.makeBranch("a")
 
@@ -267,7 +267,7 @@ class TestHashes(unittest.TestCase):
         self.assertRaises(RuntimeError, lambda: p.hash())
         
     def testhashes_20b_infinite_recursion_raises_error__frozen(self):
-        p = TreeDict()
+        p = makeTDInstance()
 
         p.makeBranch("a")
 
@@ -280,7 +280,7 @@ class TestHashes(unittest.TestCase):
 
     def testHashError_01(self):
 
-        p = TreeDict()
+        p = makeTDInstance()
 
         p.a.b = lambda: None
 
@@ -293,7 +293,7 @@ class TestHashes(unittest.TestCase):
         
     def testHashError_02(self):
 
-        p = TreeDict()
+        p = makeTDInstance()
 
         p.a.b = [lambda: None]
 
@@ -306,7 +306,7 @@ class TestHashes(unittest.TestCase):
 
     def testHashError_03(self):
 
-        p = TreeDict()
+        p = makeTDInstance()
 
         p.a.b = {'a' : lambda: None}
 
@@ -319,7 +319,7 @@ class TestHashes(unittest.TestCase):
 
     def testHashError_05_custom(self):
 
-        p = TreeDict()
+        p = makeTDInstance()
 
         class HType:
             def __init__(self):

@@ -87,7 +87,7 @@ class TestPickling(unittest.TestCase):
 
     def testPickling_Dangling_01(self):
 
-        p = TreeDict()
+        p = makeTDInstance()
         p.a
 
         p2 = pickle.loads(pickle.dumps(p, protocol=2))
@@ -96,7 +96,7 @@ class TestPickling(unittest.TestCase):
 
     def testPickling_Dangling_02(self):
 
-        p = TreeDict()
+        p = makeTDInstance()
         p.a = p.b
 
         p2 = pickle.loads(pickle.dumps(p, protocol=2))
@@ -105,7 +105,7 @@ class TestPickling(unittest.TestCase):
 
     def testPickling_Dangling_03(self):
 
-        p = TreeDict()
+        p = makeTDInstance()
         p.a = p.b = p.c
         
         p.b = 2
@@ -116,7 +116,7 @@ class TestPickling(unittest.TestCase):
 
     def testPicklingWithIteratorReferencing(self):
 
-        p = TreeDict()
+        p = makeTDInstance()
 
         p.a = 1
         p.b = 2

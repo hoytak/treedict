@@ -57,7 +57,7 @@ class TestSetting(unittest.TestCase):
         self.assert_(p.get("a") == 123)
 
     def testSetGet03(self):
-        p = TreeDict()
+        p = makeTDInstance()
         p.a.b.c.d.e.f = 1
         self.assert_(p.get("a.b.c.d.e.f") == 1)
 
@@ -211,7 +211,7 @@ class TestSetting(unittest.TestCase):
         self.assert_(p.a is v1)
 
     def testSet_10_validation_first(self):
-        p = TreeDict()
+        p = makeTDInstance()
         v1 = (1,2,3)
         v2 = (3,2,1)
 
@@ -266,7 +266,7 @@ class TestSetting(unittest.TestCase):
         self.assertRaises(TypeError, lambda: p.set('a'))
 
     def testSet_19_overwriting_value_with_branch_01_okay(self):
-        p = TreeDict()
+        p = makeTDInstance()
 
         p.a = 12
 
@@ -275,7 +275,7 @@ class TestSetting(unittest.TestCase):
         self.assert_(p.a.b.c == 1)
 
     def testSet_19_overwriting_value_with_branch_02_nochange_on_bad(self):
-        p = TreeDict()
+        p = makeTDInstance()
 
         p.a = 12
 
@@ -287,14 +287,14 @@ class TestSetting(unittest.TestCase):
         self.assert_(p == pc)
 
     def testSet_19_overwriting_value_with_branch_03_error(self):
-        p = TreeDict()
+        p = makeTDInstance()
 
         p.a = 12
 
         self.assertRaises(TypeError, lambda: p.set("a.b.c", 1, protect_structure = True))
 
     def testSet_20_setting_linked_branch_01(self):
-        p = TreeDict()
+        p = makeTDInstance()
 
         p.a = p.defs.a1
 
@@ -303,7 +303,7 @@ class TestSetting(unittest.TestCase):
         self.assert_(p.a.v == 1)
 
     def testSet_20_setting_linked_branch_02(self):
-        p = TreeDict()
+        p = makeTDInstance()
 
         p.a = p.defs.a1
 
@@ -311,70 +311,70 @@ class TestSetting(unittest.TestCase):
 
         self.assert_(p.a.v == 1)
 
-    def testSet_21_Setting_ThroughTreeDict_01(self):
-        p = TreeDict()
+    def testSet_21_Setting_ThroughmakeTDInstance_01(self):
+        p = makeTDInstance()
 
-        p.a.b = TreeDict()
+        p.a.b = makeTDInstance()
 
         p.set("a.b.c.d.x", 1)
 
         self.assert_(p.a.b.c.d.x == 1)
         self.assert_(p.a.b.isRoot())
 
-    def testSet_21_Setting_ThroughTreeDict_02(self):
-        p = TreeDict()
-        p.a.b = TreeDict()
+    def testSet_21_Setting_ThroughmakeTDInstance_02(self):
+        p = makeTDInstance()
+        p.a.b = makeTDInstance()
         p["a.b.c.d.x"] = 1
 
         self.assert_(p.a.b.c.d.x == 1)
         self.assert_(p.a.b.isRoot())
 
     def testSetInit_01(self):
-        p = TreeDict(a = 1, b = 2)
+        p = makeTDInstance(a = 1, b = 2)
         self.assert_(p.a == 1)
         self.assert_(p.b == 2)
 
 
     def testSet_30_ValueFrozen_01(self):
-        p = TreeDict(a = 1, b = 2)
+        p = makeTDInstance(a = 1, b = 2)
         p.freeze(values_only = True)
 
         p.c = 3
 
 
     def testSet_30_ValueFrozen_02(self):
-        p = TreeDict(a = 1)
+        p = makeTDInstance(a = 1)
         p.freeze(values_only = True)
 
         self.assertRaises(TypeError, lambda: p.set('a', 2))
 
     def testSet_30_ValueFrozen_03(self):
-        p = TreeDict()
+        p = makeTDInstance()
         p.a.b = 1
         p.freeze(values_only = True)
 
         p.a.c = 3
 
     def testSet_30_ValueFrozen_04(self):
-        p = TreeDict()
+        p = makeTDInstance()
         p.a.b = 1
         p.freeze(values_only = True)
 
         self.assertRaises(TypeError, lambda: p.set('a', 2))
 
     def testSet_30_ValueFrozen_05(self):
-        p = TreeDict()
+        p = makeTDInstance()
         p.a.b = 1
         p.a.freeze(values_only = True)
 
         p.a = 2
 
     def testSet_30_ValueFrozen_06_proper_Exception(self):
-        p = TreeDict()
+        p = makeTDInstance()
         self.assertRaises(ValueError, lambda: p.freeze(structure_only = True, values_only = True))
 
     def testSet_30_ValueFrozen_07(self):
-        p = TreeDict()
+        p = makeTDInstance()
         p.a.b.c = 1
         p.freeze(values_only = True)
 
@@ -417,7 +417,7 @@ class TestSetting(unittest.TestCase):
         self.assert_(p1 == p2)
 
     def testDrySet_04_value_overwrite(self):
-        p = TreeDict()
+        p = makeTDInstance()
         p.b = 1
 
         p_before = p.copy()
@@ -427,7 +427,7 @@ class TestSetting(unittest.TestCase):
         self.assert_(p_before == p)
 
     def testDrySet_05_makeBranch_Frozen(self):
-        p = TreeDict()
+        p = makeTDInstance()
         p.makeBranch('b')
         p.b.freeze()
 
@@ -438,7 +438,7 @@ class TestSetting(unittest.TestCase):
         self.assert_(p_before == p)
 
     def testDrySet_06_makeBranch_Frozen_StructureOnly(self):
-        p = TreeDict()
+        p = makeTDInstance()
         p.makeBranch('b')
         p.b.freeze(structure_only = True)
 
@@ -449,7 +449,7 @@ class TestSetting(unittest.TestCase):
         self.assert_(p_before == p)
 
     def testDrySet_07_makeBranch_Frozen_StructureOnly_Okay(self):
-        p = TreeDict()
+        p = makeTDInstance()
         p.b.a = 1
         p.b.freeze(structure_only = True)
 
@@ -463,7 +463,7 @@ class TestSetting(unittest.TestCase):
         self.assert_(p_before == p)
 
     def testDrySet_08_makeBranch_Frozen_StructureOnly_Okay(self):
-        p = TreeDict()
+        p = makeTDInstance()
         p.b.a = 1
         p.b.freeze(structure_only = True)
 
@@ -475,7 +475,7 @@ class TestSetting(unittest.TestCase):
         self.assert_(p_before == p)
 
     def testDrySet_10_makeBranch_Frozen_ValuesOnly_01(self):
-        p = TreeDict()
+        p = makeTDInstance()
         p.b.a = 1
         p.freeze(values_only = True)
 
@@ -486,7 +486,7 @@ class TestSetting(unittest.TestCase):
         self.assert_(p_before == p)
 
     def testDrySet_10_makeBranch_Frozen_ValuesOnly_01b(self):
-        p = TreeDict()
+        p = makeTDInstance()
         p.b.a = 1
         p.b.freeze(values_only = True) # only freeze branch, checkset from base
 
@@ -497,7 +497,7 @@ class TestSetting(unittest.TestCase):
         self.assert_(p_before == p)
 
     def testDrySet_10_makeBranch_Frozen_ValuesOnly_02(self):
-        p = TreeDict()
+        p = makeTDInstance()
         p.b.a = 1
         p.b.freeze(structure_only = True)
 
@@ -623,7 +623,7 @@ class TestSetting(unittest.TestCase):
     def testFromDict_01(self):
         t = TreeDict.fromdict({'a.x' : 1, 'a.y' : 2, 'z' : 3})
 
-        t2 = TreeDict()
+        t2 = makeTDInstance()
         t2.z = 3
         t2.a.x = 1
         t2.a.y = 2
@@ -634,7 +634,7 @@ class TestSetting(unittest.TestCase):
         t = TreeDict.fromdict({'a' : {'x' : 1, 'y' : 2}, 'z' : 3},
                               expand_nested = True)
 
-        t2 = TreeDict()
+        t2 = makeTDInstance()
         t2.z = 3
         t2.a.x = 1
         t2.a.y = 2
@@ -652,7 +652,7 @@ class TestSetting(unittest.TestCase):
         self.assert_(t.a is t)
 
     def testOrdering_01(self):
-        t = TreeDict()
+        t = makeTDInstance()
 
         t.a = 1
         t.b = 2
@@ -662,7 +662,7 @@ class TestSetting(unittest.TestCase):
 
     def testOrdering_02(self):
 
-        t = TreeDict()
+        t = makeTDInstance()
 
         t.a   = 1
         t.b.c = 2

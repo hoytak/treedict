@@ -171,12 +171,20 @@ cdef inline str catNames(str s1, str s2):
         return s1 + '.' + s2
 
 cdef inline str validateKey(s):
-    if type(s) is str:
+    if isinstance(s, str):
         return s
-    elif type(s) is unicode:
+    elif isinstance(s, unicode):
         return str(s)
     else:
         raise TypeError("Key name must be string or unicode.")
+
+# ################################################################################
+# # Resolving TreeDict types from values that are possibly inherited
+# cdef TreeDict resolveTreeDictType(t):
+
+
+
+
 
 ################################################################################
 # Unique values meant for special cases
@@ -286,8 +294,8 @@ cdef _runValueHash(hf, value):
         for v in (<tuple>value):
             _runValueHash(hf, v)
 
-    elif type(value) is TreeDict:
-        hf( (<TreeDict>value)._self_hash() )
+    elif isinstance(value, TreeDict):
+        hf( (<TreeDict?>value)._self_hash() )
 
     elif hasattr(value, "__treedict_hash__"):
         try:
@@ -414,6 +422,27 @@ cdef inline int itemType(v):
     
     return t_Immutable_Complex
             
+def check_type(t):
+
+    print "isinstance(t, TreeDict) = ", isinstance(t, TreeDict)
+    print "isinstance(t, (TreeDict,)) = ", isinstance(t, (TreeDict,))
+    print "type(t) is TreeDict = ", type(t) is TreeDict
+
+    # print "isinstance(super(t), TreeDict) = ", isinstance(super(t), TreeDict)
+    # print "type(super(t)) is TreeDict = ", type(super(t)) is TreeDict
+
+    # print "isinstance(super(super(t)), TreeDict) = ", isinstance(super(super(t)), TreeDict)
+    # print "type(super(super(t))) is TreeDict = ", type(super(super(t))) is TreeDict
+
+    cdef TreeDict t2 = t
+
+    print "isinstance(t2, TreeDict); = ", isinstance(t2, TreeDict);
+    print "isinstance(t2, (TreeDict,)) = ", isinstance(t2, (TreeDict,))
+    print "type(t2) is TreeDict = ", type(t2) is TreeDict
+
+    print len(t2._param_dict)
+
+
 
 
 ########################################
@@ -435,7 +464,7 @@ cdef class _PTreeNode(object):
 
         self._v = v
 
-        if type(v) is TreeDict:
+        if isinstance(v, TreeDict):
             if ((<TreeDict>v)._parent() is node) and ((<TreeDict>v)._name == key):
                 self._t = t_Branch
             else:
@@ -1031,7 +1060,7 @@ cdef class TreeDict(object):
 
         cdef TreeDict p = newTreeDict(s_default_tree_name, False)
 
-        if type(d) is not dict:
+        if not isinstance(d, dict):
             d = dict(d)
 
         if mapping_function is not None:
@@ -1229,12 +1258,12 @@ cdef class TreeDict(object):
 
                     d[k] = t
 
-            elif expand_lists and type(pn.value()) is list:
+            elif expand_lists and isinstance(pn.value(), list):
                 l = <list>pn.value()
                 new_list = [None]*len(l)
 
                 for 0 <= i < len(l):
-                    if type(l[i]) is TreeDict:
+                    if isinstance(l[i], TreeDict):
                         id_val = id(l[i])
 
                         if id_val not in prev_treedict_map:
@@ -1400,9 +1429,9 @@ cdef class TreeDict(object):
         for i from 0 <= i < n_argsets:
             k = args[2*i]
 
-            if type(k) is unicode:
+            if isinstance(k, unicode):
                 k = str(k)
-            elif not type(k) is str:
+            elif not isinstance(k, str):
                 raise TypeError("Name argument (%d, '%s') not string." % (i, repr(k)))
 
             if len(<str>k) == 0:
@@ -1418,7 +1447,7 @@ cdef class TreeDict(object):
 
         #TEST
         for k, v in kwargs.iteritems():
-            if not type(k) is str:
+            if not isinstance(k, str):
                 raise TypeError("Name argument '%s' not string." % repr(k))
 
             self._set(<str>k, v, flags | f_check_only)
@@ -1507,11 +1536,11 @@ cdef class TreeDict(object):
 
             if (gsp & f_protect_structure):
 
-                if lpn.isTree() and type(v) is not TreeDict:
+                if lpn.isTree() and not isinstance(v, TreeDict):
                     raise TypeError("Branch/Tree '%s' would be overwritten by value."
                                     % self._fullNameOf(k))
 
-                elif (not lpn.isTree()) and type(v) is TreeDict:
+                elif (not lpn.isTree()) and isinstance(v, TreeDict):
                     raise TypeError("Value '%s' would be overwritten by Branch/Tree."
                                     % self._fullNameOf(k))
 
@@ -1608,7 +1637,7 @@ cdef class TreeDict(object):
         else:
             b = self.get(branch)
 
-            if not type(b) is TreeDict:
+            if not isinstance(b, TreeDict):
                 if not quiet:
                     raise TypeError("Cannot freeze non-branch value at key '%s'" % branch)
                 else:
@@ -1643,7 +1672,7 @@ cdef class TreeDict(object):
             else: raise e
 
     def __delitem__(self, k):
-        if type(k) is not str:
+        if not isinstance(k, str):
             raise KeyError(repr(k))
 
         try:
@@ -2032,10 +2061,10 @@ cdef class TreeDict(object):
                 else:
                     raise TypeError("Either `recursive` must be True or a tree or key must be given.")
 
-            if type(tree_or_key) is str:
+            if isinstance(tree_or_key, str):
                 key = <str>tree_or_key
 
-            elif type(tree_or_key) is TreeDict:
+            elif isinstance(tree_or_key, TreeDict):
                 if tree is not None:
                     raise TypeError("Only one TreeDict instance can be given to attach.")
 
@@ -2704,7 +2733,7 @@ cdef class TreeDict(object):
             _setFlagOff(&self._flags, f_getattr_called)
 
     def __getitem__(self, key):
-        if type(key) is not str:
+        if not isinstance(key, str):
             raise KeyError("'%s' (Indexing keys must be strings, not %s)"
                            % (repr(key), repr(type(key))))
 
@@ -2776,7 +2805,7 @@ cdef class TreeDict(object):
             else: raise e
 
     cdef bint exists(self, k):
-        if type(k) is not str or k is None:
+        if not isinstance(k, str) or k is None:
             return False
         else:
             return self._exists(<str>k, False)
@@ -2946,7 +2975,7 @@ cdef class TreeDict(object):
             if not only_new:
                 v = self._get(name, False)
 
-                if type(v) is TreeDict:
+                if isinstance(v, TreeDict):
                     return v
                 else:
                     raise ValueError("'%s' already exists as non-branch key; cannot create new branch."
@@ -3058,18 +3087,18 @@ cdef class TreeDict(object):
 
         cdef bint are_equal
 
-        if type(p1) is not TreeDict:
+        if not isinstance(p1, TreeDict):
             if DEBUG_MODE:
-                assert type(p2) is TreeDict
+                assert isinstance(p2, TreeDict)
 
             if isinstance(p1, dict):
                 are_equal = (dict((<TreeDict>p2).iteritems()) == p1)
             else:
                 are_equal = False
 
-        elif type(p2) is not TreeDict:
+        elif not isinstance(p2, TreeDict):
             if DEBUG_MODE:
-                assert type(p1) is TreeDict
+                assert isinstance(p1, TreeDict)
 
             if isinstance(p2, dict):
                 are_equal = (dict((<TreeDict>p1).iteritems()) == p2)
@@ -3271,7 +3300,7 @@ cdef class TreeDict(object):
                 if key is not None:
                     return self._item_hash(key)
                 elif keys is not None:
-                    key_set = keys if type(keys) is set else set(keys)
+                    key_set = keys if isinstance(keys, set) else set(keys)
 
                     if len(<set>key_set) == self._size(True, i_BranchMode_None):
                         return self._self_hash()
@@ -3672,13 +3701,13 @@ cdef class TreeDict(object):
         cdef TreeDict p
 
         try:
-            if type(source) is TreeDict:
+            if isinstance(source, TreeDict):
                 self._update(<TreeDict>source, flags | f_check_only)
                 self._update(<TreeDict>source, flags | f_already_checked)
 
             else:
                 p = newTreeDict(s_default_tree_name, False)
-                if type(source) is dict:
+                if isinstance(source, dict):
                     p._setAll(None, <dict>source, 0)
                 else:
                     p._setAll(None, dict(source), 0)
@@ -3830,8 +3859,8 @@ cdef class TreeDict(object):
             for t, k in (<list>self._aux_dict[s_copy_referencing_keys]):
 
                 if DEBUG_MODE:
-                    assert type(t) is TreeDict
-                    assert type(k) is str
+                    assert isinstance(t, TreeDict)
+                    assert isinstance(k, str)
 
                 (<TreeDict>t)._setLocal(k, p, f_already_checked)
 
@@ -4001,7 +4030,7 @@ cdef class TreeDict(object):
         if branch_mode is None:
             return i_BranchMode_None
 
-        if type(branch_mode) is not str:
+        if not isinstance(branch_mode, str):
             raise TypeError(_branch_mode_error_msg)
 
         try:

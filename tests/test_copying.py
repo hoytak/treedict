@@ -42,7 +42,7 @@ class TestCopying(unittest.TestCase):
     # Copying the tree
 
     def testCopying_01(self):
-        p1 = TreeDict('root')
+        p1 = makeTDInstance('root')
         p1.a = 123
 
         p2 = copy(p1)
@@ -51,7 +51,7 @@ class TestCopying(unittest.TestCase):
         self.assert_(p1.hash() == p2.hash())
         
     def testCopying_01d(self):
-        p1 = TreeDict('root')
+        p1 = makeTDInstance('root')
         p1.a = 123
 
         p2 = deepcopy(p1)
@@ -60,7 +60,7 @@ class TestCopying(unittest.TestCase):
         self.assert_(p1.hash() == p2.hash())
 
     def testCopying_02_dangling(self):
-        p1 = TreeDict('root')
+        p1 = makeTDInstance('root')
         p1.a
 
         p2 = copy(p1)
@@ -69,7 +69,7 @@ class TestCopying(unittest.TestCase):
         self.assert_(p1.hash() == p2.hash())
 
     def testCopying_02d_dangling(self):
-        p1 = TreeDict('root')
+        p1 = makeTDInstance('root')
         p1.a
 
         p2 = deepcopy(p1)
@@ -79,7 +79,7 @@ class TestCopying(unittest.TestCase):
 
     def testCopying_03_Dangling_AttributeError(self):
         
-        p = TreeDict()
+        p = makeTDInstance()
 
         def f():
             p.a.b.copy()
@@ -88,7 +88,7 @@ class TestCopying(unittest.TestCase):
 
     def testCopying_04_dangling_AttributeError_correct_node(self):
         
-        p = TreeDict()
+        p = makeTDInstance()
         ae_msg = ''
 
         try:
@@ -103,7 +103,7 @@ class TestCopying(unittest.TestCase):
 
     def testCopying_05(self):
         
-        p = TreeDict('root')
+        p = makeTDInstance('root')
         b = p.makeBranch('b').copy()
 
         self.assert_(p.b.branchName() == 'b', p.b.branchName())
@@ -113,7 +113,7 @@ class TestCopying(unittest.TestCase):
 
     def testCopying_05b(self):
         
-        p = TreeDict('root')
+        p = makeTDInstance('root')
         b = copy(p.makeBranch('b'))
 
         self.assert_(p.b.branchName() == 'b', p.b.branchName())
@@ -123,7 +123,7 @@ class TestCopying(unittest.TestCase):
 
     def testCopying_05c(self):
         
-        p = TreeDict('root')
+        p = makeTDInstance('root')
         b = deepcopy(p.makeBranch('b'))
 
         self.assert_(p.b.branchName() == 'b', p.b.branchName())
@@ -171,7 +171,7 @@ class TestCopying(unittest.TestCase):
                      p.b.branchName(add_path = True, add_tree_name = True))
 
     def testCopying_06_setting_linked_branch_02_copy(self):
-        p = TreeDict()
+        p = makeTDInstance()
 
         p.a = p.defs.a1
 
@@ -185,7 +185,7 @@ class TestCopying(unittest.TestCase):
         self.assert_(p2.a.v == 2)
 
     def testCopying_06_setting_linked_branch_04_deepcopy_func(self):
-        p = TreeDict()
+        p = makeTDInstance()
 
         p.a = p.defs.a1
 
@@ -199,7 +199,7 @@ class TestCopying(unittest.TestCase):
         self.assert_(p2.a.v == 2)
 
     def testCopying_07_unfrozen(self):
-        p = TreeDict()
+        p = makeTDInstance()
 
         p.x = 1
         p.b.c.x = 2
@@ -225,13 +225,13 @@ class TestCopying(unittest.TestCase):
 
     def testCopying_07a_Regression(self):
 
-        p = TreeDict()
+        p = makeTDInstance()
 
         p.a.b = [1,2,3,4,534]
         p.a.c = [1,22,534]
         p.b   = [1,2,3]
 
-        p2 = TreeDict()
+        p2 = makeTDInstance()
 
         p2.a.b = [1,2,3,4,534]
         p2.a.c = [1,22,534]
@@ -244,7 +244,7 @@ class TestCopying(unittest.TestCase):
 
     def testCopying_07a_Regression_mutability_count_test(self):
         
-        p = TreeDict()
+        p = makeTDInstance()
 
         p.a.b = [1,2,3,4,534]
         p.a.c = [1,22,534]
@@ -257,7 +257,7 @@ class TestCopying(unittest.TestCase):
 
     def testCopying_07b_Regression_empty_branches(self):
 
-        p = TreeDict()
+        p = makeTDInstance()
         p.makeBranch("a")
 
         p2 = copy(p)
@@ -267,11 +267,11 @@ class TestCopying(unittest.TestCase):
         self.assert_(p2.a.parentNode() is p2)
         self.assert_(p.a is not p2.a)
 
-    def testCopying_08_TreeDictValues(self):
+    def testCopying_08_makeTDInstanceValues(self):
 
-        p = TreeDict()
+        p = makeTDInstance()
 
-        ab = p.a.b = TreeDict()
+        ab = p.a.b = makeTDInstance()
 
         q = p.copy()
 
@@ -281,7 +281,7 @@ class TestCopying(unittest.TestCase):
 
     def testCopying_09_LinkedValuesPreserved(self):
 
-        p = TreeDict()
+        p = makeTDInstance()
         p.a.x = 1
         p.al = p.a
 
@@ -292,7 +292,7 @@ class TestCopying(unittest.TestCase):
         
     def testCopying_09_LinkedValuesPreserved(self):
 
-        p = TreeDict()
+        p = makeTDInstance()
         p.a.x = 1
         p.b = p.a
 
@@ -303,7 +303,7 @@ class TestCopying(unittest.TestCase):
 
     def testCopying_09_LinkedValuesPreserved_Reversed(self):
 
-        p = TreeDict()
+        p = makeTDInstance()
         p.b.x = 1
         p.a = p.b
 
@@ -314,7 +314,7 @@ class TestCopying(unittest.TestCase):
 
     def testCopying_09_LinkedValuesPreserved(self):
 
-        p = TreeDict()
+        p = makeTDInstance()
         p.a.x = 1
         p.b = p.a
 
@@ -325,7 +325,7 @@ class TestCopying(unittest.TestCase):
 
     def testCopying_10_Cousins(self):
 
-        p = TreeDict()
+        p = makeTDInstance()
         p.a.c.x = 1
         p.b.c = p.a.c
 
@@ -337,7 +337,7 @@ class TestCopying(unittest.TestCase):
 
     def testCopying_10_Cousins_subcopy(self):
 
-        p = TreeDict()
+        p = makeTDInstance()
         p.a.c.x = 1
         p.b.c = p.a.c
         p.b.d.x = 1
@@ -370,7 +370,7 @@ class TestCopying(unittest.TestCase):
 
         for k, v in p.iteritems(branch_mode='all', recursive = True):
 
-            if type(v) is TreeDict:
+            if type(v) is makeTDInstance:
 
                 pbn = p[k].branchName(add_path = True)
                 qbn = q[k].branchName(add_path = True)
@@ -397,7 +397,7 @@ class TestCopying(unittest.TestCase):
 
             for k, v in b.iteritems(branch_mode='all', recursive = True):
 
-                if type(v) is TreeDict:
+                if type(v) is makeTDInstance:
 
                     pbn = v.branchName(add_path = True)
                     qbn = q[k].branchName(add_path = True)

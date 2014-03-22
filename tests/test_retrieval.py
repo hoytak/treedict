@@ -67,13 +67,13 @@ class TestRetrieval(unittest.TestCase):
 
 
     def test_existance_06_dangling_node(self):
-        p = TreeDict('roor')
+        p = makeTDInstance('roor')
         p.a
 
         self.assert_('a' not in p)
 
     def test_existance_06b_dangling_node(self):
-        p = TreeDict('roor')
+        p = makeTDInstance('roor')
 
         p.b = 123
         p.a
@@ -82,7 +82,7 @@ class TestRetrieval(unittest.TestCase):
         self.assert_('a' not in p)
 
     def test_existance_06c_dangling_node(self):
-        p = TreeDict('roor')
+        p = makeTDInstance('roor')
 
         p.b = 123
         p.a
@@ -95,14 +95,14 @@ class TestRetrieval(unittest.TestCase):
         self.assert_('bb' in p)
 
     def testExistanceThroughLink(self):
-        p = TreeDict()
+        p = makeTDInstance()
         p.a.b.link = p.d
         p.d.v = 1
         
         self.assert_('a.b.link.v' in p)
             
     def testContains_01(self):
-        p1 = TreeDict()
+        p1 = makeTDInstance()
         p1.a.b = 123
         
         self.assert_('a' in p1)
@@ -112,7 +112,7 @@ class TestRetrieval(unittest.TestCase):
 
 
     def testContains_02(self):
-        p1 = TreeDict()
+        p1 = makeTDInstance()
         p1.a.b = 123
         p1.d
         
@@ -121,7 +121,7 @@ class TestRetrieval(unittest.TestCase):
         self.assert_('d' not in p1)
 
     def testForwardReference(self):
-        p = TreeDict('test')
+        p = makeTDInstance('test')
 
         p.a.b.c = p.d.e.f
 
@@ -130,7 +130,7 @@ class TestRetrieval(unittest.TestCase):
         self.assert_(p.a.b.c.g == 10)
 
     def testDefaultValue_01(self):
-        p = TreeDict()
+        p = makeTDInstance()
         p.a.b = 123
 
         self.assert_(p.get('a.b') == 123)
@@ -140,7 +140,7 @@ class TestRetrieval(unittest.TestCase):
 
 
     def testRetrieve_01_NonExistantBranchFromFrozenTree(self):
-        p = TreeDict()
+        p = makeTDInstance()
         p.a.b.c = 1
         p.freeze()
 
@@ -149,7 +149,7 @@ class TestRetrieval(unittest.TestCase):
         self.assertRaises(AttributeError, lambda: p.a.d)
 
     def testRetrieve_02_NonExistantBranchFromFrozenTree_control(self):
-        p = TreeDict()
+        p = makeTDInstance()
         p.a.b.c = 1
         # control; no freeze
 
@@ -158,7 +158,7 @@ class TestRetrieval(unittest.TestCase):
         p.a.d
 
     def testRetrieve_03_ThroughLink(self):
-        p = TreeDict()
+        p = makeTDInstance()
         p.a.b.link = p.d
         p.d.v = 1
 
@@ -166,7 +166,7 @@ class TestRetrieval(unittest.TestCase):
         self.assert_(p.get("a.b.link.v") == 1)
 
     def testRetrieve_04_ThroughMultipleLinks(self):
-        p = TreeDict()
+        p = makeTDInstance()
 
         p.l7.v = 1
 
@@ -187,22 +187,22 @@ class TestRetrieval(unittest.TestCase):
 
     def testNonexistantValues_01(self):
 
-        p = TreeDict()
+        p = makeTDInstance()
         self.assertRaises(KeyError, lambda: p["a"])
 
     def testNonexistantValues_02(self):
 
-        p = TreeDict()
+        p = makeTDInstance()
         self.assertRaises(KeyError, lambda: p[0])
 
     def testNonexistantValues_03(self):
 
-        p = TreeDict()
+        p = makeTDInstance()
         self.assertRaises(KeyError, lambda: p[None])
 
     def testNonexistantValues_04(self):
 
-        p = TreeDict()
+        p = makeTDInstance()
         p.freeze()
         self.assertRaises(AttributeError, lambda: p.a)
 
@@ -211,7 +211,7 @@ class TestRetrieval(unittest.TestCase):
 
     def testConvertTo_01(self):
         
-        t = TreeDict()
+        t = makeTDInstance()
         t.z = 3
         t.a.x = 1
         t.a.y = 2
@@ -230,7 +230,7 @@ class TestRetrieval(unittest.TestCase):
 
     def testConvertTo_03_self_linked_01(self):
 
-        t = TreeDict()
+        t = makeTDInstance()
         t.makeBranch('b')
         t.a.b = t.b
         t.b.a = t.a
@@ -256,7 +256,7 @@ class TestRetrieval(unittest.TestCase):
 
     def testConvertTo_04_root_linked_01(self):
 
-        t = TreeDict()
+        t = makeTDInstance()
         t.a = t
 
         d = t.convertTo('nested_dict')
@@ -265,7 +265,7 @@ class TestRetrieval(unittest.TestCase):
 
     def testConvertTo_04_root_linked_02(self):
 
-        t = TreeDict()
+        t = makeTDInstance()
         t.a.b.c = t
         t.a.b.x = t.a
 
@@ -277,7 +277,7 @@ class TestRetrieval(unittest.TestCase):
 
     def testConvertTo_05_only_local_as_values_01(self):
 
-        t = TreeDict()
+        t = makeTDInstance()
 
         t.x.y = 1
         t.a.b.c = 1
@@ -293,13 +293,13 @@ class TestRetrieval(unittest.TestCase):
         self.assert_(d['b']['c'] == 1)
 
         # TreeDict values are only converted if they are a branch somewhere in the 
-        self.assert_(type(d['b']['xl']) is TreeDict)
-        self.assert_(type(d['xl']) is TreeDict)
+        self.assert_(isinstance(d['b']['xl'], TreeDict))
+        self.assert_(isinstance(d['xl'], TreeDict))
         self.assert_(d['xl'] is d['b']['xl'])
 
     def testConvertTo_05_only_local_as_values_01_control(self):
 
-        t = TreeDict()
+        t = makeTDInstance()
 
         t.x.y = 1
         t.a.b.c = 1
@@ -321,7 +321,7 @@ class TestRetrieval(unittest.TestCase):
 
     def testConvertTo_05_only_local_as_values_02(self):
 
-        t = TreeDict()
+        t = makeTDInstance()
 
         t.x.y = 1
         t.a.b.c = 1
@@ -347,13 +347,13 @@ class TestRetrieval(unittest.TestCase):
             self.assert_(get_value(d, n) is d['b'])
 
         for n in x_refs:
-            self.assert_(type(get_value(d, n)) is TreeDict)
+            self.assert_(isinstance(get_value(d, n), TreeDict))
             self.assert_(get_value(d, n) is t.x)
 
 
     def testConvertTo_06_prune_empty_01(self):
 
-        t = TreeDict()
+        t = makeTDInstance()
 
         t.makeBranch('a')
 
@@ -363,7 +363,7 @@ class TestRetrieval(unittest.TestCase):
 
     def testConvertTo_06_prune_empty_02(self):
 
-        t = TreeDict()
+        t = makeTDInstance()
 
         t.a.x = 1
         t.a.makeBranch('b')
@@ -378,20 +378,20 @@ class TestRetrieval(unittest.TestCase):
         
 
     def testConvertTo_07_lists(self):
-        t = TreeDict()
+        t = makeTDInstance()
 
-        t.a.b = [1, TreeDict(x = 1)]
+        t.a.b = [1, makeTDInstance(x = 1)]
 
         d = t.convertTo('nested_dict', expand_lists = False)
 
-        self.assert_(d == {'a' : {'b' : [1, TreeDict(x = 1)]}})
+        self.assert_(d == {'a' : {'b' : [1, makeTDInstance(x = 1)]}})
         
         d2 = t.convertTo('nested_dict', expand_lists = True)
 
         self.assert_(d2 == {'a' : {'b' : [1, {'x' : 1} ]}})
 
     def testConvertTo_08_self_referencing_lists(self):
-        t = TreeDict()
+        t = makeTDInstance()
 
         t.a = [t]
 

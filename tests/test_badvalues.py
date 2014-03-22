@@ -67,7 +67,7 @@ class TestBadValues(unittest.TestCase):
 
 
     def testAttackWithNone_prune(self):
-        p = TreeDict()
+        p = makeTDInstance()
         self.assertRaises(TypeError, lambda: p.prune(None))
 
     def testAttackWithNone_attach(self):

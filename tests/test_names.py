@@ -40,13 +40,13 @@ from common import *
 
 class TestNames(unittest.TestCase):
     def testRoot(self):
-        p = TreeDict('a')
+        p = makeTDInstance('a')
         self.assert_(p.branchName(add_tree_name=True) == 'a')
         self.assert_(p.treeName() == 'a')
         self.assert_(p.branchName() == '')
 
     def testBranchName01(self):
-        p = TreeDict('a')
+        p = makeTDInstance('a')
         b = p.makeBranch('b')
 
         self.assert_(b.branchName() == 'b', b.branchName())
@@ -57,7 +57,7 @@ class TestNames(unittest.TestCase):
         self.assert_(p._branchNameOf('b') == 'b', p._branchNameOf('b'))
 
     def testBranchNameEmptyTreeName(self):
-        p = TreeDict('')
+        p = makeTDInstance('')
         b = p.makeBranch('b')
 
         self.assert_(b.branchName(add_path = True, add_tree_name=True) == '.b',
@@ -67,7 +67,7 @@ class TestNames(unittest.TestCase):
         self.assert_(p._branchNameOf('b') == 'b', p._branchNameOf('b'))
 
     def test_dotInTreeName(self):
-        p = TreeDict('a.b')
+        p = makeTDInstance('a.b')
         b = p.makeBranch('c')
 
         self.assert_(b.branchName(add_path = True, add_tree_name=True) == 'a.b.c',

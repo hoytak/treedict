@@ -55,34 +55,34 @@ class TestDictBehavior(unittest.TestCase):
 
     def testDictBehavior_02(self):
         
-        p = TreeDict()
+        p = makeTDInstance()
         p.a = 123
 
         self.assert_( ("%(a)d" % p) == "123")
 
     def testDictBehavior_03(self):
         
-        p = TreeDict()
+        p = makeTDInstance()
         p.a.b.c = 123
 
         self.assert_( ("%(a.b.c)d" % p) == "123")
 
     def testDictBehavior_04(self):
-        p = TreeDict()
+        p = makeTDInstance()
         v = ("borkborkbork", 123)
         p["a"] = v
 
         self.assert_(p.a is v)
 
     def testDictBehavior_05(self):
-        p = TreeDict()
+        p = makeTDInstance()
         v = ("borkborkbork", 123)
         p["a.b.c"] = v
 
         self.assert_(p.a.b.c is v)
 
     def testDictBehavior_06_clear_01(self):
-        p = TreeDict()
+        p = makeTDInstance()
 
         p["a"] = 1
         
@@ -99,7 +99,7 @@ class TestDictBehavior(unittest.TestCase):
         self.assert_(len(p) == 0)
 
     def testDictBehavior_07_FromKeys_01(self):
-        p = TreeDict()
+        p = makeTDInstance()
         d = {}
 
         key_iterable = ["alphabet"]
@@ -107,7 +107,7 @@ class TestDictBehavior(unittest.TestCase):
         self.assert_(p.fromkeys(key_iterable) == d.fromkeys(key_iterable))
         
     def testDictBehavior_07_FromKeys_02(self):
-        p = TreeDict()
+        p = makeTDInstance()
         d = {}
         v = ["asdfadsf"]
 
@@ -116,7 +116,7 @@ class TestDictBehavior(unittest.TestCase):
         self.assert_(p.fromkeys(key_iterable, v) == d.fromkeys(key_iterable, v))
 
     def testDictBehavior_08_equality_tests(self):
-        p = TreeDict()
+        p = makeTDInstance()
 
         p.v = 1
         p.a.b.c = 2
@@ -154,7 +154,7 @@ class TestDictBehavior(unittest.TestCase):
 
     def testDictBehavior_09_setdefault_03(self):
 
-        p = TreeDict()
+        p = makeTDInstance()
         p.a.aa.aaa.b = 123
         p.a.aa.aaa.c = 1324
         
@@ -169,7 +169,7 @@ class TestDictBehavior(unittest.TestCase):
 
     def testDictBehavior_09_setdefault_04(self):
 
-        p = TreeDict()
+        p = makeTDInstance()
         p.a = 123
         
         d = dict(p.iteritems())
@@ -183,7 +183,7 @@ class TestDictBehavior(unittest.TestCase):
 
     def testDictBehavior_09_setdefault_05(self):
 
-        p = TreeDict()
+        p = makeTDInstance()
         p.a = 123
         
         d = dict(p.iteritems())
@@ -196,7 +196,7 @@ class TestDictBehavior(unittest.TestCase):
         self.assert_(p == d)
 
     def testDictBehavior_10_straight_iteration(self):
-        p = TreeDict()
+        p = makeTDInstance()
 
         d = {'a.b.x' : 1, 'b.x' : 2, 'd.b.c' : 3}
 

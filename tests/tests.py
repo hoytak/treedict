@@ -27,6 +27,7 @@
 
 
 import unittest, sys
+import common
 
 if __name__ == '__main__':
     dtl = unittest.defaultTestLoader
@@ -78,8 +79,19 @@ if __name__ == '__main__':
         import gc       
         start_count = len(gc.get_objects())
 
+        print "Running tests with base TreeDict module."
+        common._inheritance_level = 0
         unittest.TextTestRunner(verbosity=2).run(ts)
+        gc.collect()
 
+        print "Running tests with inherited class."
+        common._inheritance_level = 1
+        unittest.TextTestRunner(verbosity=2).run(ts)
+        gc.collect()
+
+        print "Running tests with twice-inherited class."
+        common._inheritance_level = 2
+        unittest.TextTestRunner(verbosity=2).run(ts)
         gc.collect()
 
         end_count = len(gc.get_objects())
@@ -87,4 +99,14 @@ if __name__ == '__main__':
         print ("After running tests, there are %d more objects tracked by the tracker."
                % (end_count - start_count))
     else:
+        print "Running tests with base TreeDict module."
+        common._inheritance_level = 0
+        unittest.TextTestRunner().run(ts)
+
+        print "Running tests with inherited class."
+        common._inheritance_level = 1
+        unittest.TextTestRunner().run(ts)
+
+        print "Running tests with twice-inherited class."
+        common._inheritance_level = 2
         unittest.TextTestRunner().run(ts)
