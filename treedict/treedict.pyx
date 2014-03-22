@@ -178,14 +178,6 @@ cdef inline str validateKey(s):
     else:
         raise TypeError("Key name must be string or unicode.")
 
-# ################################################################################
-# # Resolving TreeDict types from values that are possibly inherited
-# cdef TreeDict resolveTreeDictType(t):
-
-
-
-
-
 ################################################################################
 # Unique values meant for special cases
 
@@ -421,29 +413,6 @@ cdef inline int itemType(v):
         return t_Mutable_Complex
     
     return t_Immutable_Complex
-            
-def check_type(t):
-
-    print "isinstance(t, TreeDict) = ", isinstance(t, TreeDict)
-    print "isinstance(t, (TreeDict,)) = ", isinstance(t, (TreeDict,))
-    print "type(t) is TreeDict = ", type(t) is TreeDict
-
-    # print "isinstance(super(t), TreeDict) = ", isinstance(super(t), TreeDict)
-    # print "type(super(t)) is TreeDict = ", type(super(t)) is TreeDict
-
-    # print "isinstance(super(super(t)), TreeDict) = ", isinstance(super(super(t)), TreeDict)
-    # print "type(super(super(t))) is TreeDict = ", type(super(super(t))) is TreeDict
-
-    cdef TreeDict t2 = t
-
-    print "isinstance(t2, TreeDict); = ", isinstance(t2, TreeDict);
-    print "isinstance(t2, (TreeDict,)) = ", isinstance(t2, (TreeDict,))
-    print "type(t2) is TreeDict = ", type(t2) is TreeDict
-
-    print len(t2._param_dict)
-
-
-
 
 ########################################
 
