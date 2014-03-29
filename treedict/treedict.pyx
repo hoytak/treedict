@@ -694,7 +694,8 @@ cdef class TreeDictIterator(object):
 
     cdef bint _loadNext(self):
 
-        cdef PyObject *k_obj = NULL, *pn_obj = NULL
+        cdef PyObject *k_obj = NULL
+        cdef PyObject *pn_obj = NULL
         cdef bint iter_going
 
         while True:
@@ -3282,7 +3283,7 @@ cdef class TreeDict(object):
             else: raise e
 
     cdef bytes _reportable_hash(self, str key, bytes digest):
-        return key + "-" + digest
+        return <bytes>(key + "-") + digest
 
     cdef bytes _encode_hash(self, bytes s):
         if IS_PYTHON2:
