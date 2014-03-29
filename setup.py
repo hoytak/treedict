@@ -6,7 +6,7 @@
 source_directory_list = ['treedict']
 compiler_args = []
 link_args = []
-version = "0.2.1"
+version = "0.2.2"
 description="A fast and full-featured dict-like tree container to simplify the bookkeeping surrounding parameters, variables and data."
 author = "Hoyt Koepke"
 author_email="hoytak@gmail.com"
@@ -35,6 +35,8 @@ referencing branches to make lists of parameters more readable.
 Version 0.2 adds support for Python 3.
 
 Version 0.2.1 fixes a bug with handling classes that subclass TreeDict.
+
+Version 0.2.2 fixes a bug involving an unsafe cast.
 """
 
 classifiers = [
